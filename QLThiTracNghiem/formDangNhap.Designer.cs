@@ -30,17 +30,20 @@
         {
             this.btnDangNhap = new System.Windows.Forms.Button();
             this.btnThoat = new System.Windows.Forms.Button();
+            this.labelTenDangNhap = new System.Windows.Forms.Label();
+            this.labelMatKhau = new System.Windows.Forms.Label();
+            this.rdoSinhVien = new System.Windows.Forms.RadioButton();
+            this.rdoGiangVien = new System.Windows.Forms.RadioButton();
             this.txtMatKhau = new System.Windows.Forms.TextBox();
-            this.txtTaiKhoan = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.txtTenDangNhap = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // btnDangNhap
             // 
-            this.btnDangNhap.Location = new System.Drawing.Point(320, 259);
+            this.btnDangNhap.Location = new System.Drawing.Point(480, 438);
+            this.btnDangNhap.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnDangNhap.Name = "btnDangNhap";
-            this.btnDangNhap.Size = new System.Drawing.Size(75, 23);
+            this.btnDangNhap.Size = new System.Drawing.Size(112, 35);
             this.btnDangNhap.TabIndex = 0;
             this.btnDangNhap.Text = "Đăng Nhập";
             this.btnDangNhap.UseVisualStyleBackColor = true;
@@ -48,59 +51,89 @@
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(438, 259);
+            this.btnThoat.Location = new System.Drawing.Point(657, 438);
+            this.btnThoat.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnThoat.Name = "btnThoat";
-            this.btnThoat.Size = new System.Drawing.Size(75, 23);
+            this.btnThoat.Size = new System.Drawing.Size(112, 35);
             this.btnThoat.TabIndex = 1;
             this.btnThoat.Text = "Thoát";
             this.btnThoat.UseVisualStyleBackColor = true;
             this.btnThoat.Click += new System.EventHandler(this.btnThoat_Click);
             // 
+            // labelTenDangNhap
+            // 
+            this.labelTenDangNhap.AutoSize = true;
+            this.labelTenDangNhap.Location = new System.Drawing.Point(442, 268);
+            this.labelTenDangNhap.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelTenDangNhap.Name = "labelTenDangNhap";
+            this.labelTenDangNhap.Size = new System.Drawing.Size(121, 20);
+            this.labelTenDangNhap.TabIndex = 4;
+            this.labelTenDangNhap.Text = "Tên Đăng Nhập";
+            // 
+            // labelMatKhau
+            // 
+            this.labelMatKhau.AutoSize = true;
+            this.labelMatKhau.Location = new System.Drawing.Point(462, 328);
+            this.labelMatKhau.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelMatKhau.Name = "labelMatKhau";
+            this.labelMatKhau.Size = new System.Drawing.Size(77, 20);
+            this.labelMatKhau.TabIndex = 5;
+            this.labelMatKhau.Text = "Mật Khẩu";
+            // 
+            // rdoSinhVien
+            // 
+            this.rdoSinhVien.AutoSize = true;
+            this.rdoSinhVien.Location = new System.Drawing.Point(657, 385);
+            this.rdoSinhVien.Name = "rdoSinhVien";
+            this.rdoSinhVien.Size = new System.Drawing.Size(98, 24);
+            this.rdoSinhVien.TabIndex = 7;
+            this.rdoSinhVien.Text = "Sinh viên";
+            this.rdoSinhVien.UseVisualStyleBackColor = true;
+            this.rdoSinhVien.CheckedChanged += new System.EventHandler(this.rdoSinhVien_CheckedChanged);
+            // 
+            // rdoGiangVien
+            // 
+            this.rdoGiangVien.AutoSize = true;
+            this.rdoGiangVien.Checked = true;
+            this.rdoGiangVien.Location = new System.Drawing.Point(480, 385);
+            this.rdoGiangVien.Name = "rdoGiangVien";
+            this.rdoGiangVien.Size = new System.Drawing.Size(155, 24);
+            this.rdoGiangVien.TabIndex = 8;
+            this.rdoGiangVien.TabStop = true;
+            this.rdoGiangVien.Text = "Giảng viên / PGV";
+            this.rdoGiangVien.UseVisualStyleBackColor = true;
+            this.rdoGiangVien.CheckedChanged += new System.EventHandler(this.rdoGiangVien_CheckedChanged);
+            // 
             // txtMatKhau
             // 
-            this.txtMatKhau.Location = new System.Drawing.Point(385, 210);
+            this.txtMatKhau.Location = new System.Drawing.Point(578, 323);
+            this.txtMatKhau.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtMatKhau.Name = "txtMatKhau";
-            this.txtMatKhau.Size = new System.Drawing.Size(100, 20);
+            this.txtMatKhau.Size = new System.Drawing.Size(148, 26);
             this.txtMatKhau.TabIndex = 2;
             this.txtMatKhau.UseSystemPasswordChar = true;
             // 
-            // txtTaiKhoan
+            // txtTenDangNhap
             // 
-            this.txtTaiKhoan.Location = new System.Drawing.Point(385, 171);
-            this.txtTaiKhoan.Name = "txtTaiKhoan";
-            this.txtTaiKhoan.Size = new System.Drawing.Size(100, 20);
-            this.txtTaiKhoan.TabIndex = 3;
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(295, 174);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(84, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Tên Đăng Nhập";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(308, 213);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(53, 13);
-            this.label2.TabIndex = 5;
-            this.label2.Text = "Mật Khẩu";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
+            this.txtTenDangNhap.Location = new System.Drawing.Point(578, 268);
+            this.txtTenDangNhap.Name = "txtTenDangNhap";
+            this.txtTenDangNhap.Size = new System.Drawing.Size(148, 26);
+            this.txtTenDangNhap.TabIndex = 9;
             // 
             // formDangNhap
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.txtTaiKhoan);
+            this.ClientSize = new System.Drawing.Size(1200, 692);
+            this.Controls.Add(this.txtTenDangNhap);
+            this.Controls.Add(this.rdoGiangVien);
+            this.Controls.Add(this.rdoSinhVien);
+            this.Controls.Add(this.labelMatKhau);
+            this.Controls.Add(this.labelTenDangNhap);
             this.Controls.Add(this.txtMatKhau);
             this.Controls.Add(this.btnThoat);
             this.Controls.Add(this.btnDangNhap);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "formDangNhap";
             this.Text = "formDangNhap";
             this.ResumeLayout(false);
@@ -112,9 +145,11 @@
 
         private System.Windows.Forms.Button btnDangNhap;
         private System.Windows.Forms.Button btnThoat;
+        private System.Windows.Forms.Label labelTenDangNhap;
+        private System.Windows.Forms.Label labelMatKhau;
+        private System.Windows.Forms.RadioButton rdoSinhVien;
+        private System.Windows.Forms.RadioButton rdoGiangVien;
         private System.Windows.Forms.TextBox txtMatKhau;
-        private System.Windows.Forms.TextBox txtTaiKhoan;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txtTenDangNhap;
     }
 }
