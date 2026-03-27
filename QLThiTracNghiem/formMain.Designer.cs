@@ -29,145 +29,150 @@
         private void InitializeComponent()
         {
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.hệThốngToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuHeThong = new System.Windows.Forms.ToolStripMenuItem();
             this.đăngXuấtToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.thoátToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.danhMụcToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuDanhMuc = new System.Windows.Forms.ToolStripMenuItem();
             this.mônHọcToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.giáoViênToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lớpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sinhViênToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ngiệpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuNghiepVu = new System.Windows.Forms.ToolStripMenuItem();
             this.bộĐềToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.đăngKíThiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.thiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.báoCáoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuBaoCao = new System.Windows.Forms.ToolStripMenuItem();
             this.bảngĐiểmToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
+            this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.hệThốngToolStripMenuItem,
-            this.danhMụcToolStripMenuItem,
-            this.ngiệpToolStripMenuItem,
-            this.báoCáoToolStripMenuItem});
+            this.menuHeThong,
+            this.menuDanhMuc,
+            this.menuNghiepVu,
+            this.menuBaoCao});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1200, 33);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
-            // hệThốngToolStripMenuItem
+            // menuHeThong
             // 
-            this.hệThốngToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuHeThong.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.đăngXuấtToolStripMenuItem,
             this.thoátToolStripMenuItem});
-            this.hệThốngToolStripMenuItem.Name = "hệThốngToolStripMenuItem";
-            this.hệThốngToolStripMenuItem.Size = new System.Drawing.Size(67, 20);
-            this.hệThốngToolStripMenuItem.Text = "hệ thống";
+            this.menuHeThong.Name = "menuHeThong";
+            this.menuHeThong.Size = new System.Drawing.Size(100, 29);
+            this.menuHeThong.Text = "hệ thống";
             // 
             // đăngXuấtToolStripMenuItem
             // 
             this.đăngXuấtToolStripMenuItem.Name = "đăngXuấtToolStripMenuItem";
-            this.đăngXuấtToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.đăngXuấtToolStripMenuItem.Size = new System.Drawing.Size(193, 34);
             this.đăngXuấtToolStripMenuItem.Text = "đăng xuất";
             this.đăngXuấtToolStripMenuItem.Click += new System.EventHandler(this.dangXuatToolStripMenuItem_Click);
             // 
             // thoátToolStripMenuItem
             // 
             this.thoátToolStripMenuItem.Name = "thoátToolStripMenuItem";
-            this.thoátToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.thoátToolStripMenuItem.Size = new System.Drawing.Size(193, 34);
             this.thoátToolStripMenuItem.Text = "thoát";
             this.thoátToolStripMenuItem.Click += new System.EventHandler(this.thoatToolStripMenuItem_Click);
             // 
-            // danhMụcToolStripMenuItem
+            // menuDanhMuc
             // 
-            this.danhMụcToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuDanhMuc.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mônHọcToolStripMenuItem,
             this.giáoViênToolStripMenuItem,
             this.lớpToolStripMenuItem,
             this.sinhViênToolStripMenuItem});
-            this.danhMụcToolStripMenuItem.Name = "danhMụcToolStripMenuItem";
-            this.danhMụcToolStripMenuItem.Size = new System.Drawing.Size(73, 20);
-            this.danhMụcToolStripMenuItem.Text = "danh mục";
+            this.menuDanhMuc.Name = "menuDanhMuc";
+            this.menuDanhMuc.Size = new System.Drawing.Size(107, 29);
+            this.menuDanhMuc.Text = "danh mục";
             // 
             // mônHọcToolStripMenuItem
             // 
             this.mônHọcToolStripMenuItem.Name = "mônHọcToolStripMenuItem";
-            this.mônHọcToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.mônHọcToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.mônHọcToolStripMenuItem.Text = "môn học";
+            this.mônHọcToolStripMenuItem.Click += new System.EventHandler(this.mônHọcToolStripMenuItem_Click);
             // 
             // giáoViênToolStripMenuItem
             // 
             this.giáoViênToolStripMenuItem.Name = "giáoViênToolStripMenuItem";
-            this.giáoViênToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.giáoViênToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.giáoViênToolStripMenuItem.Text = "giáo viên";
             // 
             // lớpToolStripMenuItem
             // 
             this.lớpToolStripMenuItem.Name = "lớpToolStripMenuItem";
-            this.lớpToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.lớpToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.lớpToolStripMenuItem.Text = "lớp";
             // 
             // sinhViênToolStripMenuItem
             // 
             this.sinhViênToolStripMenuItem.Name = "sinhViênToolStripMenuItem";
-            this.sinhViênToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.sinhViênToolStripMenuItem.Size = new System.Drawing.Size(270, 34);
             this.sinhViênToolStripMenuItem.Text = "sinh viên";
             // 
-            // ngiệpToolStripMenuItem
+            // menuNghiepVu
             // 
-            this.ngiệpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuNghiepVu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.bộĐềToolStripMenuItem,
             this.đăngKíThiToolStripMenuItem,
             this.thiToolStripMenuItem});
-            this.ngiệpToolStripMenuItem.Name = "ngiệpToolStripMenuItem";
-            this.ngiệpToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
-            this.ngiệpToolStripMenuItem.Text = "ngiệp vụ";
+            this.menuNghiepVu.Name = "menuNghiepVu";
+            this.menuNghiepVu.Size = new System.Drawing.Size(107, 29);
+            this.menuNghiepVu.Text = "nghiệp vụ";
             // 
             // bộĐềToolStripMenuItem
             // 
             this.bộĐềToolStripMenuItem.Name = "bộĐềToolStripMenuItem";
-            this.bộĐềToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bộĐềToolStripMenuItem.Size = new System.Drawing.Size(198, 34);
             this.bộĐềToolStripMenuItem.Text = "bộ đề";
             // 
             // đăngKíThiToolStripMenuItem
             // 
             this.đăngKíThiToolStripMenuItem.Name = "đăngKíThiToolStripMenuItem";
-            this.đăngKíThiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.đăngKíThiToolStripMenuItem.Size = new System.Drawing.Size(198, 34);
             this.đăngKíThiToolStripMenuItem.Text = "đăng kí thi";
             // 
             // thiToolStripMenuItem
             // 
             this.thiToolStripMenuItem.Name = "thiToolStripMenuItem";
-            this.thiToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.thiToolStripMenuItem.Size = new System.Drawing.Size(198, 34);
             this.thiToolStripMenuItem.Text = "thi";
             // 
-            // báoCáoToolStripMenuItem
+            // menuBaoCao
             // 
-            this.báoCáoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.menuBaoCao.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.bảngĐiểmToolStripMenuItem});
-            this.báoCáoToolStripMenuItem.Name = "báoCáoToolStripMenuItem";
-            this.báoCáoToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
-            this.báoCáoToolStripMenuItem.Text = "báo cáo";
+            this.menuBaoCao.Name = "menuBaoCao";
+            this.menuBaoCao.Size = new System.Drawing.Size(92, 29);
+            this.menuBaoCao.Text = "báo cáo";
             // 
             // bảngĐiểmToolStripMenuItem
             // 
             this.bảngĐiểmToolStripMenuItem.Name = "bảngĐiểmToolStripMenuItem";
-            this.bảngĐiểmToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.bảngĐiểmToolStripMenuItem.Size = new System.Drawing.Size(200, 34);
             this.bảngĐiểmToolStripMenuItem.Text = "bảng điểm";
             // 
             // formMain
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1200, 692);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "formMain";
             this.Text = "formMain";
+            this.Load += new System.EventHandler(this.formMain_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -178,19 +183,19 @@
         #endregion
 
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem hệThốngToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuHeThong;
         private System.Windows.Forms.ToolStripMenuItem đăngXuấtToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem thoátToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem danhMụcToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuDanhMuc;
         private System.Windows.Forms.ToolStripMenuItem mônHọcToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem giáoViênToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lớpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sinhViênToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ngiệpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuNghiepVu;
         private System.Windows.Forms.ToolStripMenuItem bộĐềToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem đăngKíThiToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem thiToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem báoCáoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuBaoCao;
         private System.Windows.Forms.ToolStripMenuItem bảngĐiểmToolStripMenuItem;
     }
 }
