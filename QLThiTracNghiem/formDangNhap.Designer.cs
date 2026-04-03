@@ -40,10 +40,10 @@
             // 
             // btnDangNhap
             // 
-            this.btnDangNhap.Location = new System.Drawing.Point(480, 438);
+            this.btnDangNhap.Location = new System.Drawing.Point(456, 438);
             this.btnDangNhap.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnDangNhap.Name = "btnDangNhap";
-            this.btnDangNhap.Size = new System.Drawing.Size(112, 35);
+            this.btnDangNhap.Size = new System.Drawing.Size(136, 46);
             this.btnDangNhap.TabIndex = 0;
             this.btnDangNhap.Text = "Đăng Nhập";
             this.btnDangNhap.UseVisualStyleBackColor = true;
@@ -54,7 +54,7 @@
             this.btnThoat.Location = new System.Drawing.Point(657, 438);
             this.btnThoat.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnThoat.Name = "btnThoat";
-            this.btnThoat.Size = new System.Drawing.Size(112, 35);
+            this.btnThoat.Size = new System.Drawing.Size(117, 46);
             this.btnThoat.TabIndex = 1;
             this.btnThoat.Text = "Thoát";
             this.btnThoat.UseVisualStyleBackColor = true;
@@ -109,7 +109,7 @@
             this.txtMatKhau.Location = new System.Drawing.Point(578, 323);
             this.txtMatKhau.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtMatKhau.Name = "txtMatKhau";
-            this.txtMatKhau.Size = new System.Drawing.Size(148, 26);
+            this.txtMatKhau.Size = new System.Drawing.Size(177, 26);
             this.txtMatKhau.TabIndex = 2;
             this.txtMatKhau.UseSystemPasswordChar = true;
             // 
@@ -117,7 +117,7 @@
             // 
             this.txtTenDangNhap.Location = new System.Drawing.Point(578, 268);
             this.txtTenDangNhap.Name = "txtTenDangNhap";
-            this.txtTenDangNhap.Size = new System.Drawing.Size(148, 26);
+            this.txtTenDangNhap.Size = new System.Drawing.Size(177, 26);
             this.txtTenDangNhap.TabIndex = 9;
             // 
             // formDangNhap

@@ -19,9 +19,12 @@ namespace QLThiTracNghiem
 
         private void dangXuatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            formDangNhap f = new formDangNhap();
-            f.Show();
-            this.Close();
+            DialogResult dr = MessageBox.Show("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                // Khởi động lại toàn bộ ứng dụng, dọn sạch biến static và tự động mở lại formDangNhap
+                Application.Restart();
+            }
         }
 
         private void thoatToolStripMenuItem_Click(object sender, EventArgs e)
@@ -65,6 +68,24 @@ namespace QLThiTracNghiem
         {
             formMonHoc f = new formMonHoc();
             f.ShowDialog(); // Mở form Môn học lên
+        }
+
+        private void tạoTàiKhoảnToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formTaoTaiKhoan f = new formTaoTaiKhoan();
+            f.ShowDialog();
+        }
+
+        private void sinhViênToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formLopSinhVien f = new formLopSinhVien();
+            f.ShowDialog();
+        }
+
+        private void bộĐềToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formBoDe f = new formBoDe();
+            f.ShowDialog();
         }
     }
 }

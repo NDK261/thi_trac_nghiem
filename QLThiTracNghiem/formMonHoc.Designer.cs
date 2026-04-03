@@ -71,14 +71,14 @@
             // 
             this.txtTenMH.Location = new System.Drawing.Point(497, 83);
             this.txtTenMH.Name = "txtTenMH";
-            this.txtTenMH.Size = new System.Drawing.Size(100, 26);
+            this.txtTenMH.Size = new System.Drawing.Size(161, 26);
             this.txtTenMH.TabIndex = 3;
             // 
             // btnThem
             // 
-            this.btnThem.Location = new System.Drawing.Point(128, 161);
+            this.btnThem.Location = new System.Drawing.Point(102, 161);
             this.btnThem.Name = "btnThem";
-            this.btnThem.Size = new System.Drawing.Size(75, 33);
+            this.btnThem.Size = new System.Drawing.Size(75, 42);
             this.btnThem.TabIndex = 4;
             this.btnThem.Text = "Thêm";
             this.btnThem.UseVisualStyleBackColor = true;
@@ -86,9 +86,9 @@
             // 
             // btnXoa
             // 
-            this.btnXoa.Location = new System.Drawing.Point(243, 161);
+            this.btnXoa.Location = new System.Drawing.Point(206, 161);
             this.btnXoa.Name = "btnXoa";
-            this.btnXoa.Size = new System.Drawing.Size(75, 33);
+            this.btnXoa.Size = new System.Drawing.Size(75, 42);
             this.btnXoa.TabIndex = 5;
             this.btnXoa.Text = "Xóa";
             this.btnXoa.UseVisualStyleBackColor = true;
@@ -96,9 +96,9 @@
             // 
             // btnSua
             // 
-            this.btnSua.Location = new System.Drawing.Point(350, 161);
+            this.btnSua.Location = new System.Drawing.Point(312, 161);
             this.btnSua.Name = "btnSua";
-            this.btnSua.Size = new System.Drawing.Size(75, 33);
+            this.btnSua.Size = new System.Drawing.Size(75, 42);
             this.btnSua.TabIndex = 6;
             this.btnSua.Text = "Sửa";
             this.btnSua.UseVisualStyleBackColor = true;
@@ -106,9 +106,9 @@
             // 
             // btnGhi
             // 
-            this.btnGhi.Location = new System.Drawing.Point(483, 161);
+            this.btnGhi.Location = new System.Drawing.Point(469, 161);
             this.btnGhi.Name = "btnGhi";
-            this.btnGhi.Size = new System.Drawing.Size(75, 33);
+            this.btnGhi.Size = new System.Drawing.Size(82, 42);
             this.btnGhi.TabIndex = 7;
             this.btnGhi.Text = "Lưu/Ghi";
             this.btnGhi.UseVisualStyleBackColor = true;
@@ -116,9 +116,9 @@
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(588, 161);
+            this.btnThoat.Location = new System.Drawing.Point(583, 161);
             this.btnThoat.Name = "btnThoat";
-            this.btnThoat.Size = new System.Drawing.Size(75, 33);
+            this.btnThoat.Size = new System.Drawing.Size(75, 42);
             this.btnThoat.TabIndex = 8;
             this.btnThoat.Text = "Thoát";
             this.btnThoat.UseVisualStyleBackColor = true;
