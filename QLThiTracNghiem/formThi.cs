@@ -33,7 +33,6 @@ namespace QLThiTracNghiem
         int thoiGianConLai = 0; // Tính bằng giây
 
         // Giả sử các thông tin này được truyền từ màn hình Chọn Môn Thi trước đó
-        // (Để đơn giản cho em test, tôi gán cứng giá trị ở đây. Sau này em truyền từ formMain qua)
         string maLop = "TH04";
         string maMon = "AVCB";
         string trinhDo = "A";
