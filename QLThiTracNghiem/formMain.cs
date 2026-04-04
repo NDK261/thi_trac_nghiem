@@ -87,5 +87,17 @@ namespace QLThiTracNghiem
             formBoDe f = new formBoDe();
             f.ShowDialog();
         }
+
+        private void đăngKíThiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formDangKyThi f = new formDangKyThi();
+            f.ShowDialog();
+        }
+
+        private void thiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formThi f = new formThi();
+            f.ShowDialog();
+        }
     }
 }
