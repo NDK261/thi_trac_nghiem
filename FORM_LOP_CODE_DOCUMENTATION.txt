@@ -1,0 +1,407 @@
+═══════════════════════════════════════════════════════════════════
+                    FORM LỚP - COMPLETE CODE OVERVIEW
+═══════════════════════════════════════════════════════════════════
+
+I. CODE STRUCTURE
+═══════════════════════════════════════════════════════════════════
+
+formLop.cs
+├── Namespace: QLThiTracNghiem
+├── Class: formLop (partial)
+│
+├── PROPERTIES
+│   └── isAdding: bool (Add vs Edit mode flag)
+│
+├── CONSTRUCTOR & LOAD
+│   ├── formLop()
+│   │   └── Initializes dgvLop.SelectionChanged event
+│   └── formLop_Load()
+│       └── LoadData() + SetEditingState(false)
+│
+├── STATE MANAGEMENT
+│   └── SetEditingState(bool editing)
+│       ├── Controls button enable/disable
+│       ├── Controls textbox enable/disable
+│       └── Manages DataGridView interaction
+│
+├── DATA OPERATIONS
+│   ├── LoadData()
+│   │   ├── SP_GET_LOP
+│   │   ├── Configure DataGridView
+│   │   └── Auto-select first row
+│   └── LoadCurrentRowToInput()
+│       └── Populate textboxes from grid row
+│
+├── INPUT MANAGEMENT
+│   ├── ClearInput()
+│   │   └── Clear all textboxes
+│   └── ValidateInput()
+│       ├── Validate MALOP (required, max 10)
+│       ├── Validate TENLOP (required, max 100)
+│       └── Return bool
+│
+├── CRUD OPERATIONS
+│   ├── btnThem_Click()
+│   │   ├── isAdding = true
+│   │   ├── ClearInput()
+│   │   └── SetEditingState(true)
+│   │
+│   ├── btnSua_Click()
+│   │   ├── Check selection
+│   │   ├── isAdding = false
+│   │   └── SetEditingState(true)
+│   │
+│   ├── btnGhi_Click()
+│   │   ├── ValidateInput()
+│   │   ├── if (isAdding) → SP_THEM_LOP
+│   │   ├── else → SP_SUA_LOP
+│   │   └── Check return value
+│   │
+│   └── btnXoa_Click()
+│       ├── Confirm dialog
+│       ├── SP_XOA_LOP
+│       └── Check return value (0=success, 1=error)
+│
+├── SEARCH & NAVIGATION
+│   ├── btnTim_Click()
+│   │   ├── SP_GET_LOP
+│   │   ├── LINQ filter by MALOP or TENLOP
+│   │   └── Display results
+│   │
+│   └── dgvLop_SelectionChanged()
+│       └── LoadCurrentRowToInput()
+│
+└── EXIT
+    └── btnThoat_Click()
+        └── this.Close()
+
+═══════════════════════════════════════════════════════════════════
+
+formLop.Designer.cs
+├── Namespace: QLThiTracNghiem
+├── Partial Class: formLop
+│
+└── InitializeComponent()
+    ├── DECLARE CONTROLS
+    │   ├── label1: Title "QUẢN LÝ THÔNG TIN LỚP"
+    │   ├── txtMaLop: TextBox for class ID
+    │   ├── textTenLop: TextBox for class name
+    │   ├── textKhoa: TextBox for cohort
+    │   ├── textGVChuNhiem: TextBox for advisor
+    │   ├── textTimKiem: TextBox for search
+    │   ├── btnThem: Button "Thêm" (Dark Green)
+    │   ├── btnSua: Button "Sửa" (Blue)
+    │   ├── btnXoa: Button "Xóa" (Red)
+    │   ├── btnGhi: Button "Ghi" (Green)
+    │   ├── btnTim: Button "Tìm Kiếm" (Goldenrod)
+    │   ├── btnThoat: Button "Thoát" (Gray)
+    │   └── dgvLop: DataGridView
+    │
+    ├── CONFIGURE CONTROLS
+    │   ├── Set positions and sizes
+    │   ├── Set colors and fonts
+    │   ├── Set TabIndex and Names
+    │   └── Register event handlers
+    │
+    ├── LAYOUT
+    │   ├── SuspendLayout()
+    │   ├── Add all controls
+    │   └── ResumeLayout()
+    │
+    └── FORM PROPERTIES
+        ├── AutoScaleDimensions: 6F, 13F
+        ├── ClientSize: 871, 507
+        ├── Text: "Quản Lý Lớp"
+        └── Load event: formLop_Load
+
+═══════════════════════════════════════════════════════════════════
+
+II. DATABASE LAYER
+═══════════════════════════════════════════════════════════════════
+
+TABLE: LOP
+┌─────────────────────────────────────────────────────┐
+│ MALOP (nvarchar(10)) - PRIMARY KEY                 │
+├─────────────────────────────────────────────────────┤
+│ TENLOP (nvarchar(100)) - NOT NULL                  │
+├─────────────────────────────────────────────────────┤
+│ KHOA (nvarchar(50)) - NULLABLE                     │
+├─────────────────────────────────────────────────────┤
+│ GVCHUHNIEM (nvarchar(100)) - NULLABLE              │
+└─────────────────────────────────────────────────────┘
+
+STORED PROCEDURES:
+
+1. SP_GET_LOP
+   INPUT:  None
+   OUTPUT: MALOP, TENLOP, KHOA, GVCHUHNIEM
+   LOGIC:  SELECT all rows from LOP, ORDER BY MALOP
+
+2. SP_THEM_LOP
+   INPUT:  @MALOP, @TENLOP, @KHOA, @GVCHUHNIEM
+   RETURN: 0 (success) or 1 (duplicate MALOP)
+   LOGIC:  Check duplicate → INSERT
+
+3. SP_SUA_LOP
+   INPUT:  @MALOP, @TENLOP, @KHOA, @GVCHUHNIEM
+   RETURN: 0 (success) or 1 (not found)
+   LOGIC:  Check exists → UPDATE
+
+4. SP_XOA_LOP
+   INPUT:  @MALOP
+   RETURN: 0 (success) or 1 (has students)
+   LOGIC:  Check students → DELETE
+
+5. SP_TIMKIEM_LOP
+   INPUT:  @TIMKIEM (search key)
+   OUTPUT: MALOP, TENLOP, KHOA, GVCHUHNIEM (filtered)
+   LOGIC:  WHERE MALOP LIKE '%key%' OR TENLOP LIKE '%key%'
+
+═══════════════════════════════════════════════════════════════════
+
+III. MENU INTEGRATION
+═══════════════════════════════════════════════════════════════════
+
+formMain.Designer.cs:
+├── MenuItem: lớpToolStripMenuItem
+│   ├── Name: lớpToolStripMenuItem
+│   ├── Text: "lớp"
+│   ├── Size: 224, 26
+│   └── Click Event: this.lớpToolStripMenuItem_Click
+
+formMain.cs:
+└── lớpToolStripMenuItem_Click()
+    ├── try
+    │   ├── formLop f = new formLop()
+    │   └── f.ShowDialog()
+    └── catch (Exception ex)
+        └── MessageBox.Show(ex.Message)
+
+═══════════════════════════════════════════════════════════════════
+
+IV. FLOW DIAGRAMS
+═══════════════════════════════════════════════════════════════════
+
+LOAD OPERATION:
+    User clicks "danh mục" → "lớp"
+            ↓
+    lớpToolStripMenuItem_Click()
+            ↓
+    new formLop()
+            ↓
+    formLop_Load() called automatically
+            ↓
+    LoadData()
+            ↓
+    SP_GET_LOP executed
+            ↓
+    DataGridView populated
+            ↓
+    SetEditingState(false)
+            ↓
+    Form displayed to user
+
+─────────────────────────────────────────────────────────────────
+
+ADD OPERATION:
+    User clicks "Thêm" button
+            ↓
+    btnThem_Click()
+    ├─ isAdding = true
+    ├─ ClearInput()
+    └─ SetEditingState(true)
+            ↓
+    User enters data and clicks "Ghi"
+            ↓
+    btnGhi_Click()
+    ├─ ValidateInput() checks
+    ├─ SP_THEM_LOP executed
+    └─ Check return value (0 or 1)
+            ↓
+    if success
+    ├─ MessageBox.Show("Cập nhật thành công!")
+    ├─ LoadData()
+    └─ SetEditingState(false)
+            ↓
+    if error
+    ├─ MessageBox.Show("Lỗi: ...")
+    └─ Stay in edit mode
+
+─────────────────────────────────────────────────────────────────
+
+EDIT OPERATION:
+    User selects row from grid
+            ↓
+    dgvLop_SelectionChanged()
+    └─ LoadCurrentRowToInput()
+            ↓
+    User clicks "Sửa" button
+            ↓
+    btnSua_Click()
+    ├─ Check selection
+    ├─ isAdding = false
+    └─ SetEditingState(true)
+            ↓
+    User modifies data and clicks "Ghi"
+            ↓
+    btnGhi_Click()
+    ├─ ValidateInput()
+    ├─ SP_SUA_LOP executed
+    └─ Check return value
+            ↓
+    if success
+    ├─ MessageBox.Show("Cập nhật thành công!")
+    ├─ LoadData()
+    └─ SetEditingState(false)
+
+─────────────────────────────────────────────────────────────────
+
+DELETE OPERATION:
+    User selects row and clicks "Xóa"
+            ↓
+    btnXoa_Click()
+            ↓
+    MessageBox.Show("Confirm delete?")
+            ↓
+    if (DialogResult.Yes)
+    ├─ SP_XOA_LOP executed
+    └─ Check return value
+            ↓
+    if (return value == 0)
+    ├─ MessageBox.Show("Xóa thành công!")
+    ├─ LoadData()
+    └─ ClearInput()
+            ↓
+    if (return value == 1)
+    └─ MessageBox.Show("Không thể xóa vì có sinh viên!")
+
+─────────────────────────────────────────────────────────────────
+
+SEARCH OPERATION:
+    User enters search term in textTimKiem
+            ↓
+    User clicks "Tìm Kiếm"
+            ↓
+    btnTim_Click()
+    ├─ SP_GET_LOP executed
+    ├─ LINQ filter on MALOP and TENLOP
+    ├─ Display filtered DataGridView
+    └─ Auto-select first result
+            ↓
+    User clicks on result or clears search
+
+═══════════════════════════════════════════════════════════════════
+
+V. VALIDATION RULES
+═══════════════════════════════════════════════════════════════════
+
+Input Validation (ValidateInput method):
+
+┌────────────────────────────────────┐
+│ MALOP (Mã Lớp)                     │
+├────────────────────────────────────┤
+│ ✗ Cannot be empty                  │
+│ ✗ Cannot exceed 10 characters      │
+│ ✗ Database: Cannot be duplicate    │
+│ ✓ Required field (*)               │
+└────────────────────────────────────┘
+
+┌────────────────────────────────────┐
+│ TENLOP (Tên Lớp)                   │
+├────────────────────────────────────┤
+│ ✗ Cannot be empty                  │
+│ ✗ Cannot exceed 100 characters     │
+│ ✓ Required field (*)               │
+└────────────────────────────────────┘
+
+┌────────────────────────────────────┐
+│ KHOA (Khóa)                        │
+├────────────────────────────────────┤
+│ ✓ Optional                         │
+│ ✓ No length limit specified        │
+└────────────────────────────────────┘
+
+┌────────────────────────────────────┐
+│ GVCHUHNIEM (GV Chủ Nhiệm)          │
+├────────────────────────────────────┤
+│ ✓ Optional                         │
+│ ✓ No length limit specified        │
+└────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════
+
+VI. ERROR HANDLING
+═══════════════════════════════════════════════════════════════════
+
+All methods wrapped in try-catch:
+
+try
+{
+    // Operation code
+}
+catch (Exception ex)
+{
+    MessageBox.Show("Error message", "Error title");
+}
+
+Return values from SP (always check):
+├─ 0 = Success
+└─ 1 = Error (specific reason in logic)
+
+Error messages displayed to user:
+├─ "Mã lớp không được để trống!"
+├─ "Mã lớp tối đa 10 ký tự!"
+├─ "Tên lớp không được để trống!"
+├─ "Tên lớp tối đa 100 ký tự!"
+├─ "Trùng mã lớp!"
+├─ "Không thể xóa lớp vì có sinh viên!"
+├─ "Xóa thành công!"
+├─ "Cập nhật thành công!"
+└─ "Lỗi: [exception message]"
+
+═══════════════════════════════════════════════════════════════════
+
+VII. STATE MANAGEMENT
+═══════════════════════════════════════════════════════════════════
+
+SetEditingState(bool editing) manages:
+
+NORMAL MODE (editing = false)
+├─ btnThem: Enabled
+├─ btnSua: Enabled
+├─ btnXoa: Enabled
+├─ btnGhi: Disabled
+├─ btnTim: Enabled
+├─ All TextBoxes: Disabled
+└─ dgvLop: Enabled
+
+EDITING MODE (editing = true)
+├─ btnThem: Disabled
+├─ btnSua: Disabled
+├─ btnXoa: Disabled
+├─ btnGhi: Enabled
+├─ btnTim: Disabled
+├─ txtMaLop: Enabled only if isAdding = true
+├─ textTenLop: Enabled
+├─ textKhoa: Enabled
+├─ textGVChuNhiem: Enabled
+└─ dgvLop: Disabled
+
+═══════════════════════════════════════════════════════════════════
+
+VIII. KEY FEATURES
+═══════════════════════════════════════════════════════════════════
+
+✓ Full CRUD operations (Create, Read, Update, Delete)
+✓ Client-side search with LINQ filtering
+✓ Real-time DataGridView population
+✓ Automatic form state management
+✓ Input validation with user feedback
+✓ Error handling with meaningful messages
+✓ Database procedure integration
+✓ Auto-select first row on load
+✓ Toggle between Add and Edit modes
+✓ Prevent deletion of classes with students
+✓ Clear separation of concerns (UI vs Logic vs Data)
+
+═══════════════════════════════════════════════════════════════════
