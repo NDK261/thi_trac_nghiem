@@ -1,0 +1,143 @@
+/* 
+   FORM LỚP - ARCHITECTURE DIAGRAM
+   
+   ┌─────────────────────────────────────────────────────────────────┐
+   │                    QUẢN LÝ THÔNG TIN LỚP                        │
+   │                                                                   │
+   ├─────────────────────────────────────────────────────────────────┤
+   │                                                                   │
+   │  Mã Lớp (*):              [________________]                    │
+   │  Tên Lớp (*):             [________________]                    │
+   │  Khóa:                    [________________]                    │
+   │  GV Chủ Nhiệm:            [________________]                    │
+   │                                                                   │
+   │  Tìm Kiếm:                [________________] [Tìm Kiếm]        │
+   │                                                                   │
+   │  [Thêm] [Sửa] [Xóa] [Ghi] [Thoát]                             │
+   │                                                                   │
+   ├─────────────────────────────────────────────────────────────────┤
+   │                   DANH SÁCH LỚP HỌC                             │
+   │  ┌───────────────────────────────────────────────────────────┐ │
+   │  │ Mã Lớp  │  Tên Lớp  │  Khóa  │  GV Chủ Nhiệm           │ │
+   │  ├─────────┼───────────┼────────┼─────────────────────────┤ │
+   │  │         │           │        │                         │ │
+   │  │         │           │        │                         │ │
+   │  │         │           │        │                         │ │
+   │  │         │           │        │                         │ │
+   │  │         │           │        │                         │ │
+   │  └───────────────────────────────────────────────────────────┘ │
+   │                                                                   │
+   └─────────────────────────────────────────────────────────────────┘
+
+   FUNCTIONALITY FLOW:
+   
+   1. LOAD FORM
+      └─► formLop_Load()
+          └─► LoadData()
+              └─► SP_GET_LOP (Database)
+                  └─► Display DataGridView
+
+   2. SELECT ROW
+      └─► dgvLop_SelectionChanged()
+          └─► LoadCurrentRowToInput()
+              └─► Display in TextBoxes
+
+   3. ADD NEW CLASS
+      └─► btnThem_Click()
+          ├─► ClearInput()
+          ├─► SetEditingState(true)
+          └─► isAdding = true
+
+   4. EDIT CLASS
+      └─► btnSua_Click()
+          ├─► Validate selection
+          ├─► SetEditingState(true)
+          └─► isAdding = false
+
+   5. DELETE CLASS
+      └─► btnXoa_Click()
+          ├─► Confirm deletion
+          └─► SP_XOA_LOP
+              └─► Check if students exist
+                  └─► (1) = Error / (0) = Success
+
+   6. SAVE DATA
+      └─► btnGhi_Click()
+          ├─► ValidateInput()
+          └─► if (isAdding)
+              ├─► SP_THEM_LOP → Check duplicate MALOP
+              │   └─► (1) = Error / (0) = Success
+              └─► else
+                  └─► SP_SUA_LOP → Find MALOP
+                      └─► (1) = Error / (0) = Success
+
+   7. SEARCH
+      └─► btnTim_Click()
+          ├─► Get all data: SP_GET_LOP
+          └─► Filter by MALOP or TENLOP
+              └─► Display filtered results
+
+   DATABASE PROCEDURES:
+   
+   SP_GET_LOP
+   ├─► Input: None
+   └─► Output: MALOP, TENLOP, KHOA, GVCHUHNIEM
+
+   SP_THEM_LOP
+   ├─► Input: @MALOP, @TENLOP, @KHOA, @GVCHUHNIEM
+   ├─► Check: Duplicate MALOP
+   └─► Return: 0 (Success), 1 (Error)
+
+   SP_SUA_LOP
+   ├─► Input: @MALOP, @TENLOP, @KHOA, @GVCHUHNIEM
+   ├─► Check: MALOP exists
+   └─► Return: 0 (Success), 1 (Error)
+
+   SP_XOA_LOP
+   ├─► Input: @MALOP
+   ├─► Check: No students in class
+   └─► Return: 0 (Success), 1 (Error - has students)
+
+   SP_TIMKIEM_LOP
+   ├─► Input: @TIMKIEM (search key)
+   └─► Output: Matching MALOP, TENLOP, KHOA, GVCHUHNIEM
+
+   BUTTON STATES:
+
+   Normal Mode (isAdding = false)
+   ├─► btnThem: Enabled (Add new)
+   ├─► btnSua: Enabled (Edit selected)
+   ├─► btnXoa: Enabled (Delete selected)
+   ├─► btnGhi: Disabled
+   ├─► btnTim: Enabled
+   ├─► All TextBox: Disabled (ReadOnly)
+   └─► dgvLop: Enabled
+
+   Editing Mode (isAdding = true OR editing = true)
+   ├─► btnThem: Disabled
+   ├─► btnSua: Disabled
+   ├─► btnXoa: Disabled
+   ├─► btnGhi: Enabled (Save)
+   ├─► btnTim: Disabled
+   ├─► txtMaLop: Enabled only when adding (can't change on edit)
+   ├─► textTenLop: Enabled
+   ├─► textKhoa: Enabled
+   ├─► textGVChuNhiem: Enabled
+   └─► dgvLop: Disabled
+
+   VALIDATION RULES:
+
+   ✓ Mã Lớp (MALOP)
+     ├─► Required (không được trống)
+     └─► Max 10 characters
+
+   ✓ Tên Lớp (TENLOP)
+     ├─► Required (không được trống)
+     └─► Max 100 characters
+
+   ✓ Khóa (KHOA)
+     └─► Optional
+
+   ✓ GV Chủ Nhiệm (GVCHUHNIEM)
+     └─► Optional
+*/
