@@ -16,7 +16,7 @@ namespace QLThiTracNghiem
         public static string mLogin = "";  // Tên đăng nhập
 
         // Lấy chuỗi Server từ DBHelper (cần chỉnh lại tên Server của máy em nếu cần)
-        public static string serverName = @"localhost";
+        public static string serverName = @"localhost\SQLEXPRESS";
         public static string dbName = "THITRACNGHIEM";
 
         [STAThread]
