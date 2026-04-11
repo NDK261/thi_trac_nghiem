@@ -182,7 +182,7 @@
             // 
             this.lblThoiGian.AutoSize = true;
             this.lblThoiGian.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblThoiGian.Location = new System.Drawing.Point(1509, 45);
+            this.lblThoiGian.Location = new System.Drawing.Point(1500, 43);
             this.lblThoiGian.Name = "lblThoiGian";
             this.lblThoiGian.Size = new System.Drawing.Size(86, 32);
             this.lblThoiGian.TabIndex = 14;
