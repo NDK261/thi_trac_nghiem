@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>QLThiTracNghiem</RootNamespace>
     <AssemblyName>QLThiTracNghiem</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -55,6 +55,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBHelper.cs" />
+    <Compile Include="formBangDiem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formBangDiem.Designer.cs">
+      <DependentUpon>formBangDiem.cs</DependentUpon>
+    </Compile>
     <Compile Include="formBoDe.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -72,6 +78,18 @@
     </Compile>
     <Compile Include="formDangNhap.Designer.cs">
       <DependentUpon>formDangNhap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="formGiaoVien.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formGiaoVien.Designer.cs">
+      <DependentUpon>formGiaoVien.cs</DependentUpon>
+    </Compile>
+    <Compile Include="formLop.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formLop.Designer.cs">
+      <DependentUpon>formLop.cs</DependentUpon>
     </Compile>
     <Compile Include="formLopSinhVien.cs">
       <SubType>Form</SubType>
@@ -109,6 +127,12 @@
     <Compile Include="formThi.Designer.cs">
       <DependentUpon>formThi.cs</DependentUpon>
     </Compile>
+    <Compile Include="formXemKetQua.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="formXemKetQua.Designer.cs">
+      <DependentUpon>formXemKetQua.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="formBoDe.resx">
@@ -119,6 +143,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formDangNhap.resx">
       <DependentUpon>formDangNhap.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formGiaoVien.resx">
+      <DependentUpon>formGiaoVien.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formLop.resx">
+      <DependentUpon>formLop.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="formLopSinhVien.resx">
       <DependentUpon>formLopSinhVien.cs</DependentUpon>
@@ -137,6 +167,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="formThi.resx">
       <DependentUpon>formThi.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="formXemKetQua.resx">
+      <DependentUpon>formXemKetQua.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

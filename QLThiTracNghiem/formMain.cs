@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace QLThiTracNghiem
@@ -19,10 +12,14 @@ namespace QLThiTracNghiem
 
         private void dangXuatToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DialogResult dr = MessageBox.Show("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult dr = MessageBox.Show(
+                "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này?",
+                "Xác nhận",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
             if (dr == DialogResult.Yes)
             {
-                // Khởi động lại toàn bộ ứng dụng, dọn sạch biến static và tự động mở lại formDangNhap
                 Application.Restart();
             }
         }
@@ -34,45 +31,93 @@ namespace QLThiTracNghiem
 
         private void formMain_Load(object sender, EventArgs e)
         {
-            // 1. Phân quyền Menu dựa vào nhóm quyền (mGroup)
-            if (Program.mGroup == "SINHVIEN")
+            string nhom = (Program.mGroup ?? "").Trim().ToUpper();
+
+            // Menu cha vẫn hiện hết
+            menuHeThong.Visible = true;
+            menuDanhMuc.Visible = true;
+            menuNghiepVu.Visible = true;
+            menuBaoCao.Visible = true;
+
+            // Menu cha vẫn bấm mở xuống được
+            menuHeThong.Enabled = true;
+            menuDanhMuc.Enabled = true;
+            menuNghiepVu.Enabled = true;
+            menuBaoCao.Enabled = true;
+
+            // Khóa hết menu con trước
+            tạoTàiKhoảnToolStripMenuItem.Enabled = false;
+
+            mônHọcToolStripMenuItem.Enabled = false;
+            giáoViênToolStripMenuItem.Enabled = false;
+            lớpToolStripMenuItem.Enabled = false;
+            sinhViênToolStripMenuItem.Enabled = false;
+
+            bộĐềToolStripMenuItem.Enabled = false;
+            đăngKíThiToolStripMenuItem.Enabled = false;
+            thiToolStripMenuItem.Enabled = false;
+
+            xemKetQuaToolStripMenuItem.Enabled = false;
+            bảngĐiểmToolStripMenuItem.Enabled = false;
+
+            if (nhom == "PGV")
             {
-                // Sinh viên
-                menuDanhMuc.Visible = false;
-                menuHeThong.Visible = true;
-                menuNghiepVu.Visible = true; // Nơi chứa nút Bắt đầu thi
-                menuBaoCao.Visible = true;   // Nơi xem lại bài thi
+                tạoTàiKhoảnToolStripMenuItem.Enabled = true;
+
+                mônHọcToolStripMenuItem.Enabled = true;
+                giáoViênToolStripMenuItem.Enabled = true;
+                lớpToolStripMenuItem.Enabled = true;
+                sinhViênToolStripMenuItem.Enabled = true;
+
+                bộĐềToolStripMenuItem.Enabled = true;
+                đăngKíThiToolStripMenuItem.Enabled = true;
+
+                xemKetQuaToolStripMenuItem.Enabled = true;
+                bảngĐiểmToolStripMenuItem.Enabled = true;
             }
-            else if (Program.mGroup == "GIANGVIEN")
+            else if (nhom == "GIANGVIEN")
             {
-                // Giảng viên được thao tác nhiều hơn
-                menuDanhMuc.Visible = true;  // Nơi chứa nút Cập nhật Bộ đề
-                menuHeThong.Visible = true;
-                menuNghiepVu.Visible = true; // Thi thử, Đăng ký thi
-                menuBaoCao.Visible = true;   // In bảng điểm
+                bộĐềToolStripMenuItem.Enabled = true;
+                đăngKíThiToolStripMenuItem.Enabled = true;
+                xemKetQuaToolStripMenuItem.Enabled = true;
+                bảngĐiểmToolStripMenuItem.Enabled = true;
             }
-            else if (Program.mGroup == "PGV")
+            else if (nhom == "SINHVIEN")
             {
-                // PGV có toàn quyền
-                menuDanhMuc.Visible = true;
-                menuHeThong.Visible = true;
-                menuNghiepVu.Visible = true;
-                menuBaoCao.Visible = true;
+                thiToolStripMenuItem.Enabled = true;
+                xemKetQuaToolStripMenuItem.Enabled = true;
             }
 
-            // 2. Hiển thị thông tin người đăng nhập lên tiêu đề của Form
-            this.Text = $"HỆ THỐNG THI TRẮC NGHIỆM - Đang đăng nhập: {Program.mHoTen} ({Program.mGroup})";
+            this.Text = $"HỆ THỐNG THI TRẮC NGHIỆM - Đang đăng nhập: {Program.mHoTen} ({nhom})";
         }
 
         private void mônHọcToolStripMenuItem_Click(object sender, EventArgs e)
         {
             formMonHoc f = new formMonHoc();
-            f.ShowDialog(); // Mở form Môn học lên
+            f.ShowDialog();
         }
 
         private void tạoTàiKhoảnToolStripMenuItem_Click(object sender, EventArgs e)
         {
             formTaoTaiKhoan f = new formTaoTaiKhoan();
+            f.ShowDialog();
+        }
+
+        private void giáoviênToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formGiaoVien f = new formGiaoVien();
+            f.ShowDialog();
+        }
+
+        private void lớpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formLop f = new formLop();
+            f.ShowDialog();
+        }
+
+        private void xemKetQuaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formXemKetQua f = new formXemKetQua();
             f.ShowDialog();
         }
 
@@ -97,6 +142,12 @@ namespace QLThiTracNghiem
         private void thiToolStripMenuItem_Click(object sender, EventArgs e)
         {
             formThi f = new formThi();
+            f.ShowDialog();
+        }
+
+        private void bảngĐiểmToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            formBangDiem f = new formBangDiem();
             f.ShowDialog();
         }
     }

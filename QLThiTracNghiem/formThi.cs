@@ -32,11 +32,10 @@ namespace QLThiTracNghiem
         int tongSoCau = 0;
         int thoiGianConLai = 0; // Tính bằng giây
 
-        // Giả sử các thông tin này được truyền từ màn hình Chọn Môn Thi trước đó
-        string maLop = "TH04";
-        string maMon = "AVCB";
-        string trinhDo = "A";
-        int lanThi = 1;
+        string maLop;
+        string maMon;
+        string trinhDo;
+        int lanThi;
 
         public formThi()
         {
@@ -58,11 +57,15 @@ namespace QLThiTracNghiem
             // Hiển thị thông tin sinh viên
             lblHoTen.Text = "Họ Tên SV: " + Program.mHoTen;
 
-            // Đổ dữ liệu Lớp
-            DataTable dtLop = DBHelper.GetDataTable("EXEC SP_GET_LOP");
-            cmbLop.DataSource = dtLop;
-            cmbLop.DisplayMember = "TENLOP";
-            cmbLop.ValueMember = "MALOP";
+            // Tự động truy vấn Mã Lớp và Tên Lớp dựa vào Mã Sinh Viên đang đăng nhập
+            string sqlLop = $"SELECT SV.MALOP, L.TENLOP FROM SINHVIEN SV JOIN LOP L ON SV.MALOP = L.MALOP WHERE SV.MASV = '{Program.mUserName}'";
+            DataTable dtSV = DBHelper.GetDataTable(sqlLop);
+
+            if (dtSV.Rows.Count > 0)
+            {
+                lblMaLop.Text = dtSV.Rows[0]["MALOP"].ToString();
+                lblTenLop.Text = "Tên Lớp: " + dtSV.Rows[0]["TENLOP"].ToString();
+            }
 
             // Đổ dữ liệu Môn Học
             DataTable dtMon = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
@@ -129,8 +132,8 @@ namespace QLThiTracNghiem
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@MASV", Program.mUserName); // Mã SV đang thi
-                        cmd.Parameters.AddWithValue("@MAMH", maMon);
-                        cmd.Parameters.AddWithValue("@LAN", lanThi);
+                        cmd.Parameters.AddWithValue("@MAMH", cmbMonThi.SelectedValue.ToString());
+                        cmd.Parameters.AddWithValue("@LAN", int.Parse(cmbLanThi.Text));
                         cmd.Parameters.AddWithValue("@NGAYTHI", DateTime.Now);
                         cmd.Parameters.AddWithValue("@DIEM", diem);
 
@@ -175,43 +178,29 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // 1. Lấy thông tin Lớp, Môn, Lần thi từ ComboBox mà em vừa chọn trên giao diện
+                // 1. Lấy thông số
+                string maLop = lblMaLop.Text; // Lấy tự động từ Label
                 string maMon = cmbMonThi.SelectedValue.ToString();
-                string maLop = cmbLop.SelectedValue.ToString();
                 int lanThi = int.Parse(cmbLanThi.Text);
+                string ngayThiSVChon = dtpNgayThi.Value.ToString("yyyy-MM-dd"); // Lấy ngày SV bấm chọn
 
-                // 2. Tìm lịch thi trong Database dựa vào 3 thông tin trên
-                string sqlCheck = $"SELECT SOCAUTHI, THOIGIAN, NGAYTHI, TRINHDO FROM GIAOVIEN_DANGKY WHERE MAMH = '{maMon}' AND MALOP = '{maLop}' AND LAN = {lanThi}";
+                // 2. Tìm lịch thi: Khớp Môn, Lớp, Lần VÀ đúng cái NGÀY THI
+                string sqlCheck = $"SELECT SOCAUTHI, THOIGIAN, TRINHDO FROM GIAOVIEN_DANGKY WHERE MAMH = '{maMon}' AND MALOP = '{maLop}' AND LAN = {lanThi} AND CAST(NGAYTHI AS DATE) = '{ngayThiSVChon}'";
                 DataTable dtDangKy = DBHelper.GetDataTable(sqlCheck);
 
                 if (dtDangKy.Rows.Count == 0)
                 {
-                    MessageBox.Show("Chưa có lịch thi cho lớp và môn này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Không tìm thấy lịch thi nào khớp với Môn học, Lần thi và Ngày thi mà bạn vừa chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                // 3. Ràng buộc Ngày Thi chặt chẽ
-                DateTime ngayThi = Convert.ToDateTime(dtDangKy.Rows[0]["NGAYTHI"]);
-                DateTime homNay = DateTime.Now.Date;
-
-                if (homNay < ngayThi.Date)
-                {
-                    MessageBox.Show($"Chưa đến ngày thi! Lịch thi là ngày {ngayThi.ToString("dd/MM/yyyy")}.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-                else if (homNay > ngayThi.Date)
-                {
-                    MessageBox.Show($"Đã quá hạn thi! Môn này đã thi vào ngày {ngayThi.ToString("dd/MM/yyyy")}.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                // 4. Lấy các thông số cấu hình của đợt thi đó
+                // 3. Đã qua được bước trên nghĩa là đúng lịch thi 100%, cứ thế Lấy các thông số cấu hình của đợt thi đó
                 tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
                 int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
-                string trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString(); // Tự động biết trình độ A, B hay C
+                string trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString();
                 thoiGianConLai = soPhut * 60;
 
-                // 5. Bốc bộ đề ngẫu nhiên từ CSDL dựa vào Môn và Trình Độ
+                // 4. Bốc bộ đề ngẫu nhiên từ CSDL dựa vào Môn và Trình Độ
                 string sqlLayDe = $"EXEC SP_LAY_DE_THI '{maMon}', '{trinhDo}', {tongSoCau}";
                 DataTable dtDeThi = DBHelper.GetDataTable(sqlLayDe);
 
@@ -221,7 +210,7 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                // 6. Đổ dữ liệu từ DataTable vào List để dễ lật qua lật lại
+                // 5. Đổ dữ liệu từ DataTable vào List để dễ lật qua lật lại
                 danhSachCauHoi.Clear();
                 foreach (DataRow row in dtDeThi.Rows)
                 {
@@ -237,7 +226,7 @@ namespace QLThiTracNghiem
                     danhSachCauHoi.Add(ch);
                 }
 
-                // 7. Mở khóa giao diện và hiển thị câu đầu tiên
+                // 6. Mở khóa giao diện và hiển thị câu đầu tiên
                 cauHienTai = 0;
                 HienThiCauHoi(cauHienTai);
 
@@ -245,12 +234,11 @@ namespace QLThiTracNghiem
                 btnBatDau.Enabled = false;
                 btnNopBai.Enabled = true;
                 cmbMonThi.Enabled = false;
-                cmbLop.Enabled = false;
                 cmbLanThi.Enabled = false;
 
                 groupBox1.Enabled = true;
 
-                // 8. Khởi động đồng hồ
+                // 7. Khởi động đồng hồ
                 timer1.Start();
             }
             catch (Exception ex)

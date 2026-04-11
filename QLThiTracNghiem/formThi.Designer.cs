@@ -29,10 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.lblLop = new System.Windows.Forms.Label();
+            this.lblTenLop = new System.Windows.Forms.Label();
             this.lblHoTen = new System.Windows.Forms.Label();
             this.lblMonThi = new System.Windows.Forms.Label();
-            this.lblNgayThi = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.rdoA = new System.Windows.Forms.RadioButton();
             this.rdoB = new System.Windows.Forms.RadioButton();
@@ -48,21 +47,23 @@
             this.btnThoat = new System.Windows.Forms.Button();
             this.lblLanThi = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.cmbLop = new System.Windows.Forms.ComboBox();
             this.cmbMonThi = new System.Windows.Forms.ComboBox();
             this.cmbLanThi = new System.Windows.Forms.ComboBox();
+            this.lblMaLop = new System.Windows.Forms.Label();
+            this.dtpNgayThi = new System.Windows.Forms.DateTimePicker();
+            this.lblNgayThi = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // lblLop
+            // lblTenLop
             // 
-            this.lblLop.AutoSize = true;
-            this.lblLop.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLop.Location = new System.Drawing.Point(45, 53);
-            this.lblLop.Name = "lblLop";
-            this.lblLop.Size = new System.Drawing.Size(56, 25);
-            this.lblLop.TabIndex = 1;
-            this.lblLop.Text = "Lớp :";
+            this.lblTenLop.AutoSize = true;
+            this.lblTenLop.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTenLop.Location = new System.Drawing.Point(45, 53);
+            this.lblTenLop.Name = "lblTenLop";
+            this.lblTenLop.Size = new System.Drawing.Size(56, 25);
+            this.lblTenLop.TabIndex = 1;
+            this.lblTenLop.Text = "Lớp :";
             // 
             // lblHoTen
             // 
@@ -84,16 +85,6 @@
             this.lblMonThi.TabIndex = 3;
             this.lblMonThi.Text = "Môn thi :";
             this.lblMonThi.Click += new System.EventHandler(this.lblMonThi_Click);
-            // 
-            // lblNgayThi
-            // 
-            this.lblNgayThi.AutoSize = true;
-            this.lblNgayThi.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblNgayThi.Location = new System.Drawing.Point(12, 194);
-            this.lblNgayThi.Name = "lblNgayThi";
-            this.lblNgayThi.Size = new System.Drawing.Size(94, 25);
-            this.lblNgayThi.TabIndex = 4;
-            this.lblNgayThi.Text = "Ngày thi :";
             // 
             // timer1
             // 
@@ -250,16 +241,8 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(210, 29);
             this.label1.TabIndex = 23;
-            this.label1.Text = "Thòi gian làm bài :";
+            this.label1.Text = "Thời gian làm bài :";
             this.label1.Click += new System.EventHandler(this.label1_Click);
-            // 
-            // cmbLop
-            // 
-            this.cmbLop.FormattingEnabled = true;
-            this.cmbLop.Location = new System.Drawing.Point(107, 50);
-            this.cmbLop.Name = "cmbLop";
-            this.cmbLop.Size = new System.Drawing.Size(154, 28);
-            this.cmbLop.TabIndex = 24;
             // 
             // cmbMonThi
             // 
@@ -277,14 +260,45 @@
             this.cmbLanThi.Size = new System.Drawing.Size(154, 28);
             this.cmbLanThi.TabIndex = 26;
             // 
+            // lblMaLop
+            // 
+            this.lblMaLop.AutoSize = true;
+            this.lblMaLop.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblMaLop.Location = new System.Drawing.Point(241, 54);
+            this.lblMaLop.Name = "lblMaLop";
+            this.lblMaLop.Size = new System.Drawing.Size(82, 25);
+            this.lblMaLop.TabIndex = 29;
+            this.lblMaLop.Text = "Mã lớp :";
+            // 
+            // dtpNgayThi
+            // 
+            this.dtpNgayThi.CustomFormat = "dd/MM/yyyy";
+            this.dtpNgayThi.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpNgayThi.Location = new System.Drawing.Point(107, 201);
+            this.dtpNgayThi.Name = "dtpNgayThi";
+            this.dtpNgayThi.Size = new System.Drawing.Size(200, 26);
+            this.dtpNgayThi.TabIndex = 30;
+            // 
+            // lblNgayThi
+            // 
+            this.lblNgayThi.AutoSize = true;
+            this.lblNgayThi.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblNgayThi.Location = new System.Drawing.Point(12, 201);
+            this.lblNgayThi.Name = "lblNgayThi";
+            this.lblNgayThi.Size = new System.Drawing.Size(94, 25);
+            this.lblNgayThi.TabIndex = 31;
+            this.lblNgayThi.Text = "Ngày thi :";
+            // 
             // formThi
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1742, 807);
+            this.Controls.Add(this.lblNgayThi);
+            this.Controls.Add(this.dtpNgayThi);
+            this.Controls.Add(this.lblMaLop);
             this.Controls.Add(this.cmbLanThi);
             this.Controls.Add(this.cmbMonThi);
-            this.Controls.Add(this.cmbLop);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lblLanThi);
             this.Controls.Add(this.btnThoat);
@@ -295,10 +309,9 @@
             this.Controls.Add(this.btnNopBai);
             this.Controls.Add(this.btnCauSau);
             this.Controls.Add(this.btnCauTruoc);
-            this.Controls.Add(this.lblNgayThi);
             this.Controls.Add(this.lblMonThi);
             this.Controls.Add(this.lblHoTen);
-            this.Controls.Add(this.lblLop);
+            this.Controls.Add(this.lblTenLop);
             this.Name = "formThi";
             this.Text = "formThi";
             this.Load += new System.EventHandler(this.formThi_Load);
@@ -310,10 +323,9 @@
         }
 
         #endregion
-        private System.Windows.Forms.Label lblLop;
+        private System.Windows.Forms.Label lblTenLop;
         private System.Windows.Forms.Label lblHoTen;
         private System.Windows.Forms.Label lblMonThi;
-        private System.Windows.Forms.Label lblNgayThi;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.RadioButton rdoA;
         private System.Windows.Forms.RadioButton rdoB;
@@ -329,8 +341,10 @@
         private System.Windows.Forms.Button btnThoat;
         private System.Windows.Forms.Label lblLanThi;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox cmbLop;
         private System.Windows.Forms.ComboBox cmbMonThi;
         private System.Windows.Forms.ComboBox cmbLanThi;
+        private System.Windows.Forms.Label lblMaLop;
+        private System.Windows.Forms.DateTimePicker dtpNgayThi;
+        private System.Windows.Forms.Label lblNgayThi;
     }
 }
