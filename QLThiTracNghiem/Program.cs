@@ -15,7 +15,7 @@ namespace QLThiTracNghiem
         public static string mUserName = ""; // Mã GV hoặc Mã SV
         public static string mLogin = "";  // Tên đăng nhập
 
-        // Lấy chuỗi Server từ DBHelper (cần chỉnh lại tên Server của máy em nếu cần)
+        // Lấy chuỗi Server từ DBHelper (cần chỉnh lại tên Server của máy nếu cần)
         public static string serverName = @"localhost\SQLEXPRESS";
         public static string dbName = "THITRACNGHIEM";
 
