@@ -18,6 +18,89 @@ namespace QLThiTracNghiem
         {
             InitializeComponent();
         }
+
+        // Chuẩn trạng thái cho form Lớp - Sinh viên:
+        // - Bình thường: chọn lớp, chọn sinh viên trên lưới, các ô nhập bị khóa.
+        // - Đang Thêm: mở ô nhập, cho nhập Mã SV mới, bật Ghi + Phục hồi.
+        // - Đang Sửa: mở ô nhập nhưng khóa Mã SV vì MASV là khóa chính, không nên sửa trực tiếp.
+        private void SetNormalState()
+        {
+            isAdding = false;
+            SetInputState(false);
+
+            cmbLop.Enabled = true;
+            dgvSinhVien.Enabled = true;
+
+            btnGhi.Enabled = false;
+            btnPhucHoi.Enabled = false;
+            btnThem.Enabled = true;
+
+            bool hasCurrentRow = dgvSinhVien.CurrentRow != null && !dgvSinhVien.CurrentRow.IsNewRow;
+            btnSua.Enabled = hasCurrentRow;
+            btnXoa.Enabled = hasCurrentRow;
+            btnThoat.Enabled = true;
+        }
+
+        private void SetEditingState(bool adding)
+        {
+            isAdding = adding;
+            SetInputState(true);
+
+            // Khóa lớp và lưới trong lúc đang nhập để tránh đang gõ sinh viên lớp A
+            // nhưng vô tình đổi sang lớp B hoặc chọn dòng khác.
+            cmbLop.Enabled = false;
+            dgvSinhVien.Enabled = false;
+
+            // Mã sinh viên chỉ được nhập khi thêm mới. Khi sửa, MASV dùng để tìm đúng sinh viên cần UPDATE.
+            txtMaSV.Enabled = adding;
+
+            btnGhi.Enabled = true;
+            btnPhucHoi.Enabled = true;
+            btnThem.Enabled = false;
+            btnSua.Enabled = false;
+            btnXoa.Enabled = false;
+            btnThoat.Enabled = true;
+        }
+
+        private void SetInputState(bool enabled)
+        {
+            txtMaSV.Enabled = enabled;
+            txtHo.Enabled = enabled;
+            txtTen.Enabled = enabled;
+            txtDiaChi.Enabled = enabled;
+            dtpNgaySinh.Enabled = enabled;
+        }
+
+        private void ClearInput()
+        {
+            txtMaSV.Clear();
+            txtHo.Clear();
+            txtTen.Clear();
+            txtDiaChi.Clear();
+            dtpNgaySinh.Value = DateTime.Now;
+        }
+
+        private void LoadCurrentRowToInput()
+        {
+            if (dgvSinhVien.CurrentRow == null || dgvSinhVien.CurrentRow.IsNewRow)
+            {
+                ClearInput();
+                return;
+            }
+
+            DataGridViewRow row = dgvSinhVien.CurrentRow;
+            txtMaSV.Text = row.Cells["MASV"].Value?.ToString();
+            txtHo.Text = row.Cells["HO"].Value?.ToString();
+            txtTen.Text = row.Cells["TEN"].Value?.ToString();
+            txtDiaChi.Text = row.Cells["DIACHI"].Value?.ToString();
+
+            // NGAYSINH có thể bị NULL trong database, nên phải kiểm tra trước khi Convert.
+            if (row.Cells["NGAYSINH"].Value != DBNull.Value && row.Cells["NGAYSINH"].Value != null)
+                dtpNgaySinh.Value = Convert.ToDateTime(row.Cells["NGAYSINH"].Value);
+            else
+                dtpNgaySinh.Value = DateTime.Now;
+        }
+
         // 1. Khi Form vừa mở lên -> Tải danh sách Lớp vào ComboBox
         private void formLopSinhVien_Load(object sender, EventArgs e)
         {
@@ -28,8 +111,9 @@ namespace QLThiTracNghiem
                 cmbLop.DisplayMember = "TENLOP"; // Chữ hiện lên cho người dùng xem
                 cmbLop.ValueMember = "MALOP";    // Mã ẩn bên dưới để hệ thống dùng
 
-                // Vừa load form thì khóa nút Ghi lại
-                btnGhi.Enabled = false;
+                // Vừa load form thì đưa về trạng thái xem dữ liệu.
+                // Muốn thay đổi dữ liệu thì phải bấm Thêm hoặc Sửa.
+                SetNormalState();
             }
             catch (Exception ex)
             {
@@ -66,6 +150,15 @@ namespace QLThiTracNghiem
                     dgvSinhVien.Columns["DIACHI"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     dgvSinhVien.Columns["NGAYSINH"].DefaultCellStyle.Format = "dd/MM/yyyy";
                 }
+
+                dgvSinhVien.ReadOnly = true;
+                dgvSinhVien.AllowUserToAddRows = false;
+                dgvSinhVien.AllowUserToDeleteRows = false;
+                dgvSinhVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvSinhVien.MultiSelect = false;
+
+                LoadCurrentRowToInput();
+                SetNormalState();
             }
             catch (Exception ex)
             {
@@ -77,35 +170,16 @@ namespace QLThiTracNghiem
         {
             if (e.RowIndex >= 0)
             {
-                DataGridViewRow row = dgvSinhVien.Rows[e.RowIndex];
-                txtMaSV.Text = row.Cells["MASV"].Value.ToString();
-                txtHo.Text = row.Cells["HO"].Value.ToString();
-                txtTen.Text = row.Cells["TEN"].Value.ToString();
-                txtDiaChi.Text = row.Cells["DIACHI"].Value.ToString();
-
-                // Xử lý Ngày Sinh (vì có thể có sinh viên chưa nhập ngày sinh trong SQL)
-                if (row.Cells["NGAYSINH"].Value != DBNull.Value && row.Cells["NGAYSINH"].Value != null)
-                {
-                    dtpNgaySinh.Value = Convert.ToDateTime(row.Cells["NGAYSINH"].Value);
-                }
-                else
-                {
-                    dtpNgaySinh.Value = DateTime.Now; // Nếu rỗng thì gán ngày hiện tại
-                }
+                LoadCurrentRowToInput();
+                SetNormalState();
             }
         }
 
         private void btnThem_Click(object sender, EventArgs e)
         {
-            isAdding = true;
-            txtMaSV.Enabled = true;
-            txtMaSV.Text = ""; txtHo.Text = ""; txtTen.Text = ""; txtDiaChi.Text = "";
-            dtpNgaySinh.Value = DateTime.Now;
+            ClearInput();
+            SetEditingState(true);
             txtMaSV.Focus();
-
-            // Bật tắt các nút
-            btnGhi.Enabled = true; btnPhucHoi.Enabled = true;
-            btnThem.Enabled = false; btnSua.Enabled = false; btnXoa.Enabled = false;
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
@@ -154,12 +228,8 @@ namespace QLThiTracNghiem
                 MessageBox.Show("Vui lòng chọn Sinh viên cần sửa trên lưới!", "Thông báo");
                 return;
             }
-            isAdding = false;
-            txtMaSV.Enabled = false; // Khóa Mã SV không cho sửa
+            SetEditingState(false);
             txtHo.Focus();
-
-            btnGhi.Enabled = true; btnPhucHoi.Enabled = true;
-            btnThem.Enabled = false; btnSua.Enabled = false; btnXoa.Enabled = false;
         }
 
         private void btnGhi_Click(object sender, EventArgs e)
@@ -204,7 +274,7 @@ namespace QLThiTracNghiem
                         {
                             MessageBox.Show("Cập nhật dữ liệu thành công!", "Thông báo");
                             LoadSinhVien(cmbLop.SelectedValue.ToString()); // Tải lại lưới
-                            btnPhucHoi.PerformClick(); // Tự động gọi nút Phục hồi để reset trạng thái nút
+                            SetNormalState(); // Lưu xong thì quay về trạng thái xem dữ liệu
                         }
                     }
                 }
@@ -217,18 +287,27 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            txtMaSV.Enabled = false;
-
-            // Tắt Ghi, bật lại Thêm/Xóa/Sửa
-            btnGhi.Enabled = false; btnPhucHoi.Enabled = false;
-            btnThem.Enabled = true; btnSua.Enabled = true; btnXoa.Enabled = true;
-
-            // Tải lại lưới để xóa các chữ đang gõ dở
+            // Phục hồi nghĩa là hủy phần đang nhập/sửa dở và nạp lại dữ liệu gốc từ database.
+            // Vì không gọi stored procedure thêm/sửa/xóa nên thao tác này không làm thay đổi dữ liệu.
             LoadSinhVien(cmbLop.SelectedValue.ToString());
+            SetNormalState();
         }
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
+            // Nếu đang thêm/sửa sinh viên mà chưa Ghi, hỏi lại trước khi đóng form.
+            // Đây là cách giữ nút Thoát luôn dùng được nhưng vẫn tránh mất dữ liệu nhập dở.
+            if (btnGhi.Enabled)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Bạn đang thêm/sửa sinh viên nhưng chưa ghi dữ liệu. Bạn có chắc muốn thoát không?",
+                    "Xác nhận thoát",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result != DialogResult.Yes) return;
+            }
+
             this.Close();
         }
     }
