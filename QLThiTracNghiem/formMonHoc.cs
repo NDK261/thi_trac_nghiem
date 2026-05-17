@@ -13,6 +13,7 @@ namespace QLThiTracNghiem
     public partial class formMonHoc : Form
     {
         bool isAdding = false; // Biến kiểm tra xem đang Thêm hay Sửa
+        DataTable dtMonHocGoc; // Thêm biến này để giữ dữ liệu gốc
         public formMonHoc()
         {
             InitializeComponent();
@@ -45,6 +46,9 @@ namespace QLThiTracNghiem
         {
             LoadData();
             btnGhi.Enabled = false;
+            // Gán dữ liệu kéo từ SQL vào biến toàn cục này
+            dtMonHocGoc = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
+            dgvMonHoc.DataSource = dtMonHocGoc;
         }
 
         private void dgvMonHoc_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -189,6 +193,55 @@ namespace QLThiTracNghiem
         private void btnThoat_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        // Hàm chuyển Tiếng Việt có dấu thành không dấu
+        public static string ChuyenKhongDau(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+
+            string normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                System.Globalization.UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+            // Xử lý đặc biệt cho chữ Đ/đ và chuyển về in thường
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).Replace("đ", "d").Replace("Đ", "d").ToLower();
+        }
+
+        private void txtTimKiem_TextChanged(object sender, EventArgs e)
+        {
+            // Nếu chưa có dữ liệu gốc thì thoát luôn
+            if (dtMonHocGoc == null) return;
+
+            // Chuyển từ khóa người dùng gõ thành không dấu
+            string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
+
+            // Tạo một bảng ảo (trống) có cùng cấu trúc cột để chứa kết quả lọc
+            DataTable dtLoc = dtMonHocGoc.Clone();
+
+            // Duyệt qua từng dòng trong bảng gốc
+            foreach (DataRow row in dtMonHocGoc.Rows)
+            {
+                // Đem dữ liệu trong bảng đi "lột dấu"
+                string maMH = ChuyenKhongDau(row["MAMH"].ToString());
+                string tenMH = ChuyenKhongDau(row["TENMH"].ToString());
+
+                // Nếu mã hoặc tên KHÔNG DẤU có chứa TỪ KHÓA KHÔNG DẤU thì bốc dòng đó bỏ vào bảng kết quả
+                if (maMH.Contains(keyword) || tenMH.Contains(keyword))
+                {
+                    dtLoc.ImportRow(row);
+                }
+            }
+
+            // Gắn bảng kết quả đã lọc lên lại Lưới
+            dgvMonHoc.DataSource = dtLoc;
         }
     }
 }

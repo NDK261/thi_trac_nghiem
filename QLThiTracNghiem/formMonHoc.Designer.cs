@@ -40,6 +40,8 @@
             this.btnThoat = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtTimKiem = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMonHoc)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,21 +64,21 @@
             // 
             // txtMaMH
             // 
-            this.txtMaMH.Location = new System.Drawing.Point(243, 83);
+            this.txtMaMH.Location = new System.Drawing.Point(221, 19);
             this.txtMaMH.Name = "txtMaMH";
             this.txtMaMH.Size = new System.Drawing.Size(100, 26);
             this.txtMaMH.TabIndex = 2;
             // 
             // txtTenMH
             // 
-            this.txtTenMH.Location = new System.Drawing.Point(497, 83);
+            this.txtTenMH.Location = new System.Drawing.Point(482, 22);
             this.txtTenMH.Name = "txtTenMH";
             this.txtTenMH.Size = new System.Drawing.Size(161, 26);
             this.txtTenMH.TabIndex = 3;
             // 
             // btnThem
             // 
-            this.btnThem.Location = new System.Drawing.Point(102, 161);
+            this.btnThem.Location = new System.Drawing.Point(105, 87);
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(75, 42);
             this.btnThem.TabIndex = 4;
@@ -86,7 +88,7 @@
             // 
             // btnXoa
             // 
-            this.btnXoa.Location = new System.Drawing.Point(206, 161);
+            this.btnXoa.Location = new System.Drawing.Point(205, 87);
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(75, 42);
             this.btnXoa.TabIndex = 5;
@@ -96,7 +98,7 @@
             // 
             // btnSua
             // 
-            this.btnSua.Location = new System.Drawing.Point(312, 161);
+            this.btnSua.Location = new System.Drawing.Point(309, 87);
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(75, 42);
             this.btnSua.TabIndex = 6;
@@ -106,7 +108,7 @@
             // 
             // btnGhi
             // 
-            this.btnGhi.Location = new System.Drawing.Point(469, 161);
+            this.btnGhi.Location = new System.Drawing.Point(470, 87);
             this.btnGhi.Name = "btnGhi";
             this.btnGhi.Size = new System.Drawing.Size(82, 42);
             this.btnGhi.TabIndex = 7;
@@ -116,7 +118,7 @@
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(583, 161);
+            this.btnThoat.Location = new System.Drawing.Point(558, 87);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(75, 42);
             this.btnThoat.TabIndex = 8;
@@ -127,7 +129,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(138, 86);
+            this.label1.Location = new System.Drawing.Point(116, 22);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(99, 20);
             this.label1.TabIndex = 9;
@@ -136,17 +138,36 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(387, 86);
+            this.label2.Location = new System.Drawing.Point(372, 22);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(104, 20);
             this.label2.TabIndex = 10;
             this.label2.Text = "Tên Môn Học";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(149, 169);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(140, 20);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Tìm kiếm môn học:";
+            // 
+            // txtTimKiem
+            // 
+            this.txtTimKiem.Location = new System.Drawing.Point(295, 166);
+            this.txtTimKiem.Name = "txtTimKiem";
+            this.txtTimKiem.Size = new System.Drawing.Size(290, 26);
+            this.txtTimKiem.TabIndex = 12;
+            this.txtTimKiem.TextChanged += new System.EventHandler(this.txtTimKiem_TextChanged);
             // 
             // formMonHoc
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.txtTimKiem);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnThoat);
@@ -179,5 +200,7 @@
         private System.Windows.Forms.Button btnThoat;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtTimKiem;
     }
 }
