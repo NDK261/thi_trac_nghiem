@@ -36,10 +36,26 @@ namespace QLThiTracNghiem
         string maMon;
         string trinhDo;
         int lanThi;
+        Label lblThongTinLichThi;
 
         public formThi()
         {
             InitializeComponent();
+
+            // Giao diện cũ chỉ có ComboBox môn/lần/ngày, chưa có chỗ hiện trình độ của ca thi.
+            // Tạo thêm một Label nhỏ bằng code để sinh viên thấy rõ ca thi đang chọn thuộc trình độ nào.
+            lblThongTinLichThi = new Label();
+            lblThongTinLichThi.AutoSize = true;
+            lblThongTinLichThi.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            lblThongTinLichThi.Location = new Point(330, 201);
+            lblThongTinLichThi.Text = "";
+            this.Controls.Add(lblThongTinLichThi);
+
+            // Các sự kiện này giúp danh sách lần thi và thông tin trình độ tự cập nhật
+            // khi sinh viên đổi môn hoặc đổi ngày thi.
+            cmbMonThi.SelectedIndexChanged += cmbMonThi_SelectedIndexChanged;
+            cmbLanThi.SelectedIndexChanged += cmbLanThi_SelectedIndexChanged;
+            dtpNgayThi.ValueChanged += dtpNgayThi_ValueChanged;
         }
 
         private void btnCauTruoc_Click(object sender, EventArgs e)
@@ -52,33 +68,226 @@ namespace QLThiTracNghiem
             }
         }
 
+        private DataTable ExecuteQuery(string sql, params SqlParameter[] parameters)
+        {
+            // Dùng SqlCommand có parameter thay vì ghép chuỗi SQL trực tiếp.
+            // Cách này an toàn hơn và tránh lỗi khi mã môn/mã lớp có khoảng trắng do kiểu NCHAR trong SQL Server.
+            using (SqlConnection conn = DBHelper.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+            {
+                if (parameters != null && parameters.Length > 0)
+                    cmd.Parameters.AddRange(parameters);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        private int ExecuteScalarInt(string sql, params SqlParameter[] parameters)
+        {
+            using (SqlConnection conn = DBHelper.GetConnection())
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
+            {
+                if (parameters != null && parameters.Length > 0)
+                    cmd.Parameters.AddRange(parameters);
+
+                conn.Open();
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        private bool DaThi(string maMonCanKiemTra, int lanCanKiemTra)
+        {
+            string sql = @"
+                SELECT COUNT(*)
+                FROM BANGDIEM
+                WHERE MASV = @MASV
+                  AND MAMH = @MAMH
+                  AND LAN = @LAN";
+
+            return ExecuteScalarInt(sql,
+                new SqlParameter("@MASV", Program.mUserName),
+                new SqlParameter("@MAMH", maMonCanKiemTra),
+                new SqlParameter("@LAN", lanCanKiemTra)) > 0;
+        }
+
+        private DataTable LayThongTinDangKy(string maMonCanThi, int lanCanThi, DateTime ngayThi)
+        {
+            string sql = @"
+                SELECT SOCAUTHI, THOIGIAN, TRINHDO, NGAYTHI
+                FROM GIAOVIEN_DANGKY
+                WHERE MAMH = @MAMH
+                  AND MALOP = @MALOP
+                  AND LAN = @LAN
+                  AND CAST(NGAYTHI AS DATE) = @NGAYTHI";
+
+            return ExecuteQuery(sql,
+                new SqlParameter("@MAMH", maMonCanThi),
+                new SqlParameter("@MALOP", maLop),
+                new SqlParameter("@LAN", lanCanThi),
+                new SqlParameter("@NGAYTHI", ngayThi.Date));
+        }
+
+        private DataTable LayDeThi(string maMonCanThi, string trinhDoCanThi, int soCauThi)
+        {
+            // Bộ đề được lấy qua Stored Procedure SP_LAY_DE_THI trong SQL Server.
+            // SP này đang xử lý bốc ngẫu nhiên theo luật 70% trình độ chính + 30% trình độ thấp hơn.
+            using (SqlConnection conn = DBHelper.GetConnection())
+            using (SqlCommand cmd = new SqlCommand("SP_LAY_DE_THI", conn))
+            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@MAMH", maMonCanThi);
+                cmd.Parameters.AddWithValue("@TRINHDO", trinhDoCanThi);
+                cmd.Parameters.AddWithValue("@SOCAU", soCauThi);
+
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+                return dt;
+            }
+        }
+
+        private void LoadMonThiChuaThi()
+        {
+            // Sinh viên chỉ nên thấy những môn có lịch thi hôm nay, đúng lớp của mình,
+            // và chưa có điểm ở lần thi đó. Như vậy sẽ xử lý góp ý:
+            // "danh sách ca thi chỉ hiện chưa thi" và "đăng ký ngày mai" thì hôm nay chưa được thi.
+            string sql = @"
+                SELECT DISTINCT MH.MAMH, MH.TENMH
+                FROM GIAOVIEN_DANGKY DK
+                INNER JOIN MONHOC MH ON DK.MAMH = MH.MAMH
+                LEFT JOIN BANGDIEM BD
+                    ON BD.MASV = @MASV
+                   AND BD.MAMH = DK.MAMH
+                   AND BD.LAN = DK.LAN
+                WHERE DK.MALOP = @MALOP
+                  AND CAST(DK.NGAYTHI AS DATE) = CAST(GETDATE() AS DATE)
+                  AND BD.MASV IS NULL
+                ORDER BY MH.TENMH";
+
+            DataTable dtMon = ExecuteQuery(sql,
+                new SqlParameter("@MASV", Program.mUserName),
+                new SqlParameter("@MALOP", maLop));
+
+            cmbMonThi.DataSource = dtMon;
+            cmbMonThi.DisplayMember = "TENMH";
+            cmbMonThi.ValueMember = "MAMH";
+
+            bool coMonThi = dtMon.Rows.Count > 0;
+            cmbMonThi.Enabled = coMonThi;
+            cmbLanThi.Enabled = coMonThi;
+            btnBatDau.Enabled = coMonThi;
+
+            if (!coMonThi)
+            {
+                cmbLanThi.Items.Clear();
+                lblThongTinLichThi.Text = "Hôm nay không có ca thi nào chưa thi.";
+                return;
+            }
+
+            LoadLanThiChuaThi();
+        }
+
+        private void LoadLanThiChuaThi()
+        {
+            if (cmbMonThi.SelectedValue == null || !(cmbMonThi.SelectedValue is string)) return;
+
+            string monDangChon = cmbMonThi.SelectedValue.ToString();
+            string sql = @"
+                SELECT DK.LAN, DK.NGAYTHI, DK.TRINHDO, DK.SOCAUTHI, DK.THOIGIAN
+                FROM GIAOVIEN_DANGKY DK
+                LEFT JOIN BANGDIEM BD
+                    ON BD.MASV = @MASV
+                   AND BD.MAMH = DK.MAMH
+                   AND BD.LAN = DK.LAN
+                WHERE DK.MALOP = @MALOP
+                  AND DK.MAMH = @MAMH
+                  AND CAST(DK.NGAYTHI AS DATE) = CAST(GETDATE() AS DATE)
+                  AND BD.MASV IS NULL
+                ORDER BY DK.LAN";
+
+            DataTable dtLan = ExecuteQuery(sql,
+                new SqlParameter("@MASV", Program.mUserName),
+                new SqlParameter("@MALOP", maLop),
+                new SqlParameter("@MAMH", monDangChon));
+
+            cmbLanThi.Items.Clear();
+
+            foreach (DataRow row in dtLan.Rows)
+            {
+                cmbLanThi.Items.Add(row["LAN"].ToString());
+            }
+
+            if (cmbLanThi.Items.Count > 0)
+            {
+                cmbLanThi.SelectedIndex = 0;
+                dtpNgayThi.Value = Convert.ToDateTime(dtLan.Rows[0]["NGAYTHI"]);
+                lblThongTinLichThi.Text = $"Trình độ: {dtLan.Rows[0]["TRINHDO"]} | Số câu: {dtLan.Rows[0]["SOCAUTHI"]} | Thời gian: {dtLan.Rows[0]["THOIGIAN"]} phút";
+            }
+            else
+            {
+                lblThongTinLichThi.Text = "Môn này không còn lần thi nào chưa thi hôm nay.";
+            }
+        }
+
+        private void CapNhatThongTinLichThi()
+        {
+            if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text)) return;
+
+            if (!int.TryParse(cmbLanThi.Text, out int lanDangChon)) return;
+
+            DataTable dtDangKy = LayThongTinDangKy(cmbMonThi.SelectedValue.ToString(), lanDangChon, dtpNgayThi.Value.Date);
+            if (dtDangKy.Rows.Count == 0)
+            {
+                lblThongTinLichThi.Text = "";
+                return;
+            }
+
+            lblThongTinLichThi.Text = $"Trình độ: {dtDangKy.Rows[0]["TRINHDO"]} | Số câu: {dtDangKy.Rows[0]["SOCAUTHI"]} | Thời gian: {dtDangKy.Rows[0]["THOIGIAN"]} phút";
+        }
+
         private void formThi_Load(object sender, EventArgs e)
         {
             // Hiển thị thông tin sinh viên
             lblHoTen.Text = "Họ Tên SV: " + Program.mHoTen;
 
+            // Form vừa mở lên chỉ cho chọn ca thi và bấm Bắt đầu.
+            // Các nút chuyển câu/nộp bài và khu vực đáp án chỉ mở sau khi lấy đề thành công.
+            btnCauTruoc.Enabled = false;
+            btnCauSau.Enabled = false;
+            btnNopBai.Enabled = false;
+            groupBox1.Enabled = false;
+
             // Tự động truy vấn Mã Lớp và Tên Lớp dựa vào Mã Sinh Viên đang đăng nhập
-            string sqlLop = $"SELECT SV.MALOP, L.TENLOP FROM SINHVIEN SV JOIN LOP L ON SV.MALOP = L.MALOP WHERE SV.MASV = '{Program.mUserName}'";
-            DataTable dtSV = DBHelper.GetDataTable(sqlLop);
+            string sqlLop = @"
+                SELECT SV.MALOP, L.TENLOP
+                FROM SINHVIEN SV
+                INNER JOIN LOP L ON SV.MALOP = L.MALOP
+                WHERE SV.MASV = @MASV";
+            DataTable dtSV = ExecuteQuery(sqlLop, new SqlParameter("@MASV", Program.mUserName));
 
             if (dtSV.Rows.Count > 0)
             {
-                lblMaLop.Text = dtSV.Rows[0]["MALOP"].ToString();
+                maLop = dtSV.Rows[0]["MALOP"].ToString().Trim();
+                lblMaLop.Text = maLop;
                 lblTenLop.Text = "Tên Lớp: " + dtSV.Rows[0]["TENLOP"].ToString();
             }
+            else
+            {
+                MessageBox.Show("Không tìm thấy thông tin lớp của sinh viên đang đăng nhập!", "Báo lỗi");
+                btnBatDau.Enabled = false;
+                return;
+            }
 
-            // Đổ dữ liệu Môn Học
-            DataTable dtMon = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
-            cmbMonThi.DataSource = dtMon;
-            cmbMonThi.DisplayMember = "TENMH";
-            cmbMonThi.ValueMember = "MAMH";
+            // Sinh viên không tự chọn ngày thi tùy ý nữa.
+            // Ngày thi được lấy từ lịch đăng ký của giáo viên và chỉ cho thi đúng ngày hiện tại.
+            dtpNgayThi.Value = DateTime.Today;
+            dtpNgayThi.Enabled = false;
+            lblNgayThi.Text = "Ngày thi:";
 
-            // Đổ dữ liệu Lần Thi
-            cmbLanThi.Items.Clear();
-            cmbLanThi.Items.AddRange(new string[] { "1", "2" });
-            cmbLanThi.SelectedIndex = 0;
-
-            lblNgayThi.Text = "Ngày thi: " + DateTime.Now.ToString("dd/MM/yyyy");
+            LoadMonThiChuaThi();
 
             // Khóa các control chưa cho phép bấm
             btnCauTruoc.Enabled = false;
@@ -90,6 +299,22 @@ namespace QLThiTracNghiem
         private void groupBox1_Enter(object sender, EventArgs e)
         {
 
+        }
+
+        private void cmbMonThi_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(maLop))
+                LoadLanThiChuaThi();
+        }
+
+        private void cmbLanThi_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CapNhatThongTinLichThi();
+        }
+
+        private void dtpNgayThi_ValueChanged(object sender, EventArgs e)
+        {
+            CapNhatThongTinLichThi();
         }
 
         private void rdoC_CheckedChanged(object sender, EventArgs e)
@@ -119,22 +344,21 @@ namespace QLThiTracNghiem
             // 3. Hiển thị kết quả cho sinh viên
             MessageBox.Show($"Kết quả bài thi của bạn:\n- Số câu đúng: {soCauDung}/{tongSoCau}\n- Điểm: {diem}", "Kết quả");
 
-            // 4. Lưu kết quả vào cơ sở dữ liệu (Bảng BANGDIEM)
+            // 4. Lưu kết quả vào cơ sở dữ liệu bằng Stored Procedure của SQL Server.
+            // Không INSERT trực tiếp nữa, vì SP_GHI_DIEM_THI là phần database đã chuẩn bị sẵn
+            // và có xử lý trường hợp bản ghi điểm đã tồn tại.
             try
             {
                 using (SqlConnection conn = DBHelper.GetConnection())
                 {
                     conn.Open();
-                    // Câu lệnh SQL chèn vào bảng điểm
-                    string sql = "INSERT INTO BANGDIEM (MASV, MAMH, LAN, NGAYTHI, DIEM) " +
-                                 "VALUES (@MASV, @MAMH, @LAN, @NGAYTHI, @DIEM)";
-
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    using (SqlCommand cmd = new SqlCommand("SP_GHI_DIEM_THI", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MASV", Program.mUserName); // Mã SV đang thi
-                        cmd.Parameters.AddWithValue("@MAMH", cmbMonThi.SelectedValue.ToString());
-                        cmd.Parameters.AddWithValue("@LAN", int.Parse(cmbLanThi.Text));
-                        cmd.Parameters.AddWithValue("@NGAYTHI", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@MAMH", maMon);
+                        cmd.Parameters.AddWithValue("@LAN", lanThi);
+                        cmd.Parameters.AddWithValue("@NGAYTHI", DateTime.Today);
                         cmd.Parameters.AddWithValue("@DIEM", diem);
 
                         cmd.ExecuteNonQuery();
@@ -178,15 +402,43 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // 1. Lấy thông số
-                string maLop = lblMaLop.Text; // Lấy tự động từ Label
-                string maMon = cmbMonThi.SelectedValue.ToString();
-                int lanThi = int.Parse(cmbLanThi.Text);
-                string ngayThiSVChon = dtpNgayThi.Value.ToString("yyyy-MM-dd"); // Lấy ngày SV bấm chọn
+                if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
+                {
+                    MessageBox.Show("Hôm nay bạn không có ca thi nào chưa thi.", "Thông báo");
+                    return;
+                }
+
+                // 1. Lấy thông số của ca thi đang chọn.
+                // Các biến này là biến toàn cục để lát nữa Nộp bài dùng lại đúng môn/lần thi vừa bắt đầu.
+                maMon = cmbMonThi.SelectedValue.ToString().Trim();
+                lanThi = int.Parse(cmbLanThi.Text);
+                DateTime ngayThi = dtpNgayThi.Value.Date;
+
+                // Sinh viên chỉ được thi đúng ngày đã đăng ký. Nếu giáo viên đăng ký ngày mai
+                // thì hôm nay form sẽ không cho bắt đầu thi.
+                if (ngayThi != DateTime.Today)
+                {
+                    MessageBox.Show("Chỉ được bắt đầu thi đúng ngày thi đã đăng ký!", "Chưa đến/đã qua ngày thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (DaThi(maMon, lanThi))
+                {
+                    MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadMonThiChuaThi();
+                    return;
+                }
+
+                // Lần 2 chỉ hợp lệ khi sinh viên đã có điểm lần 1 của cùng môn.
+                // Điều này xử lý góp ý "thi lần 2 sau lần 1".
+                if (lanThi == 2 && !DaThi(maMon, 1))
+                {
+                    MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 // 2. Tìm lịch thi: Khớp Môn, Lớp, Lần VÀ đúng cái NGÀY THI
-                string sqlCheck = $"SELECT SOCAUTHI, THOIGIAN, TRINHDO FROM GIAOVIEN_DANGKY WHERE MAMH = '{maMon}' AND MALOP = '{maLop}' AND LAN = {lanThi} AND CAST(NGAYTHI AS DATE) = '{ngayThiSVChon}'";
-                DataTable dtDangKy = DBHelper.GetDataTable(sqlCheck);
+                DataTable dtDangKy = LayThongTinDangKy(maMon, lanThi, ngayThi);
 
                 if (dtDangKy.Rows.Count == 0)
                 {
@@ -197,12 +449,11 @@ namespace QLThiTracNghiem
                 // 3. Đã qua được bước trên nghĩa là đúng lịch thi 100%, cứ thế Lấy các thông số cấu hình của đợt thi đó
                 tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
                 int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
-                string trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString();
+                trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString().Trim();
                 thoiGianConLai = soPhut * 60;
 
                 // 4. Bốc bộ đề ngẫu nhiên từ CSDL dựa vào Môn và Trình Độ
-                string sqlLayDe = $"EXEC SP_LAY_DE_THI '{maMon}', '{trinhDo}', {tongSoCau}";
-                DataTable dtDeThi = DBHelper.GetDataTable(sqlLayDe);
+                DataTable dtDeThi = LayDeThi(maMon, trinhDo, tongSoCau);
 
                 if (dtDeThi.Rows.Count < tongSoCau)
                 {
@@ -235,6 +486,7 @@ namespace QLThiTracNghiem
                 btnNopBai.Enabled = true;
                 cmbMonThi.Enabled = false;
                 cmbLanThi.Enabled = false;
+                dtpNgayThi.Enabled = false;
 
                 groupBox1.Enabled = true;
 

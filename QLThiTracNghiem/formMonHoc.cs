@@ -28,12 +28,22 @@ namespace QLThiTracNghiem
                 string sql = "EXEC SP_GET_MONHOC";
                 DataTable dt = DBHelper.GetDataTable(sql);
 
-                dgvMonHoc.DataSource = dt;
+                // dtMonHocGoc là bảng dữ liệu gốc dùng cho ô tìm kiếm live.
+                // Mỗi lần thêm/sửa/xóa xong ta gọi LoadData(), nên gán lại biến này để tìm kiếm không bị dùng dữ liệu cũ.
+                dtMonHocGoc = dt;
+                dgvMonHoc.DataSource = dtMonHocGoc;
 
                 // Chỉnh lại tiêu đề cột cho đẹp
                 dgvMonHoc.Columns["MAMH"].HeaderText = "Mã Môn Học";
                 dgvMonHoc.Columns["TENMH"].HeaderText = "Tên Môn Học";
                 dgvMonHoc.Columns["TENMH"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; // Cho cột tên môn dãn đầy lưới
+
+                // Chỉ cho xem/chọn dữ liệu trên lưới; việc thêm/sửa/xóa phải đi qua các nút riêng.
+                dgvMonHoc.ReadOnly = true;
+                dgvMonHoc.AllowUserToAddRows = false;
+                dgvMonHoc.AllowUserToDeleteRows = false;
+                dgvMonHoc.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvMonHoc.MultiSelect = false;
             }
             catch (Exception ex)
             {
@@ -45,10 +55,20 @@ namespace QLThiTracNghiem
         private void formMonHoc_Load_1(object sender, EventArgs e)
         {
             LoadData();
+
+            // 1. Khóa các ô nhập liệu
+            txtMaMH.Enabled = false;
+            txtTenMH.Enabled = false;
+            dgvMonHoc.Enabled = true;
+            txtTimKiem.Enabled = true;
+
+            // 2. Tắt nút Ghi, Phục hồi. Bật nút Thêm, Sửa, Xóa
             btnGhi.Enabled = false;
-            // Gán dữ liệu kéo từ SQL vào biến toàn cục này
-            dtMonHocGoc = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
-            dgvMonHoc.DataSource = dtMonHocGoc;
+            btnPhucHoi.Enabled = false;
+            btnThem.Enabled = true;
+            bool hasCurrentRow = dgvMonHoc.CurrentRow != null && !dgvMonHoc.CurrentRow.IsNewRow;
+            btnSua.Enabled = hasCurrentRow;
+            btnXoa.Enabled = hasCurrentRow;
         }
 
         private void dgvMonHoc_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -64,17 +84,27 @@ namespace QLThiTracNghiem
 
         private void btnThem_Click(object sender, EventArgs e)
         {
-            isAdding = true;
-            txtMaMH.Text = "";
-            txtTenMH.Text = "";
-            txtMaMH.Enabled = true; // Mở khóa cho nhập Mã
+            isAdding = true; // Bật cờ trạng thái đang Thêm
+
+            // 1. MỞ KHÓA CHO PHÉP NHẬP LIỆU
+            txtMaMH.Enabled = true;
+            txtTenMH.Enabled = true;
+
+            // Xóa trắng chữ cũ và đưa con trỏ chuột nhấp nháy vào ô Mã
+            txtMaMH.Clear();
+            txtTenMH.Clear();
             txtMaMH.Focus();
 
-            // Bật nút Ghi, tắt các nút khác
+            // 2. ĐẢO TRẠNG THÁI NÚT BẤM (Bật Ghi/Phục hồi, Tắt Thêm/Sửa/Xóa)
             btnGhi.Enabled = true;
+            btnPhucHoi.Enabled = true;
             btnThem.Enabled = false;
             btnSua.Enabled = false;
             btnXoa.Enabled = false;
+
+            // Khóa lưới và ô tìm kiếm trong lúc đang thêm để tránh chọn dòng khác làm mất dữ liệu đang gõ.
+            dgvMonHoc.Enabled = false;
+            txtTimKiem.Enabled = false;
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
@@ -99,12 +129,17 @@ namespace QLThiTracNghiem
 
                             cmd.ExecuteNonQuery();
 
-                            if ((int)returnValue.Value == 1)
-                                MessageBox.Show("Không thể xóa môn học này vì đã có đề thi/bảng điểm!", "Báo lỗi");
+                            int result = (int)returnValue.Value;
+
+                            if (result == 1)
+                                MessageBox.Show("Không thể xóa môn học này vì đã có câu hỏi trong Bộ đề!", "Báo lỗi");
+                            else if (result == 2)
+                                MessageBox.Show("Không thể xóa môn học này vì đã có lịch Đăng ký thi!", "Báo lỗi");
                             else
                             {
                                 MessageBox.Show("Xóa thành công!", "Thông báo");
                                 LoadData();
+                                txtTimKiem.Clear();
                             }
                         }
                     }
@@ -123,14 +158,23 @@ namespace QLThiTracNghiem
                 MessageBox.Show("Vui lòng chọn môn học cần sửa từ danh sách!", "Thông báo");
                 return;
             }
-            isAdding = false;
-            txtMaMH.Enabled = false; // Mã môn học không được sửa
+            isAdding = false; // Tắt cờ Thêm -> Tức là đang Sửa
+
+            // 1. CHỈ MỞ KHÓA Ô TÊN MÔN HỌC
+            txtMaMH.Enabled = false; // Cấm sửa mã
+            txtTenMH.Enabled = true; // Cho phép sửa tên
             txtTenMH.Focus();
 
+            // 2. ĐẢO TRẠNG THÁI NÚT BẤM
             btnGhi.Enabled = true;
+            btnPhucHoi.Enabled = true;
             btnThem.Enabled = false;
             btnSua.Enabled = false;
             btnXoa.Enabled = false;
+
+            // Khi sửa, không cho đổi dòng trên lưới hoặc lọc tìm kiếm cho tới khi Ghi/Phục hồi.
+            dgvMonHoc.Enabled = false;
+            txtTimKiem.Enabled = false;
         }
 
         private void btnGhi_Click(object sender, EventArgs e)
@@ -174,9 +218,19 @@ namespace QLThiTracNghiem
                         {
                             MessageBox.Show("Cập nhật thành công!", "Thông báo");
                             LoadData(); // Tải lại lưới
+                            txtTimKiem.Clear();
 
-                            // Reset lại trạng thái nút
+                            // 1. Khóa các ô nhập liệu lại
+                            txtMaMH.Enabled = false;
+                            txtTenMH.Enabled = false;
+                            dgvMonHoc.Enabled = true;
+                            txtTimKiem.Enabled = true;
+
+                            // 2. TẮT nút Ghi và Phục hồi (Lưu xong rồi thì không còn gì để Hủy/Phục hồi nữa)
                             btnGhi.Enabled = false;
+                            btnPhucHoi.Enabled = false;
+
+                            // 3. Mở lại các nút thao tác cơ bản để làm tiếp
                             btnThem.Enabled = true;
                             btnSua.Enabled = true;
                             btnXoa.Enabled = true;
@@ -192,6 +246,19 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
+            // Nếu nút Ghi đang bật nghĩa là người dùng đang Thêm/Sửa nhưng chưa lưu.
+            // Hỏi lại để tránh đóng form làm mất dữ liệu đang nhập dở.
+            if (btnGhi.Enabled)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Bạn đang thêm/sửa môn học nhưng chưa ghi dữ liệu. Bạn có chắc muốn thoát không?",
+                    "Xác nhận thoát",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result != DialogResult.Yes) return;
+            }
+
             this.Close();
         }
 
@@ -242,6 +309,40 @@ namespace QLThiTracNghiem
 
             // Gắn bảng kết quả đã lọc lên lại Lưới
             dgvMonHoc.DataSource = dtLoc;
+        }
+
+        private void btnPhucHoi_Click(object sender, EventArgs e)
+        {
+            // 1. Reset lại cờ trạng thái (Nếu em có dùng biến isAdding để phân biệt Thêm/Sửa)
+            isAdding = false;
+
+            // 2. Tải lại dữ liệu của dòng đang được chọn trên lưới lên TextBox
+            // (Thao tác này giúp xóa đi những chữ em vừa gõ dở, trả lại nguyên trạng)
+            if (dgvMonHoc.CurrentRow != null)
+            {
+                txtMaMH.Text = dgvMonHoc.CurrentRow.Cells["MAMH"].Value.ToString();
+                txtTenMH.Text = dgvMonHoc.CurrentRow.Cells["TENMH"].Value.ToString();
+            }
+            else
+            {
+                txtMaMH.Clear();
+                txtTenMH.Clear();
+            }
+
+            // 3. Khóa ô Mã Môn Học lại (Mã thì không nên cho sửa tự do)
+            txtMaMH.Enabled = false;
+            txtTenMH.Enabled = false; // Khóa luôn ô Tên, khi nào bấm Thêm/Sửa mới mở ra
+            dgvMonHoc.Enabled = true;
+            txtTimKiem.Enabled = true;
+
+            // 4. Trả các nút bấm về trạng thái Bình thường
+            btnThem.Enabled = true;
+            bool hasCurrentRow = dgvMonHoc.CurrentRow != null && !dgvMonHoc.CurrentRow.IsNewRow;
+            btnSua.Enabled = hasCurrentRow;
+            btnXoa.Enabled = hasCurrentRow;
+
+            btnGhi.Enabled = false;       // Tắt nút Ghi vì đã phục hồi, không có gì để lưu
+            btnPhucHoi.Enabled = false;   // Tắt chính nó đi
         }
     }
 }

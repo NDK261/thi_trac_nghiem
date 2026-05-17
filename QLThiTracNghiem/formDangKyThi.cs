@@ -18,6 +18,166 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
+        // Chuẩn trạng thái cho form Đăng ký thi:
+        // - Bình thường: xem danh sách, chọn dòng trên lưới, chưa cho sửa trực tiếp.
+        // - Đang Thêm: mở các thông tin tạo lịch thi mới.
+        // - Đang Sửa: chỉ mở Ngày thi, Số câu thi, Thời gian.
+        //   Lớp + Môn + Lần thi là khóa chính theo đề; Trình độ cũng khóa lại vì SP_SUA_DANGKYTHI hiện dùng nó để tìm đúng dòng.
+        private void SetNormalState()
+        {
+            isAdding = false;
+            SetInputState(false, false);
+
+            dgvDangKy.Enabled = true;
+            btnGhi.Enabled = false;
+            btnPhucHoi.Enabled = false;
+            btnThem.Enabled = true;
+
+            bool hasCurrentRow = dgvDangKy.CurrentRow != null && !dgvDangKy.CurrentRow.IsNewRow;
+            btnSua.Enabled = hasCurrentRow;
+            btnXoa.Enabled = hasCurrentRow;
+            btnThoat.Enabled = true;
+        }
+
+        private void SetEditingState(bool adding)
+        {
+            isAdding = adding;
+            SetInputState(true, adding);
+
+            // Khi đang thêm/sửa, khóa lưới để người dùng không đổi dòng làm mất dữ liệu đang nhập.
+            dgvDangKy.Enabled = false;
+
+            btnGhi.Enabled = true;
+            btnPhucHoi.Enabled = true;
+            btnThem.Enabled = false;
+            btnSua.Enabled = false;
+            btnXoa.Enabled = false;
+            btnThoat.Enabled = true;
+        }
+
+        private void SetInputState(bool editing, bool adding)
+        {
+            // Thêm mới thì được chọn lớp, môn, trình độ, lần thi.
+            // Sửa thì khóa các thông tin định danh lịch thi để tránh sửa nhầm khóa.
+            cmbLop.Enabled = editing && adding;
+            cmbMonHoc.Enabled = editing && adding;
+            cmbTrinhDo.Enabled = editing && adding;
+            cmbLanThi.Enabled = editing && adding;
+
+            dtpNgayThi.Enabled = editing;
+            txtSoCauThi.Enabled = editing;
+            txtThoiGian.Enabled = editing;
+
+            txtMaGV.Enabled = false;
+            txtMaGV.ReadOnly = true;
+        }
+
+        private void ClearInput()
+        {
+            txtSoCauThi.Clear();
+            txtThoiGian.Clear();
+            dtpNgayThi.Value = DateTime.Now;
+            txtMaGV.Text = Program.mUserName;
+
+            if (cmbTrinhDo.Items.Count > 0) cmbTrinhDo.SelectedIndex = 0;
+            if (cmbLanThi.Items.Count > 0) cmbLanThi.SelectedIndex = 0;
+        }
+
+        private void LoadCurrentRowToInput()
+        {
+            if (dgvDangKy.CurrentRow == null || dgvDangKy.CurrentRow.IsNewRow)
+            {
+                ClearInput();
+                return;
+            }
+
+            DataGridViewRow row = dgvDangKy.CurrentRow;
+            cmbLop.SelectedValue = row.Cells["MALOP"].Value?.ToString();
+            cmbMonHoc.SelectedValue = row.Cells["MAMH"].Value?.ToString();
+            cmbTrinhDo.Text = row.Cells["TRINHDO"].Value?.ToString();
+            cmbLanThi.Text = row.Cells["LAN"].Value?.ToString();
+            txtSoCauThi.Text = row.Cells["SOCAUTHI"].Value?.ToString();
+            txtThoiGian.Text = row.Cells["THOIGIAN"].Value?.ToString();
+            txtMaGV.Text = row.Cells["MAGV"].Value?.ToString();
+
+            if (row.Cells["NGAYTHI"].Value != DBNull.Value && row.Cells["NGAYTHI"].Value != null)
+                dtpNgayThi.Value = Convert.ToDateTime(row.Cells["NGAYTHI"].Value);
+            else
+                dtpNgayThi.Value = DateTime.Now;
+        }
+
+        private bool ValidateInput()
+        {
+            if (!int.TryParse(txtSoCauThi.Text.Trim(), out int soCauThi))
+            {
+                MessageBox.Show("Số câu thi phải là số nguyên!", "Báo lỗi");
+                txtSoCauThi.Focus();
+                return false;
+            }
+
+            if (soCauThi < 10 || soCauThi > 100)
+            {
+                MessageBox.Show("Số câu thi phải từ 10 đến 100 theo yêu cầu đề tài!", "Báo lỗi");
+                txtSoCauThi.Focus();
+                return false;
+            }
+
+            if (!int.TryParse(txtThoiGian.Text.Trim(), out int thoiGian))
+            {
+                MessageBox.Show("Thời gian thi phải là số nguyên tính bằng phút!", "Báo lỗi");
+                txtThoiGian.Focus();
+                return false;
+            }
+
+            // File Word ghi thời gian từ 5 đến 60 phút, nhưng script database THITRACNGHIEM.sql
+            // đang có CHECK constraint CK_THOIGIAN là 15 đến 60. Ở đây ưu tiên ràng buộc SQL Server
+            // để người dùng không nhập 5-14 rồi bị lỗi khi Ghi xuống database.
+            if (thoiGian < 15 || thoiGian > 60)
+            {
+                MessageBox.Show("Thời gian thi phải từ 15 đến 60 phút theo ràng buộc database!", "Báo lỗi");
+                txtThoiGian.Focus();
+                return false;
+            }
+
+            // Không cho tạo/sửa lịch thi về ngày đã qua.
+            // Sinh viên chỉ được thi theo lịch trong bảng GIAOVIEN_DANGKY, nên ngày thi bị lùi về quá khứ
+            // sẽ làm lịch thi khó kiểm soát và dễ phát sinh trường hợp "đăng ký hôm qua nhưng hôm nay vẫn thi".
+            if (dtpNgayThi.Value.Date < DateTime.Today)
+            {
+                MessageBox.Show("Ngày thi không được nhỏ hơn ngày hiện tại!", "Báo lỗi");
+                dtpNgayThi.Focus();
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool DangKyDaCoSinhVienThi(string maMH, string maLop, int lan)
+        {
+            // Một đăng ký thi được xem là đã phát sinh bài thi nếu trong BANGDIEM đã có điểm
+            // của sinh viên thuộc đúng lớp + môn + lần thi đó. Khi đã có điểm thì không được xóa/sửa
+            // lịch thi nữa, vì xóa lịch sẽ làm mất căn cứ giải thích điểm thi của sinh viên.
+            using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT COUNT(*)
+                    FROM BANGDIEM BD
+                    INNER JOIN SINHVIEN SV ON BD.MASV = SV.MASV
+                    WHERE BD.MAMH = @MAMH
+                      AND SV.MALOP = @MALOP
+                      AND BD.LAN = @LAN";
+
+                using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@MAMH", maMH);
+                    cmd.Parameters.AddWithValue("@MALOP", maLop);
+                    cmd.Parameters.AddWithValue("@LAN", lan);
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                }
+            }
+        }
+
         private void cmbLop_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -31,13 +191,26 @@ namespace QLThiTracNghiem
         private void btnSua_Click(object sender, EventArgs e)
         {
             if (txtSoCauThi.Text == "") return;
-            isAdding = false;
 
-            // Khóa các ô làm Khóa Chính (Lớp, Môn, Lần) không cho sửa
-            cmbLop.Enabled = false; cmbMonHoc.Enabled = false; cmbLanThi.Enabled = false;
+            if (dgvDangKy.CurrentRow != null)
+            {
+                string maMH = dgvDangKy.CurrentRow.Cells["MAMH"].Value.ToString();
+                string maLop = dgvDangKy.CurrentRow.Cells["MALOP"].Value.ToString();
+                int lan = int.Parse(dgvDangKy.CurrentRow.Cells["LAN"].Value.ToString());
 
-            btnGhi.Enabled = true; btnPhucHoi.Enabled = true;
-            btnThem.Enabled = false; btnSua.Enabled = false; btnXoa.Enabled = false;
+                if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
+                {
+                    MessageBox.Show(
+                        "Không thể sửa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
+                        "Không cho sửa",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
+            SetEditingState(false);
+            txtSoCauThi.Focus();
         }
 
         private void formDangKyThi_Load(object sender, EventArgs e)
@@ -68,6 +241,7 @@ namespace QLThiTracNghiem
 
                 // 5. Tải dữ liệu đăng ký lên Lưới
                 LoadDangKy();
+                SetNormalState();
             }
             catch (Exception ex)
             {
@@ -78,51 +252,46 @@ namespace QLThiTracNghiem
         {
             DataTable dt = DBHelper.GetDataTable("EXEC SP_GET_DANGKYTHI");
             dgvDangKy.DataSource = dt;
+
+            dgvDangKy.ReadOnly = true;
+            dgvDangKy.AllowUserToAddRows = false;
+            dgvDangKy.AllowUserToDeleteRows = false;
+            dgvDangKy.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvDangKy.MultiSelect = false;
+
+            if (dgvDangKy.Columns.Contains("NGAYTHI"))
+                dgvDangKy.Columns["NGAYTHI"].DefaultCellStyle.Format = "dd/MM/yyyy";
+
+            LoadCurrentRowToInput();
         }
 
         private void dgvDangKy_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
-                DataGridViewRow row = dgvDangKy.Rows[e.RowIndex];
-                cmbLop.SelectedValue = row.Cells["MALOP"].Value.ToString();
-                cmbMonHoc.SelectedValue = row.Cells["MAMH"].Value.ToString();
-                cmbTrinhDo.Text = row.Cells["TRINHDO"].Value.ToString();
-                cmbLanThi.Text = row.Cells["LAN"].Value.ToString();
-                txtSoCauThi.Text = row.Cells["SOCAUTHI"].Value.ToString();
-                txtThoiGian.Text = row.Cells["THOIGIAN"].Value.ToString();
-                if (row.Cells["NGAYTHI"].Value != DBNull.Value)
-                    dtpNgayThi.Value = Convert.ToDateTime(row.Cells["NGAYTHI"].Value);
-                dgvDangKy.Columns["NGAYTHI"].DefaultCellStyle.Format = "dd/MM/yyyy";
+                LoadCurrentRowToInput();
+                SetNormalState();
             }
         }
 
         private void btnThem_Click(object sender, EventArgs e)
         {
-            isAdding = true;
-            txtSoCauThi.Text = ""; txtThoiGian.Text = "";
-            cmbLop.Enabled = true; cmbMonHoc.Enabled = true; cmbLanThi.Enabled = true; // Cho phép chọn mới
+            ClearInput();
+            SetEditingState(true);
             txtSoCauThi.Focus();
-
-            btnGhi.Enabled = true; btnPhucHoi.Enabled = true;
-            btnThem.Enabled = false; btnSua.Enabled = false; btnXoa.Enabled = false;
         }
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            cmbLop.Enabled = true; cmbMonHoc.Enabled = true; cmbLanThi.Enabled = true;
-            btnGhi.Enabled = false; btnPhucHoi.Enabled = false;
-            btnThem.Enabled = true; btnSua.Enabled = true; btnXoa.Enabled = true;
+            // Phục hồi chỉ hủy dữ liệu đang gõ dở và tải lại danh sách đăng ký.
+            // Không gọi INSERT/UPDATE/DELETE nên không ảnh hưởng database.
             LoadDangKy();
+            SetNormalState();
         }
 
         private void btnGhi_Click(object sender, EventArgs e)
         {
-            if (txtSoCauThi.Text == "" || txtThoiGian.Text == "")
-            {
-                MessageBox.Show("Vui lòng nhập Số câu thi và Thời gian!", "Báo lỗi");
-                return;
-            }
+            if (!ValidateInput()) return;
 
             try
             {
@@ -141,8 +310,8 @@ namespace QLThiTracNghiem
                         cmd.Parameters.AddWithValue("@TRINHDO", cmbTrinhDo.Text);
                         cmd.Parameters.AddWithValue("@NGAYTHI", dtpNgayThi.Value);
                         cmd.Parameters.AddWithValue("@LAN", int.Parse(cmbLanThi.Text));
-                        cmd.Parameters.AddWithValue("@SOCAUTHI", int.Parse(txtSoCauThi.Text));
-                        cmd.Parameters.AddWithValue("@THOIGIAN", int.Parse(txtThoiGian.Text));
+                        cmd.Parameters.AddWithValue("@SOCAUTHI", int.Parse(txtSoCauThi.Text.Trim()));
+                        cmd.Parameters.AddWithValue("@THOIGIAN", int.Parse(txtThoiGian.Text.Trim()));
 
                         System.Data.SqlClient.SqlParameter retVal = new System.Data.SqlClient.SqlParameter();
                         retVal.Direction = ParameterDirection.ReturnValue;
@@ -157,7 +326,7 @@ namespace QLThiTracNghiem
                         {
                             MessageBox.Show("Đăng ký thi thành công!", "Thông báo");
                             LoadDangKy();
-                            btnPhucHoi.PerformClick();
+                            SetNormalState();
                         }
                     }
                 }
@@ -170,6 +339,19 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
+            // Khi đang thêm/sửa lịch thi, nút Ghi sẽ bật.
+            // Nếu thoát lúc này thì dữ liệu đang gõ dở chưa được lưu xuống SQL Server.
+            if (btnGhi.Enabled)
+            {
+                DialogResult result = MessageBox.Show(
+                    "Bạn đang thêm/sửa đăng ký thi nhưng chưa ghi dữ liệu. Bạn có chắc muốn thoát không?",
+                    "Xác nhận thoát",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result != DialogResult.Yes) return;
+            }
+
             this.Close();
         }
 
@@ -185,6 +367,16 @@ namespace QLThiTracNghiem
             string maMH = dgvDangKy.CurrentRow.Cells["MAMH"].Value.ToString();
             string maLop = dgvDangKy.CurrentRow.Cells["MALOP"].Value.ToString();
             int lan = int.Parse(dgvDangKy.CurrentRow.Cells["LAN"].Value.ToString());
+
+            if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
+            {
+                MessageBox.Show(
+                    "Không thể xóa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
+                    "Không cho xóa",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
 
             if (MessageBox.Show($"Bạn có chắc muốn xóa đợt đăng ký thi môn {maMH} của lớp {maLop} lần {lan}?",
                 "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
@@ -204,6 +396,7 @@ namespace QLThiTracNghiem
                             cmd.ExecuteNonQuery();
                             MessageBox.Show("Xóa đăng ký thi thành công!", "Thông báo");
                             LoadDangKy(); // Tải lại lưới
+                            SetNormalState();
                         }
                     }
                 }
