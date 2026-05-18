@@ -14,6 +14,7 @@ namespace QLThiTracNghiem
     public partial class formLopSinhVien : Form
     {
         bool isAdding = false; // Cờ kiểm tra đang Thêm hay Sửa
+        DataTable dtSinhVienGoc; // Giữ danh sách gốc để tìm kiếm live mà không phải gọi lại SQL liên tục.
         public formLopSinhVien()
         {
             InitializeComponent();
@@ -30,6 +31,7 @@ namespace QLThiTracNghiem
 
             cmbLop.Enabled = true;
             dgvSinhVien.Enabled = true;
+            txtTimKiem.Enabled = true;
 
             btnGhi.Enabled = false;
             btnPhucHoi.Enabled = false;
@@ -50,6 +52,7 @@ namespace QLThiTracNghiem
             // nhưng vô tình đổi sang lớp B hoặc chọn dòng khác.
             cmbLop.Enabled = false;
             dgvSinhVien.Enabled = false;
+            txtTimKiem.Enabled = false;
 
             // Mã sinh viên chỉ được nhập khi thêm mới. Khi sửa, MASV dùng để tìm đúng sinh viên cần UPDATE.
             txtMaSV.Enabled = adding;
@@ -135,10 +138,15 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // Gọi SP truyền kèm tham số Mã Lớp
-                string sql = $"EXEC SP_GET_SINHVIEN_THEO_LOP @MALOP = '{maLop}'";
-                DataTable dtSV = DBHelper.GetDataTable(sql);
-                dgvSinhVien.DataSource = dtSV;
+                // Gọi Stored Procedure bằng SqlParameter thay vì ghép chuỗi SQL.
+                // Cách này tránh lỗi khi MALOP là NCHAR có khoảng trắng đệm và cũng an toàn hơn.
+                DataTable dtSV = DBHelper.ExecuteDataTable(
+                    "SP_GET_SINHVIEN_THEO_LOP",
+                    new SqlParameter("@MALOP", maLop));
+
+                dtSinhVienGoc = dtSV;
+                dgvSinhVien.DataSource = dtSinhVienGoc;
+                txtTimKiem.Clear();
 
                 if (dgvSinhVien.Columns.Count > 0)
                 {
@@ -164,6 +172,73 @@ namespace QLThiTracNghiem
             {
                 MessageBox.Show("Lỗi tải danh sách Sinh Viên: " + ex.Message);
             }
+        }
+
+        // Hàm chuyển tiếng Việt có dấu thành không dấu để tìm kiếm dễ hơn.
+        // Ví dụ: gõ "thanh" vẫn tìm được "THÀNH".
+        private string ChuyenKhongDau(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+
+            string normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                System.Globalization.UnicodeCategory unicodeCategory =
+                    System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(System.Text.NormalizationForm.FormC)
+                .Replace("đ", "d")
+                .Replace("Đ", "d")
+                .ToLower();
+        }
+
+        private void txtTimKiem_TextChanged(object sender, EventArgs e)
+        {
+            if (dtSinhVienGoc == null) return;
+
+            string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
+
+            if (keyword == "")
+            {
+                dgvSinhVien.DataSource = dtSinhVienGoc;
+                LoadCurrentRowToInput();
+                SetNormalState();
+                return;
+            }
+
+            DataTable dtLoc = dtSinhVienGoc.Clone();
+
+            foreach (DataRow row in dtSinhVienGoc.Rows)
+            {
+                string maSV = ChuyenKhongDau(row["MASV"].ToString());
+                string ho = ChuyenKhongDau(row["HO"].ToString());
+                string ten = ChuyenKhongDau(row["TEN"].ToString());
+                string diaChi = ChuyenKhongDau(row["DIACHI"].ToString());
+                string hoTen = ChuyenKhongDau(row["HO"].ToString() + " " + row["TEN"].ToString());
+
+                if (maSV.Contains(keyword) ||
+                    ho.Contains(keyword) ||
+                    ten.Contains(keyword) ||
+                    hoTen.Contains(keyword) ||
+                    diaChi.Contains(keyword))
+                {
+                    dtLoc.ImportRow(row);
+                }
+            }
+
+            dgvSinhVien.DataSource = dtLoc;
+            LoadCurrentRowToInput();
+            SetNormalState();
         }
 
         private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -234,9 +309,57 @@ namespace QLThiTracNghiem
 
         private void btnGhi_Click(object sender, EventArgs e)
         {
-            if (txtMaSV.Text.Trim() == "" || txtTen.Text.Trim() == "")
+            string maSV = txtMaSV.Text.Trim();
+            string ho = txtHo.Text.Trim();
+            string ten = txtTen.Text.Trim();
+            string diaChi = txtDiaChi.Text.Trim();
+
+            if (maSV == "" || ho == "" || ten == "")
             {
-                MessageBox.Show("Mã Sinh Viên và Tên không được để trống!", "Báo lỗi");
+                MessageBox.Show("Mã Sinh Viên, Họ và Tên không được để trống!", "Báo lỗi");
+                return;
+            }
+
+            // Các giới hạn độ dài này đi theo thiết kế bảng SINHVIEN trong đề tài.
+            // Kiểm tra ở C# giúp lỗi rõ ràng hơn trước khi dữ liệu đi xuống SQL Server.
+            if (maSV.Length > 8)
+            {
+                MessageBox.Show("Mã sinh viên tối đa 8 ký tự!", "Báo lỗi");
+                txtMaSV.Focus();
+                return;
+            }
+
+            if (ho.Length > 40)
+            {
+                MessageBox.Show("Họ sinh viên tối đa 40 ký tự!", "Báo lỗi");
+                txtHo.Focus();
+                return;
+            }
+
+            if (ten.Length > 10)
+            {
+                MessageBox.Show("Tên sinh viên tối đa 10 ký tự!", "Báo lỗi");
+                txtTen.Focus();
+                return;
+            }
+
+            if (diaChi.Length > 100)
+            {
+                MessageBox.Show("Địa chỉ tối đa 100 ký tự!", "Báo lỗi");
+                txtDiaChi.Focus();
+                return;
+            }
+
+            if (cmbLop.SelectedValue == null)
+            {
+                MessageBox.Show("Vui lòng chọn lớp cho sinh viên!", "Báo lỗi");
+                return;
+            }
+
+            if (dtpNgaySinh.Value.Date > DateTime.Today)
+            {
+                MessageBox.Show("Ngày sinh không được lớn hơn ngày hiện tại!", "Báo lỗi");
+                dtpNgaySinh.Focus();
                 return;
             }
 
@@ -253,11 +376,11 @@ namespace QLThiTracNghiem
                         if (isAdding) cmd.CommandText = "SP_THEM_SINHVIEN";
                         else cmd.CommandText = "SP_SUA_SINHVIEN";
 
-                        cmd.Parameters.AddWithValue("@MASV", txtMaSV.Text.Trim());
-                        cmd.Parameters.AddWithValue("@HO", txtHo.Text.Trim());
-                        cmd.Parameters.AddWithValue("@TEN", txtTen.Text.Trim());
+                        cmd.Parameters.AddWithValue("@MASV", maSV);
+                        cmd.Parameters.AddWithValue("@HO", ho);
+                        cmd.Parameters.AddWithValue("@TEN", ten);
                         cmd.Parameters.AddWithValue("@NGAYSINH", dtpNgaySinh.Value);
-                        cmd.Parameters.AddWithValue("@DIACHI", txtDiaChi.Text.Trim());
+                        cmd.Parameters.AddWithValue("@DIACHI", diaChi);
                         cmd.Parameters.AddWithValue("@MALOP", cmbLop.SelectedValue.ToString());
 
                         SqlParameter returnValue = new SqlParameter();
@@ -269,6 +392,10 @@ namespace QLThiTracNghiem
                         if ((int)returnValue.Value == 1)
                         {
                             MessageBox.Show("Lỗi: Mã Sinh Viên này đã tồn tại!", "Báo lỗi");
+                        }
+                        else if ((int)returnValue.Value == 2)
+                        {
+                            MessageBox.Show("Không tìm thấy sinh viên cần sửa hoặc lớp không tồn tại!", "Báo lỗi");
                         }
                         else
                         {

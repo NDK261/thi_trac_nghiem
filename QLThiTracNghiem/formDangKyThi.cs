@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,8 @@ namespace QLThiTracNghiem
         // - Bình thường: xem danh sách, chọn dòng trên lưới, chưa cho sửa trực tiếp.
         // - Đang Thêm: mở các thông tin tạo lịch thi mới.
         // - Đang Sửa: chỉ mở Ngày thi, Số câu thi, Thời gian.
-        //   Lớp + Môn + Lần thi là khóa chính theo đề; Trình độ cũng khóa lại vì SP_SUA_DANGKYTHI hiện dùng nó để tìm đúng dòng.
+        //   Lớp + Môn + Lần thi là khóa chính theo đề nên không được sửa trực tiếp.
+        //   Trình độ cũng khóa lại để tránh đổi cấu hình đề thi sau khi đã lập lịch.
         private void SetNormalState()
         {
             isAdding = false;
@@ -76,7 +78,9 @@ namespace QLThiTracNghiem
         {
             txtSoCauThi.Clear();
             txtThoiGian.Clear();
-            dtpNgayThi.Value = DateTime.Now;
+            // Theo góp ý giáo viên, giáo viên chỉ được đăng ký lịch thi từ ngày mai trở đi.
+            // Vì vậy khi bấm Thêm, form tự mồi sẵn ngày mai để người dùng không vô tình lưu ngày hôm nay.
+            dtpNgayThi.Value = DateTime.Today.AddDays(1);
             txtMaGV.Text = Program.mUserName;
 
             if (cmbTrinhDo.Items.Count > 0) cmbTrinhDo.SelectedIndex = 0;
@@ -108,6 +112,12 @@ namespace QLThiTracNghiem
 
         private bool ValidateInput()
         {
+            if (cmbLop.SelectedValue == null || cmbMonHoc.SelectedValue == null)
+            {
+                MessageBox.Show("Vui lòng chọn đầy đủ Lớp và Môn học!", "Báo lỗi");
+                return false;
+            }
+
             if (!int.TryParse(txtSoCauThi.Text.Trim(), out int soCauThi))
             {
                 MessageBox.Show("Số câu thi phải là số nguyên!", "Báo lỗi");
@@ -129,22 +139,23 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            // File Word ghi thời gian từ 5 đến 60 phút, nhưng script database THITRACNGHIEM.sql
-            // đang có CHECK constraint CK_THOIGIAN là 15 đến 60. Ở đây ưu tiên ràng buộc SQL Server
-            // để người dùng không nhập 5-14 rồi bị lỗi khi Ghi xuống database.
-            if (thoiGian < 15 || thoiGian > 60)
+            // File Word yêu cầu thời gian thi từ 5 đến 60 phút.
+            // Stored Procedure và script CSDL cũng được sửa theo mốc này để form và database thống nhất.
+            if (thoiGian < 5 || thoiGian > 60)
             {
-                MessageBox.Show("Thời gian thi phải từ 15 đến 60 phút theo ràng buộc database!", "Báo lỗi");
+                MessageBox.Show("Thời gian thi phải từ 5 đến 60 phút theo yêu cầu đề tài!", "Báo lỗi");
                 txtThoiGian.Focus();
                 return false;
             }
 
-            // Không cho tạo/sửa lịch thi về ngày đã qua.
-            // Sinh viên chỉ được thi theo lịch trong bảng GIAOVIEN_DANGKY, nên ngày thi bị lùi về quá khứ
-            // sẽ làm lịch thi khó kiểm soát và dễ phát sinh trường hợp "đăng ký hôm qua nhưng hôm nay vẫn thi".
-            if (dtpNgayThi.Value.Date < DateTime.Today)
+            // Theo góp ý giáo viên: đăng ký thi phải từ ngày mai trở đi.
+            // Nghĩa là ngày hôm nay cũng không được dùng để tạo/sửa lịch thi.
+            // Lý do dễ hiểu: giáo viên đăng ký trước lịch, sinh viên đến đúng ngày đó mới được thi;
+            // không cho đăng ký ngay trong hôm nay để tránh vừa tạo lịch xong là sinh viên thi liền,
+            // làm quy trình đăng ký thi khó kiểm soát.
+            if (dtpNgayThi.Value.Date <= DateTime.Today)
             {
-                MessageBox.Show("Ngày thi không được nhỏ hơn ngày hiện tại!", "Báo lỗi");
+                MessageBox.Show("Ngày thi phải từ ngày mai trở đi, không được chọn hôm nay hoặc ngày đã qua!", "Báo lỗi");
                 dtpNgayThi.Focus();
                 return false;
             }
@@ -321,7 +332,20 @@ namespace QLThiTracNghiem
                         int result = (int)retVal.Value;
 
                         if (result == 1) MessageBox.Show("Lỗi: Lớp này đã đăng ký thi môn này ở lần thi này rồi!", "Báo lỗi");
-                        else if (result == 2) MessageBox.Show("Lỗi: Kho bộ đề KHÔNG ĐỦ câu hỏi cho trình độ này!", "Báo lỗi");
+                        else if (result == 2)
+                        {
+                            MessageBox.Show(
+                                "Lỗi: Kho bộ đề chưa đủ câu hỏi theo luật 70% trình độ chính và 30% trình độ thấp hơn!",
+                                "Báo lỗi");
+                        }
+                        else if (result == 3)
+                        {
+                            MessageBox.Show("Không thể sửa đăng ký thi này vì đã có sinh viên thi và có điểm.", "Báo lỗi");
+                        }
+                        else if (result == 4)
+                        {
+                            MessageBox.Show("Ngày thi, số câu, thời gian, lần thi hoặc trình độ không hợp lệ!", "Báo lỗi");
+                        }
                         else
                         {
                             MessageBox.Show("Đăng ký thi thành công!", "Thông báo");
@@ -393,10 +417,23 @@ namespace QLThiTracNghiem
                             cmd.Parameters.AddWithValue("@MALOP", maLop);
                             cmd.Parameters.AddWithValue("@LAN", lan);
 
+                            SqlParameter returnValue = new SqlParameter();
+                            returnValue.Direction = ParameterDirection.ReturnValue;
+                            cmd.Parameters.Add(returnValue);
+
                             cmd.ExecuteNonQuery();
-                            MessageBox.Show("Xóa đăng ký thi thành công!", "Thông báo");
-                            LoadDangKy(); // Tải lại lưới
-                            SetNormalState();
+                            int result = (int)returnValue.Value;
+
+                            if (result == 1)
+                            {
+                                MessageBox.Show("Không thể xóa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.", "Báo lỗi");
+                            }
+                            else
+                            {
+                                MessageBox.Show("Xóa đăng ký thi thành công!", "Thông báo");
+                                LoadDangKy(); // Tải lại lưới
+                                SetNormalState();
+                            }
                         }
                     }
                 }

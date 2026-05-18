@@ -53,7 +53,7 @@
             this.dgvMonHoc.Name = "dgvMonHoc";
             this.dgvMonHoc.RowHeadersWidth = 62;
             this.dgvMonHoc.RowTemplate.Height = 28;
-            this.dgvMonHoc.Size = new System.Drawing.Size(1095, 288);
+            this.dgvMonHoc.Size = new System.Drawing.Size(1090, 288);
             this.dgvMonHoc.TabIndex = 0;
             this.dgvMonHoc.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvMonHoc_CellContentClick);
             // 

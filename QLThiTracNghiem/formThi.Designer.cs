@@ -249,7 +249,7 @@
             this.cmbMonThi.FormattingEnabled = true;
             this.cmbMonThi.Location = new System.Drawing.Point(107, 99);
             this.cmbMonThi.Name = "cmbMonThi";
-            this.cmbMonThi.Size = new System.Drawing.Size(154, 28);
+            this.cmbMonThi.Size = new System.Drawing.Size(200, 28);
             this.cmbMonThi.TabIndex = 25;
             // 
             // cmbLanThi
