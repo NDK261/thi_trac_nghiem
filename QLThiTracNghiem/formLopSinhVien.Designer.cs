@@ -47,13 +47,15 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.txtTen = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txtTimKiem = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSinhVien)).BeginInit();
             this.SuspendLayout();
             // 
             // cmbLop
             // 
             this.cmbLop.FormattingEnabled = true;
-            this.cmbLop.Location = new System.Drawing.Point(610, 26);
+            this.cmbLop.Location = new System.Drawing.Point(378, 29);
             this.cmbLop.Name = "cmbLop";
             this.cmbLop.Size = new System.Drawing.Size(184, 28);
             this.cmbLop.TabIndex = 0;
@@ -62,7 +64,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(526, 29);
+            this.label1.Location = new System.Drawing.Point(294, 32);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(78, 20);
             this.label1.TabIndex = 1;
@@ -82,14 +84,14 @@
             // 
             // txtMaSV
             // 
-            this.txtMaSV.Location = new System.Drawing.Point(610, 253);
+            this.txtMaSV.Location = new System.Drawing.Point(590, 253);
             this.txtMaSV.Name = "txtMaSV";
             this.txtMaSV.Size = new System.Drawing.Size(200, 26);
             this.txtMaSV.TabIndex = 3;
             // 
             // txtHo
             // 
-            this.txtHo.Location = new System.Drawing.Point(610, 305);
+            this.txtHo.Location = new System.Drawing.Point(594, 305);
             this.txtHo.Name = "txtHo";
             this.txtHo.Size = new System.Drawing.Size(200, 26);
             this.txtHo.TabIndex = 4;
@@ -98,16 +100,16 @@
             // 
             this.dtpNgaySinh.CustomFormat = "dd/MM/yyyy";
             this.dtpNgaySinh.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpNgaySinh.Location = new System.Drawing.Point(610, 393);
+            this.dtpNgaySinh.Location = new System.Drawing.Point(594, 393);
             this.dtpNgaySinh.Name = "dtpNgaySinh";
             this.dtpNgaySinh.Size = new System.Drawing.Size(200, 26);
             this.dtpNgaySinh.TabIndex = 6;
             // 
             // txtDiaChi
             // 
-            this.txtDiaChi.Location = new System.Drawing.Point(610, 440);
+            this.txtDiaChi.Location = new System.Drawing.Point(594, 440);
             this.txtDiaChi.Name = "txtDiaChi";
-            this.txtDiaChi.Size = new System.Drawing.Size(200, 26);
+            this.txtDiaChi.Size = new System.Drawing.Size(333, 26);
             this.txtDiaChi.TabIndex = 7;
             // 
             // btnThem
@@ -173,7 +175,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(547, 259);
+            this.label2.Location = new System.Drawing.Point(527, 256);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(57, 20);
             this.label2.TabIndex = 14;
@@ -182,7 +184,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(547, 308);
+            this.label3.Location = new System.Drawing.Point(528, 311);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(56, 20);
             this.label3.TabIndex = 15;
@@ -191,7 +193,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(542, 353);
+            this.label4.Location = new System.Drawing.Point(526, 356);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(62, 20);
             this.label4.TabIndex = 16;
@@ -200,7 +202,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(526, 399);
+            this.label5.Location = new System.Drawing.Point(510, 399);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(78, 20);
             this.label5.TabIndex = 17;
@@ -209,7 +211,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(547, 443);
+            this.label6.Location = new System.Drawing.Point(528, 443);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(57, 20);
             this.label6.TabIndex = 18;
@@ -217,16 +219,35 @@
             // 
             // txtTen
             // 
-            this.txtTen.Location = new System.Drawing.Point(610, 350);
+            this.txtTen.Location = new System.Drawing.Point(594, 350);
             this.txtTen.Name = "txtTen";
             this.txtTen.Size = new System.Drawing.Size(200, 26);
             this.txtTen.TabIndex = 19;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(695, 32);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(99, 20);
+            this.label7.TabIndex = 20;
+            this.label7.Text = "Tìm sinh viên";
+            // 
+            // txtTimKiem
+            // 
+            this.txtTimKiem.Location = new System.Drawing.Point(800, 29);
+            this.txtTimKiem.Name = "txtTimKiem";
+            this.txtTimKiem.Size = new System.Drawing.Size(260, 26);
+            this.txtTimKiem.TabIndex = 21;
+            this.txtTimKiem.TextChanged += new System.EventHandler(this.txtTimKiem_TextChanged);
             // 
             // formLopSinhVien
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1285, 587);
+            this.Controls.Add(this.txtTimKiem);
+            this.Controls.Add(this.label7);
             this.Controls.Add(this.txtTen);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label5);
@@ -276,5 +297,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtTen;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtTimKiem;
     }
 }

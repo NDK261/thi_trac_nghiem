@@ -135,6 +135,8 @@ namespace QLThiTracNghiem
                                 MessageBox.Show("Không thể xóa môn học này vì đã có câu hỏi trong Bộ đề!", "Báo lỗi");
                             else if (result == 2)
                                 MessageBox.Show("Không thể xóa môn học này vì đã có lịch Đăng ký thi!", "Báo lỗi");
+                            else if (result == 3)
+                                MessageBox.Show("Không thể xóa môn học này vì đã có điểm thi của sinh viên!", "Báo lỗi");
                             else
                             {
                                 MessageBox.Show("Xóa thành công!", "Thông báo");
@@ -179,11 +181,34 @@ namespace QLThiTracNghiem
 
         private void btnGhi_Click(object sender, EventArgs e)
         {
-            if (txtMaMH.Text.Trim() == "" || txtTenMH.Text.Trim() == "")
+            string maMH = txtMaMH.Text.Trim().ToUpper();
+            string tenMH = txtTenMH.Text.Trim();
+
+            if (maMH == "" || tenMH == "")
             {
                 MessageBox.Show("Mã và Tên môn học không được để trống!", "Báo lỗi");
                 return;
             }
+
+            // Theo thiết kế CSDL, MAMH là NCHAR(5), TENMH là NVARCHAR(40).
+            // Kiểm tra ngay trên form giúp người dùng biết lỗi dễ hiểu hơn,
+            // thay vì để SQL Server báo lỗi cắt chuỗi/vi phạm ràng buộc khó đọc.
+            if (maMH.Length > 5)
+            {
+                MessageBox.Show("Mã môn học tối đa 5 ký tự!", "Báo lỗi");
+                txtMaMH.Focus();
+                return;
+            }
+
+            if (tenMH.Length > 40)
+            {
+                MessageBox.Show("Tên môn học tối đa 40 ký tự!", "Báo lỗi");
+                txtTenMH.Focus();
+                return;
+            }
+
+            txtMaMH.Text = maMH;
+            txtTenMH.Text = tenMH;
 
             try
             {
@@ -201,8 +226,8 @@ namespace QLThiTracNghiem
                         else
                             cmd.CommandText = "SP_SUA_MONHOC";
 
-                        cmd.Parameters.AddWithValue("@MAMH", txtMaMH.Text.Trim());
-                        cmd.Parameters.AddWithValue("@TENMH", txtTenMH.Text.Trim());
+                        cmd.Parameters.AddWithValue("@MAMH", maMH);
+                        cmd.Parameters.AddWithValue("@TENMH", tenMH);
 
                         // Thực thi SP và nhận mã lỗi trả về (Return Value)
                         System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
@@ -214,6 +239,8 @@ namespace QLThiTracNghiem
 
                         if (result == 1) MessageBox.Show("Lỗi: Trùng Mã Môn Học!", "Báo lỗi");
                         else if (result == 2) MessageBox.Show("Lỗi: Tên Môn Học đã tồn tại!", "Báo lỗi");
+                        else if (result == 3) MessageBox.Show("Dữ liệu môn học không hợp lệ hoặc vượt quá độ dài cho phép!", "Báo lỗi");
+                        else if (result == 4) MessageBox.Show("Không tìm thấy môn học cần sửa/xóa!", "Báo lỗi");
                         else
                         {
                             MessageBox.Show("Cập nhật thành công!", "Thông báo");

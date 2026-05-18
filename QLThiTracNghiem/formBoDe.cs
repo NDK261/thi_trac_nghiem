@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -52,9 +53,10 @@ namespace QLThiTracNghiem
             cmbMonHoc.Enabled = false;
             dgvBoDe.Enabled = false;
 
-            // Câu hỏi là khóa chính nên chỉ mở khi Thêm mới.
-            // Khi Sửa, mã câu hỏi phải giữ nguyên để Stored Procedure tìm đúng dòng cần cập nhật.
-            txtCauHoi.Enabled = adding;
+            // CAUHOI là khóa chính và được SQL Server tự sinh bằng IDENTITY.
+            // Vì vậy form chỉ hiển thị mã câu hỏi để xem, không cho nhập tay kể cả lúc Thêm.
+            txtCauHoi.Enabled = false;
+            txtCauHoi.ReadOnly = true;
 
             btnGhi.Enabled = true;
             btnPhucHoi.Enabled = true;
@@ -78,6 +80,9 @@ namespace QLThiTracNghiem
             // Mã giảng viên luôn lấy theo tài khoản đang đăng nhập, không cho người dùng tự sửa.
             txtMaGV.Enabled = false;
             txtMaGV.ReadOnly = true;
+
+            // Tương tự, mã câu hỏi do database quản lý để tránh trùng khóa chính.
+            txtCauHoi.ReadOnly = true;
         }
 
         private void ClearInput()
@@ -116,28 +121,11 @@ namespace QLThiTracNghiem
             txtMaGV.Text = row.Cells["MAGV"].Value?.ToString();
         }
 
-        private bool MonHocDaCoSinhVienThi(string maMH)
-        {
-            // Database hiện tại chỉ lưu điểm trong BANGDIEM, chưa có bảng lưu chi tiết
-            // từng câu hỏi mà sinh viên đã gặp trong bài thi. Vì đề thi được bốc ngẫu nhiên,
-            // khi môn học đã có sinh viên thi thì ta không thể biết chắc câu hỏi nào đã xuất hiện.
-            // Cách an toàn là khóa xóa câu hỏi của môn đó để bảo toàn lịch sử đề thi/điểm thi.
-            using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
-            {
-                conn.Open();
-                string sql = "SELECT COUNT(*) FROM BANGDIEM WHERE MAMH = @MAMH";
-
-                using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@MAMH", maMH);
-                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-                }
-            }
-        }
-
         private bool ValidateInput()
         {
-            if (!int.TryParse(txtCauHoi.Text.Trim(), out int _))
+            // Khi thêm mới, CAUHOI được SQL Server tự tăng nên không cần kiểm tra ô mã câu hỏi.
+            // Khi sửa/xóa, form phải đang đứng trên một dòng cũ nên mã câu hỏi bắt buộc là số.
+            if (!isAdding && !int.TryParse(txtCauHoi.Text.Trim(), out int _))
             {
                 MessageBox.Show("Mã câu hỏi phải là số nguyên!", "Báo lỗi");
                 txtCauHoi.Focus();
@@ -158,6 +146,22 @@ namespace QLThiTracNghiem
                 string.IsNullOrWhiteSpace(txtD.Text))
             {
                 MessageBox.Show("Vui lòng nhập đầy đủ nội dung câu hỏi và 4 đáp án A, B, C, D!", "Báo lỗi");
+                return false;
+            }
+
+            if (txtNoiDung.Text.Trim().Length > 500)
+            {
+                MessageBox.Show("Nội dung câu hỏi tối đa 500 ký tự!", "Báo lỗi");
+                txtNoiDung.Focus();
+                return false;
+            }
+
+            if (txtA.Text.Trim().Length > 200 ||
+                txtB.Text.Trim().Length > 200 ||
+                txtC.Text.Trim().Length > 200 ||
+                txtD.Text.Trim().Length > 200)
+            {
+                MessageBox.Show("Mỗi đáp án A, B, C, D tối đa 200 ký tự!", "Báo lỗi");
                 return false;
             }
 
@@ -223,8 +227,9 @@ namespace QLThiTracNghiem
         {
             try
             {
-                string sql = $"EXEC SP_GET_BODE_THEO_MONHOC @MAMH = '{maMH}'";
-                DataTable dtBoDe = DBHelper.GetDataTable(sql);
+                DataTable dtBoDe = DBHelper.ExecuteDataTable(
+                    "SP_GET_BODE_THEO_MONHOC",
+                    new SqlParameter("@MAMH", maMH));
                 dgvBoDe.DataSource = dtBoDe;
 
                 dgvBoDe.ReadOnly = true;
@@ -254,8 +259,9 @@ namespace QLThiTracNghiem
         private void btnThem_Click(object sender, EventArgs e)
         {
             ClearInput();
+            txtCauHoi.Text = "Tự động";
             SetEditingState(true);
-            txtCauHoi.Focus();
+            cmbTrinhDo.Focus();
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
@@ -265,24 +271,6 @@ namespace QLThiTracNghiem
             if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
                 MessageBox.Show("Bạn không có quyền xóa câu hỏi của người khác!", "Cảnh báo");
-                return;
-            }
-
-            string maMH = cmbMonHoc.SelectedValue?.ToString();
-            if (string.IsNullOrWhiteSpace(maMH))
-            {
-                MessageBox.Show("Không xác định được môn học của câu hỏi cần xóa!", "Báo lỗi");
-                return;
-            }
-
-            if (MonHocDaCoSinhVienThi(maMH))
-            {
-                MessageBox.Show(
-                    "Không thể xóa câu hỏi vì môn học này đã có sinh viên thi.\n" +
-                    "Database hiện chưa lưu chi tiết câu hỏi từng bài, nên form phải khóa xóa để không làm sai lịch sử đề thi.",
-                    "Không cho xóa",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
                 return;
             }
 
@@ -306,7 +294,7 @@ namespace QLThiTracNghiem
                             cmd.ExecuteNonQuery();
 
                             int result = (int)returnValue.Value;
-                            if (result == 1) MessageBox.Show("Không thể xóa câu hỏi đã được thi!", "Báo lỗi");
+                            if (result == 1) MessageBox.Show("Không thể xóa câu hỏi đã xuất hiện trong bài thi của sinh viên!", "Báo lỗi");
                             else if (result == 2) MessageBox.Show("Bạn không có quyền xóa câu hỏi này!", "Báo lỗi");
                             else
                             {
@@ -354,7 +342,11 @@ namespace QLThiTracNghiem
 
                         cmd.CommandText = isAdding ? "SP_THEM_BODE" : "SP_SUA_BODE";
 
-                        cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
+                        // Thêm mới không truyền @CAUHOI vì database tự sinh mã bằng IDENTITY.
+                        // Sửa thì bắt buộc truyền @CAUHOI để SP biết cần cập nhật đúng câu nào.
+                        if (!isAdding)
+                            cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
+
                         cmd.Parameters.AddWithValue("@MAMH", cmbMonHoc.SelectedValue.ToString());
                         cmd.Parameters.AddWithValue("@TRINHDO", cmbTrinhDo.Text);
                         cmd.Parameters.AddWithValue("@NOIDUNG", txtNoiDung.Text.Trim());
@@ -374,6 +366,8 @@ namespace QLThiTracNghiem
                         int result = (int)returnValue.Value;
                         if (result == 1) MessageBox.Show("Mã câu hỏi đã tồn tại!", "Báo lỗi");
                         else if (result == 2) MessageBox.Show("Bạn không có quyền sửa câu hỏi này!", "Báo lỗi");
+                        else if (result == 3) MessageBox.Show("Không thể sửa câu hỏi đã xuất hiện trong bài thi, vì sửa sẽ làm sai lịch sử bài làm của sinh viên!", "Báo lỗi");
+                        else if (result == 4) MessageBox.Show("Dữ liệu câu hỏi không hợp lệ hoặc có đáp án bị trùng!", "Báo lỗi");
                         else
                         {
                             MessageBox.Show("Lưu thành công!", "Thông báo");
