@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,16 +19,16 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
-        // Chuẩn chung cho form Bộ đề:
+        // Trạng thái chung của form Bộ đề:
         // - Bình thường: chỉ cho chọn môn/chọn câu hỏi trên lưới, chưa cho sửa trực tiếp ô nhập.
         // - Đang Thêm/Sửa: mở các ô cần nhập, bật Ghi + Phục hồi, khóa Thêm/Sửa/Xóa để tránh bấm lẫn thao tác.
-        // Làm riêng thành hàm giúp mọi nút đưa form về đúng một trạng thái, không bị mỗi nút bật/tắt một kiểu.
+        // Tách riêng hàm này để các nút đưa form về cùng một kiểu, tránh mỗi chỗ bật/tắt khác nhau.
         private void SetNormalState()
         {
             isAdding = false;
 
-            // Ở trạng thái xem dữ liệu, chỉ cho chọn môn và chọn dòng trên lưới.
-            // Các ô nhập bị khóa để người dùng hiểu rằng muốn đổi dữ liệu thì phải bấm Sửa trước.
+            // Ở trạng thái xem thì chỉ chọn môn và chọn dòng trên lưới.
+            // Muốn thay đổi dữ liệu phải bấm Thêm hoặc Sửa trước.
             SetInputState(false);
             cmbMonHoc.Enabled = true;
             dgvBoDe.Enabled = true;
@@ -47,14 +47,12 @@ namespace QLThiTracNghiem
         {
             isAdding = adding;
 
-            // Khi đang nhập, khóa ComboBox môn học và lưới để tránh đổi dòng/đổi môn giữa chừng.
-            // Nếu đổi dòng trong lúc đang nhập thì dữ liệu đang gõ dở rất dễ bị ghi nhầm hoặc mất.
+            // Khi đang nhập thì khóa môn và lưới, tránh đang gõ dở mà người dùng đổi sang dòng khác.
             SetInputState(true);
             cmbMonHoc.Enabled = false;
             dgvBoDe.Enabled = false;
 
-            // CAUHOI là khóa chính và được SQL Server tự sinh bằng IDENTITY.
-            // Vì vậy form chỉ hiển thị mã câu hỏi để xem, không cho nhập tay kể cả lúc Thêm.
+            // CAUHOI là khóa chính do database tự cấp, nên form chỉ hiển thị chứ không cho nhập tay.
             txtCauHoi.Enabled = false;
             txtCauHoi.ReadOnly = true;
 
@@ -77,11 +75,11 @@ namespace QLThiTracNghiem
             txtD.Enabled = enabled;
             cmbDapAn.Enabled = enabled;
 
-            // Mã giảng viên luôn lấy theo tài khoản đang đăng nhập, không cho người dùng tự sửa.
+            // Mã giảng viên lấy theo tài khoản đăng nhập để biết ai là người tạo câu hỏi.
             txtMaGV.Enabled = false;
             txtMaGV.ReadOnly = true;
 
-            // Tương tự, mã câu hỏi do database quản lý để tránh trùng khóa chính.
+            // Mã câu hỏi cũng do database quản lý để tránh trùng khóa chính.
             txtCauHoi.ReadOnly = true;
         }
 
@@ -97,7 +95,7 @@ namespace QLThiTracNghiem
             if (cmbTrinhDo.Items.Count > 0) cmbTrinhDo.SelectedIndex = 0;
             if (cmbDapAn.Items.Count > 0) cmbDapAn.SelectedIndex = 0;
 
-            // Khi thêm câu hỏi mới, người tạo luôn là giáo viên đang đăng nhập.
+            // Thêm câu hỏi mới thì giáo viên tạo câu hỏi chính là tài khoản đang đăng nhập.
             txtMaGV.Text = Program.mUserName;
         }
 
@@ -123,8 +121,8 @@ namespace QLThiTracNghiem
 
         private bool ValidateInput()
         {
-            // Khi thêm mới, CAUHOI được SQL Server tự tăng nên không cần kiểm tra ô mã câu hỏi.
-            // Khi sửa/xóa, form phải đang đứng trên một dòng cũ nên mã câu hỏi bắt buộc là số.
+            // Khi thêm thì CAUHOI tự tăng nên không cần kiểm tra.
+            // Khi sửa thì phải có mã câu hỏi cũ để biết cập nhật đúng dòng nào.
             if (!isAdding && !int.TryParse(txtCauHoi.Text.Trim(), out int _))
             {
                 MessageBox.Show("Mã câu hỏi phải là số nguyên!", "Báo lỗi");
@@ -165,9 +163,8 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            // Góp ý trong ảnh có nhắc "câu trả lời khác nhau".
-            // Vì vậy khi lưu câu hỏi, 4 phương án A/B/C/D không được trùng nội dung sau khi đã Trim.
-            // So sánh không phân biệt hoa/thường để tránh trường hợp "True" và "true" vẫn bị xem là khác.
+            // Một câu trắc nghiệm nên có 4 phương án khác nhau.
+            // Mình Trim rồi so sánh không phân biệt hoa/thường để tránh nhập trùng kiểu "A" và "a".
             string[] dapAn = new string[]
             {
                 txtA.Text.Trim(),
@@ -189,21 +186,21 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // 1. Đổ dữ liệu vào ComboBox Môn Học
+                // Đổ môn học vào ComboBox để chọn môn trước khi xem/thêm câu hỏi.
                 DataTable dtMonHoc = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
                 cmbMonHoc.DataSource = dtMonHoc;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
 
-                // 2. Thêm dữ liệu cứng cho Trình Độ (A, B, C)
+                // Trình độ chỉ có A, B, C theo thiết kế đề thi.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });
                 cmbTrinhDo.SelectedIndex = 0;
 
-                // 3. Thêm dữ liệu cứng cho Đáp Án Đúng (A, B, C, D)
+                // Đáp án đúng chỉ nằm trong 4 lựa chọn A, B, C, D.
                 cmbDapAn.Items.AddRange(new string[] { "A", "B", "C", "D" });
                 cmbDapAn.SelectedIndex = 0;
 
-                // 4. Tự động điền Mã Giảng Viên đang đăng nhập vào textbox
+                // Mã giáo viên tự lấy theo tài khoản đăng nhập.
                 txtMaGV.Text = Program.mUserName;
 
                 // Form vừa mở lên chỉ nên ở trạng thái xem dữ liệu.
@@ -315,7 +312,7 @@ namespace QLThiTracNghiem
         {
             if (txtCauHoi.Text == "") return;
 
-            // Kiểm tra quyền Sửa ở cấp giao diện trước
+            // Kiểm tra nhanh trên giao diện trước; SP vẫn kiểm tra lại lần nữa ở database.
             if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
                 MessageBox.Show("Bạn không có quyền sửa câu hỏi của người khác!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -342,8 +339,8 @@ namespace QLThiTracNghiem
 
                         cmd.CommandText = isAdding ? "SP_THEM_BODE" : "SP_SUA_BODE";
 
-                        // Thêm mới không truyền @CAUHOI vì database tự sinh mã bằng IDENTITY.
-                        // Sửa thì bắt buộc truyền @CAUHOI để SP biết cần cập nhật đúng câu nào.
+                        // Thêm mới không truyền @CAUHOI vì database tự sinh mã.
+                        // Sửa thì phải truyền @CAUHOI để SP biết dòng cần cập nhật.
                         if (!isAdding)
                             cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
 
@@ -355,7 +352,7 @@ namespace QLThiTracNghiem
                         cmd.Parameters.AddWithValue("@C", txtC.Text.Trim());
                         cmd.Parameters.AddWithValue("@D", txtD.Text.Trim());
                         cmd.Parameters.AddWithValue("@DAP_AN", cmbDapAn.Text);
-                        cmd.Parameters.AddWithValue("@MAGV", Program.mUserName); // Luôn truyền mã GV hiện tại
+                        cmd.Parameters.AddWithValue("@MAGV", Program.mUserName); // Truyền giáo viên hiện tại để SP kiểm tra quyền.
 
                         System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
                         returnValue.Direction = ParameterDirection.ReturnValue;
@@ -385,8 +382,8 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // Phục hồi nghĩa là hủy phần đang gõ dở và tải lại dữ liệu thật từ database/lưới.
-            // Nút này không ghi gì xuống SQL Server.
+            // Phục hồi chỉ bỏ phần đang gõ dở và tải lại dữ liệu thật từ database.
+            // Vì không gọi SP thêm/sửa/xóa nên dữ liệu không bị thay đổi.
             if (cmbMonHoc.SelectedValue != null)
                 LoadBoDe(cmbMonHoc.SelectedValue.ToString());
 
@@ -395,8 +392,7 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Nếu đang Thêm/Sửa mà chưa bấm Ghi, thoát ngay sẽ làm mất nội dung đang nhập.
-            // Vì vậy nút Thoát vẫn bật, nhưng hỏi xác nhận để an toàn hơn.
+            // Nếu đang thêm/sửa mà chưa Ghi thì hỏi lại trước khi thoát để tránh mất nội dung đang nhập.
             if (btnGhi.Enabled)
             {
                 DialogResult result = MessageBox.Show(

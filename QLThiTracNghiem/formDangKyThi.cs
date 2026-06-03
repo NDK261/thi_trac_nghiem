@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -19,12 +19,12 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
-        // Chuẩn trạng thái cho form Đăng ký thi:
+        // Trạng thái chung của form Đăng ký thi:
         // - Bình thường: xem danh sách, chọn dòng trên lưới, chưa cho sửa trực tiếp.
         // - Đang Thêm: mở các thông tin tạo lịch thi mới.
         // - Đang Sửa: chỉ mở Ngày thi, Số câu thi, Thời gian.
-        //   Lớp + Môn + Lần thi là khóa chính theo đề nên không được sửa trực tiếp.
-        //   Trình độ cũng khóa lại để tránh đổi cấu hình đề thi sau khi đã lập lịch.
+        //   Lớp + Môn + Lần thi là phần định danh lịch thi nên mình không cho sửa trực tiếp.
+        //   Trình độ cũng khóa lại để tránh đổi kiểu đề sau khi đã lập lịch.
         private void SetNormalState()
         {
             isAdding = false;
@@ -46,7 +46,7 @@ namespace QLThiTracNghiem
             isAdding = adding;
             SetInputState(true, adding);
 
-            // Khi đang thêm/sửa, khóa lưới để người dùng không đổi dòng làm mất dữ liệu đang nhập.
+            // Đang thêm/sửa thì khóa lưới, tránh chọn nhầm dòng khác khi còn dữ liệu đang gõ.
             dgvDangKy.Enabled = false;
 
             btnGhi.Enabled = true;
@@ -59,8 +59,8 @@ namespace QLThiTracNghiem
 
         private void SetInputState(bool editing, bool adding)
         {
-            // Thêm mới thì được chọn lớp, môn, trình độ, lần thi.
-            // Sửa thì khóa các thông tin định danh lịch thi để tránh sửa nhầm khóa.
+            // Thêm mới thì được chọn đủ lớp, môn, trình độ, lần thi.
+            // Khi sửa chỉ cho đổi thông tin cấu hình như ngày, số câu, thời gian.
             cmbLop.Enabled = editing && adding;
             cmbMonHoc.Enabled = editing && adding;
             cmbTrinhDo.Enabled = editing && adding;
@@ -78,8 +78,7 @@ namespace QLThiTracNghiem
         {
             txtSoCauThi.Clear();
             txtThoiGian.Clear();
-            // Theo góp ý giáo viên, giáo viên chỉ được đăng ký lịch thi từ ngày mai trở đi.
-            // Vì vậy khi bấm Thêm, form tự mồi sẵn ngày mai để người dùng không vô tình lưu ngày hôm nay.
+            // Lịch thi phải tạo trước ít nhất một ngày, nên khi thêm mình mồi sẵn ngày mai.
             dtpNgayThi.Value = DateTime.Today.AddDays(1);
             txtMaGV.Text = Program.mUserName;
 
@@ -139,8 +138,7 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            // File Word yêu cầu thời gian thi từ 5 đến 60 phút.
-            // Stored Procedure và script CSDL cũng được sửa theo mốc này để form và database thống nhất.
+            // Thời gian thi hợp lệ là từ 5 đến 60 phút, trùng với ràng buộc ở database.
             if (thoiGian < 5 || thoiGian > 60)
             {
                 MessageBox.Show("Thời gian thi phải từ 5 đến 60 phút theo yêu cầu đề tài!", "Báo lỗi");
@@ -148,11 +146,8 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            // Theo góp ý giáo viên: đăng ký thi phải từ ngày mai trở đi.
-            // Nghĩa là ngày hôm nay cũng không được dùng để tạo/sửa lịch thi.
-            // Lý do dễ hiểu: giáo viên đăng ký trước lịch, sinh viên đến đúng ngày đó mới được thi;
-            // không cho đăng ký ngay trong hôm nay để tránh vừa tạo lịch xong là sinh viên thi liền,
-            // làm quy trình đăng ký thi khó kiểm soát.
+            // Ngày thi phải từ ngày mai trở đi. Hôm nay và ngày quá khứ đều không hợp lệ.
+            // Cách này giúp lịch thi được chuẩn bị trước, không phải vừa tạo lịch là thi ngay.
             if (dtpNgayThi.Value.Date <= DateTime.Today)
             {
                 MessageBox.Show("Ngày thi phải từ ngày mai trở đi, không được chọn hôm nay hoặc ngày đã qua!", "Báo lỗi");
@@ -165,9 +160,8 @@ namespace QLThiTracNghiem
 
         private bool DangKyDaCoSinhVienThi(string maMH, string maLop, int lan)
         {
-            // Một đăng ký thi được xem là đã phát sinh bài thi nếu trong BANGDIEM đã có điểm
-            // của sinh viên thuộc đúng lớp + môn + lần thi đó. Khi đã có điểm thì không được xóa/sửa
-            // lịch thi nữa, vì xóa lịch sẽ làm mất căn cứ giải thích điểm thi của sinh viên.
+            // Nếu BANGDIEM đã có điểm của sinh viên thuộc lớp/môn/lần này
+            // thì xem như lịch đã được sử dụng, không cho sửa/xóa nữa.
             using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
             {
                 conn.Open();
@@ -228,29 +222,29 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // 1. Gán Mã Giảng Viên tự động
+                // Mã giáo viên lấy theo tài khoản đang đăng nhập.
                 txtMaGV.Text = Program.mUserName;
 
-                // 2. Load ComboBox Lớp
+                // Load danh sách lớp cho ComboBox.
                 DataTable dtLop = DBHelper.GetDataTable("EXEC SP_GET_LOP");
                 cmbLop.DataSource = dtLop;
                 cmbLop.DisplayMember = "TENLOP";
                 cmbLop.ValueMember = "MALOP";
 
-                // 3. Load ComboBox Môn Học
+                // Load danh sách môn học cho ComboBox.
                 DataTable dtMon = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
                 cmbMonHoc.DataSource = dtMon;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
 
-                // 4. Mồi dữ liệu cứng cho các ComboBox cấu hình
+                // Các giá trị cấu hình cố định theo đề: trình độ A/B/C, lần thi 1/2.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });
                 cmbTrinhDo.SelectedIndex = 0;
 
                 cmbLanThi.Items.AddRange(new string[] { "1", "2" });
                 cmbLanThi.SelectedIndex = 0;
 
-                // 5. Tải dữ liệu đăng ký lên Lưới
+                // Tải danh sách lịch thi hiện có lên lưới.
                 LoadDangKy();
                 SetNormalState();
             }
@@ -294,8 +288,8 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // Phục hồi chỉ hủy dữ liệu đang gõ dở và tải lại danh sách đăng ký.
-            // Không gọi INSERT/UPDATE/DELETE nên không ảnh hưởng database.
+            // Phục hồi chỉ hủy phần đang gõ dở và tải lại dữ liệu từ database.
+            // Không gọi SP thêm/sửa/xóa nên không làm đổi dữ liệu.
             LoadDangKy();
             SetNormalState();
         }
@@ -363,8 +357,7 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Khi đang thêm/sửa lịch thi, nút Ghi sẽ bật.
-            // Nếu thoát lúc này thì dữ liệu đang gõ dở chưa được lưu xuống SQL Server.
+            // Nếu đang thêm/sửa mà chưa Ghi thì hỏi lại trước khi thoát.
             if (btnGhi.Enabled)
             {
                 DialogResult result = MessageBox.Show(
@@ -387,7 +380,7 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // Lấy thông tin từ dòng đang chọn để xác định đúng đợt thi cần xóa
+            // Lấy khóa của dòng đang chọn để xóa đúng lịch thi.
             string maMH = dgvDangKy.CurrentRow.Cells["MAMH"].Value.ToString();
             string maLop = dgvDangKy.CurrentRow.Cells["MALOP"].Value.ToString();
             int lan = int.Parse(dgvDangKy.CurrentRow.Cells["LAN"].Value.ToString());
@@ -431,7 +424,7 @@ namespace QLThiTracNghiem
                             else
                             {
                                 MessageBox.Show("Xóa đăng ký thi thành công!", "Thông báo");
-                                LoadDangKy(); // Tải lại lưới
+                                LoadDangKy(); // Xóa xong thì tải lại lưới.
                                 SetNormalState();
                             }
                         }
