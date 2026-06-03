@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -7,7 +7,7 @@ namespace QLThiTracNghiem
     internal class DBHelper
     {
         /// <summary>
-        /// Lấy connection từ Program.connStr
+        /// Tạo kết nối SQL Server từ chuỗi kết nối đang lưu trong Program.connStr.
         /// </summary>
         public static SqlConnection GetConnection()
         {
@@ -18,7 +18,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Kiểm tra kết nối database
+        /// Mở thử kết nối để biết tài khoản hiện tại có vào được database hay không.
         /// </summary>
         public static bool TestConnection(out string message)
         {
@@ -39,7 +39,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Lấy DataTable từ câu SQL (SELECT)
+        /// Chạy một câu SELECT/EXEC đơn giản và trả kết quả về DataTable.
         /// </summary>
         public static DataTable GetDataTable(string sql)
         {
@@ -53,8 +53,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Thực thi Stored Procedure không có kết quả (INSERT, UPDATE, DELETE)
-        /// Trả về số dòng bị ảnh hưởng
+        /// Gọi stored procedure dạng INSERT/UPDATE/DELETE và trả về số dòng bị ảnh hưởng.
         /// </summary>
         public static int ExecuteNonQuery(string procedureName, params SqlParameter[] parameters)
         {
@@ -83,7 +82,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Thực thi Stored Procedure và lấy Return Value (mã lỗi)
+        /// Gọi stored procedure có RETURN code để form biết thành công hay lỗi nghiệp vụ.
         /// </summary>
         public static int ExecuteNonQueryWithReturn(string procedureName, params SqlParameter[] parameters)
         {
@@ -101,14 +100,14 @@ namespace QLThiTracNghiem
                             cmd.Parameters.AddRange(parameters);
                         }
 
-                        // Thêm Return Value parameter
+                        // Thêm tham số đặc biệt để nhận RETURN code từ stored procedure.
                         SqlParameter returnValue = new SqlParameter();
                         returnValue.Direction = ParameterDirection.ReturnValue;
                         cmd.Parameters.Add(returnValue);
 
                         cmd.ExecuteNonQuery();
 
-                        // Trả về mã lỗi từ Stored Procedure
+                        // Nếu SP có trả mã thì đổi về int, còn không thì xem như thành công.
                         if (returnValue.Value != null && returnValue.Value != DBNull.Value)
                         {
                             return Convert.ToInt32(returnValue.Value);
@@ -124,7 +123,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Lấy 1 giá trị đơn từ Stored Procedure (mã, tên, v.v.)
+        /// Gọi stored procedure và lấy một giá trị đơn, ví dụ COUNT hoặc một mã nào đó.
         /// </summary>
         public static object ExecuteScalar(string procedureName, params SqlParameter[] parameters)
         {
@@ -153,7 +152,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Lấy DataTable từ Stored Procedure
+        /// Gọi stored procedure có trả bảng dữ liệu.
         /// </summary>
         public static DataTable ExecuteDataTable(string procedureName, params SqlParameter[] parameters)
         {
@@ -186,8 +185,7 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
-        /// Thực thi câu SQL trực tiếp (INSERT, UPDATE, DELETE)
-        /// Sử dụng khi không dùng Stored Procedure
+        /// Chạy trực tiếp một câu SQL dạng INSERT/UPDATE/DELETE khi phần đó không dùng SP.
         /// </summary>
         public static int ExecuteNonQueryDirect(string sql)
         {

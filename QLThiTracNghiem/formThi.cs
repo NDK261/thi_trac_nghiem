@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,7 +13,7 @@ namespace QLThiTracNghiem
 {
     public partial class formThi : Form
     {
-        // Cấu trúc để lưu 1 câu hỏi
+        // Class nhỏ này dùng để giữ một câu hỏi trong lúc sinh viên đang làm bài.
         public class CauHoiThi
         {
             public int MaCauHoi { get; set; }
@@ -23,28 +23,28 @@ namespace QLThiTracNghiem
             public string C { get; set; }
             public string D { get; set; }
             public string DapAnDung { get; set; }
-            public string DapAnDaChon { get; set; } // Lưu lại đáp án SV chọn
+            public string DapAnDaChon { get; set; } // Đáp án sinh viên đã chọn trên form.
         }
 
-        // Các biến toàn cục
+        // Các biến này cần dùng lại ở nhiều sự kiện: bắt đầu thi, chuyển câu, nộp bài.
         List<CauHoiThi> danhSachCauHoi = new List<CauHoiThi>();
-        int cauHienTai = 0; // Đang ở câu số mấy
+        int cauHienTai = 0; // Vị trí câu đang hiển thị trong danhSachCauHoi.
         int tongSoCau = 0;
-        int thoiGianConLai = 0; // Tính bằng giây
+        int thoiGianConLai = 0; // Lưu theo giây để timer trừ từng giây cho dễ.
 
         string maLop;
         string maMon;
         string trinhDo;
         int lanThi;
-        DateTime ngayThiDangThi; // Ngày thi mà sinh viên đã chọn trước khi bấm Bắt đầu.
+        DateTime ngayThiDangThi; // Giữ đúng ngày thi sinh viên đã chọn khi bắt đầu.
         Label lblThongTinLichThi;
 
         public formThi()
         {
             InitializeComponent();
 
-            // Giao diện cũ chỉ có ComboBox môn/lần/ngày, chưa có chỗ hiện trình độ của ca thi.
-            // Tạo thêm một Label nhỏ bằng code để sinh viên thấy rõ ca thi đang chọn thuộc trình độ nào.
+            // Form gốc chưa có chỗ hiện trình độ/số câu/thời gian,
+            // nên mình thêm một Label nhỏ bằng code để sinh viên nhìn rõ ca thi đang chọn.
             lblThongTinLichThi = new Label();
             lblThongTinLichThi.AutoSize = true;
             lblThongTinLichThi.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
@@ -52,8 +52,7 @@ namespace QLThiTracNghiem
             lblThongTinLichThi.Text = "";
             this.Controls.Add(lblThongTinLichThi);
 
-            // Các sự kiện này giúp danh sách lần thi và thông tin trình độ tự cập nhật
-            // khi sinh viên đổi môn hoặc đổi ngày thi.
+            // Khi đổi ngày, đổi môn hoặc đổi lần thi thì thông tin ca thi phải cập nhật lại.
             cmbMonThi.SelectedIndexChanged += cmbMonThi_SelectedIndexChanged;
             cmbLanThi.SelectedIndexChanged += cmbLanThi_SelectedIndexChanged;
             dtpNgayThi.ValueChanged += dtpNgayThi_ValueChanged;
@@ -61,7 +60,7 @@ namespace QLThiTracNghiem
 
         private void btnCauTruoc_Click(object sender, EventArgs e)
         {
-            LuuDapAn(); // Lưu lại đáp án của câu hiện tại trước khi chuyển đi
+            LuuDapAn(); // Trước khi chuyển câu thì giữ lại đáp án đang chọn.
             if (cauHienTai > 0)
             {
                 cauHienTai--;
@@ -71,8 +70,8 @@ namespace QLThiTracNghiem
 
         private DataTable ExecuteQuery(string sql, params SqlParameter[] parameters)
         {
-            // Dùng SqlCommand có parameter thay vì ghép chuỗi SQL trực tiếp.
-            // Cách này an toàn hơn và tránh lỗi khi mã môn/mã lớp có khoảng trắng do kiểu NCHAR trong SQL Server.
+            // Dùng parameter thay vì ghép chuỗi SQL để tránh lỗi dấu nháy,
+            // đồng thời xử lý ổn hơn với các mã NCHAR có thể có khoảng trắng đệm.
             using (SqlConnection conn = DBHelper.GetConnection())
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             using (SqlDataAdapter da = new SqlDataAdapter(cmd))
@@ -133,8 +132,8 @@ namespace QLThiTracNghiem
 
         private DataTable LayDeThi(string maMonCanThi, string trinhDoCanThi, int soCauThi)
         {
-            // Bộ đề được lấy qua Stored Procedure SP_LAY_DE_THI trong SQL Server.
-            // SP này đang xử lý bốc ngẫu nhiên theo luật 70% trình độ chính + 30% trình độ thấp hơn.
+            // SP_LAY_DE_THI phụ trách bốc câu hỏi ngẫu nhiên theo luật 70/30.
+            // Form chỉ truyền môn, trình độ và số câu cần lấy.
             using (SqlConnection conn = DBHelper.GetConnection())
             using (SqlCommand cmd = new SqlCommand("SP_LAY_DE_THI", conn))
             using (SqlDataAdapter da = new SqlDataAdapter(cmd))
@@ -154,9 +153,8 @@ namespace QLThiTracNghiem
         {
             DateTime ngayDangChon = dtpNgayThi.Value.Date;
 
-            // Theo file Word đề tài, sinh viên được chọn môn học, ngày thi và lần thi.
-            // Vì vậy danh sách môn không khóa cứng theo ngày hệ thống, mà lọc theo ngày sinh viên đang chọn.
-            // Nếu ngày đó có lịch thi chưa làm thì sinh viên được bấm Bắt đầu thi.
+            // Sinh viên được chọn ngày thi trên form.
+            // Vì vậy môn thi được lọc theo đúng ngày đang chọn, không lấy cứng theo ngày hệ thống.
             string sql = @"
                 SELECT DISTINCT MH.MAMH, MH.TENMH
                 FROM GIAOVIEN_DANGKY DK
@@ -260,17 +258,16 @@ namespace QLThiTracNghiem
 
         private void formThi_Load(object sender, EventArgs e)
         {
-            // Hiển thị thông tin sinh viên
+            // Hiển thị thông tin sinh viên đang đăng nhập.
             lblHoTen.Text = "Họ Tên SV: " + Program.mHoTen;
 
-            // Form vừa mở lên chỉ cho chọn ca thi và bấm Bắt đầu.
-            // Các nút chuyển câu/nộp bài và khu vực đáp án chỉ mở sau khi lấy đề thành công.
+            // Lúc mới mở form chỉ cho chọn ca thi. Khi lấy đề thành công mới mở phần làm bài.
             btnCauTruoc.Enabled = false;
             btnCauSau.Enabled = false;
             btnNopBai.Enabled = false;
             groupBox1.Enabled = false;
 
-            // Tự động truy vấn Mã Lớp và Tên Lớp dựa vào Mã Sinh Viên đang đăng nhập
+            // Lấy lớp của sinh viên đang đăng nhập để chỉ hiện lịch thi của đúng lớp đó.
             string sqlLop = @"
                 SELECT SV.MALOP, L.TENLOP
                 FROM SINHVIEN SV
@@ -291,20 +288,18 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // File Word yêu cầu sinh viên được chọn ngày thi.
-            // DateTimePicker ở đây dùng để tra lịch theo ngày đã chọn.
-            // Nếu ngày đang chọn có lịch thi hợp lệ thì sinh viên được bấm Bắt đầu.
+            // DateTimePicker dùng để sinh viên chọn ngày thi rồi tra lịch của ngày đó.
             dtpNgayThi.Value = DateTime.Today;
             dtpNgayThi.Enabled = true;
             lblNgayThi.Text = "Ngày thi:";
 
             LoadMonThiTheoNgayDaChon();
 
-            // Khóa các control chưa cho phép bấm
+            // Chưa có đề thi thì chưa cho chuyển câu, nộp bài hoặc chọn đáp án.
             btnCauTruoc.Enabled = false;
             btnCauSau.Enabled = false;
             btnNopBai.Enabled = false;
-            groupBox1.Enabled = false; // Khóa luôn khu vực chọn đáp án
+            groupBox1.Enabled = false;
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
@@ -336,19 +331,18 @@ namespace QLThiTracNghiem
 
         private void btnNopBai_Click(object sender, EventArgs e)
         {
-            // 1. Dừng đồng hồ lại
+            // Dừng đồng hồ trước để tránh timer tiếp tục chạy trong lúc đang chấm/lưu bài.
             timer1.Stop();
-            LuuDapAn(); // Lưu đáp án của câu cuối cùng đang làm dở
+            LuuDapAn(); // Câu đang đứng cũng phải được lưu đáp án trước khi chấm.
 
-            // 2. Thuật toán chấm điểm
+            // Chấm điểm bằng cách so sánh đáp án sinh viên chọn với đáp án đúng của từng câu.
             int soCauDung = 0;
             foreach (var item in danhSachCauHoi)
             {
                 string dapAnSinhVien = item.DapAnDaChon?.Trim();
                 string dapAnDung = item.DapAnDung?.Trim();
 
-                // DAP_AN trong SQL là kiểu CHAR/NCHAR nên có thể có khoảng trắng dư ở cuối.
-                // Trim + so sánh không phân biệt hoa/thường giúp tránh lỗi chấm sai vì dữ liệu bị padding.
+                // DAP_AN trong SQL có thể có khoảng trắng đệm, nên Trim trước khi so sánh.
                 if (!string.IsNullOrWhiteSpace(dapAnSinhVien) &&
                     string.Equals(dapAnSinhVien, dapAnDung, StringComparison.OrdinalIgnoreCase))
                 {
@@ -356,24 +350,23 @@ namespace QLThiTracNghiem
                 }
             }
 
-            // Tính điểm trên thang điểm 10
+            // Quy điểm về thang 10.
             double diem = Math.Round((double)soCauDung * 10 / tongSoCau, 2);
 
-            // 3. Hiển thị kết quả cho sinh viên
+            // Cho sinh viên xem nhanh kết quả sau khi nộp.
             MessageBox.Show($"Kết quả bài thi của bạn:\n- Số câu đúng: {soCauDung}/{tongSoCau}\n- Điểm: {diem}", "Kết quả");
 
-            // 4. Lưu kết quả vào cơ sở dữ liệu bằng Stored Procedure của SQL Server.
-            // Ngoài điểm tổng trong BANGDIEM, ta lưu thêm từng câu vào CT_BAITHI.
-            // Bảng chi tiết này giúp biết chính xác câu hỏi nào đã được dùng,
-            // từ đó database có thể chặn xóa câu hỏi đã xuất hiện trong bài thi.
+            // Lưu kết quả xuống database:
+            // BANGDIEM giữ điểm tổng, còn CT_BAITHI giữ từng câu đã bốc và đáp án sinh viên chọn.
+            // Nhờ có CT_BAITHI nên sau này không xóa/sửa nhầm câu hỏi đã từng được thi.
             try
             {
                 using (SqlConnection conn = DBHelper.GetConnection())
                 {
                     conn.Open();
 
-                    // Dùng transaction để điểm tổng và chi tiết bài thi đi cùng nhau:
-                    // nếu lưu chi tiết bị lỗi thì rollback luôn điểm tổng, tránh dữ liệu nửa vời.
+                    // Điểm tổng và chi tiết bài thi phải đi cùng nhau.
+                    // Nếu một bước lỗi thì rollback để không bị lưu thiếu một phần.
                     using (SqlTransaction tran = conn.BeginTransaction())
                     {
                         try
@@ -381,11 +374,10 @@ namespace QLThiTracNghiem
                             using (SqlCommand cmd = new SqlCommand("SP_GHI_DIEM_THI", conn, tran))
                             {
                                 cmd.CommandType = CommandType.StoredProcedure;
-                                cmd.Parameters.AddWithValue("@MASV", Program.mUserName); // Mã SV đang thi
+                                cmd.Parameters.AddWithValue("@MASV", Program.mUserName); // Mã sinh viên đang thi.
                                 cmd.Parameters.AddWithValue("@MAMH", maMon);
                                 cmd.Parameters.AddWithValue("@LAN", lanThi);
-                                // Lưu đúng ngày thi mà sinh viên đã chọn trên form,
-                                // vì đề tài cho chọn ngày thi chứ không bắt buộc lấy ngày hệ thống.
+                                // Lưu đúng ngày thi đã chọn, không tự đổi sang ngày hệ thống.
                                 cmd.Parameters.AddWithValue("@NGAYTHI", ngayThiDangThi);
                                 cmd.Parameters.AddWithValue("@DIEM", diem);
 
@@ -449,7 +441,7 @@ namespace QLThiTracNghiem
                 }
                 MessageBox.Show("Đã lưu kết quả thi thành công!", "Thông báo");
 
-                // 5. Sau khi thi xong, khóa giao diện hoặc đóng form
+                // Lưu xong thì đóng form thi.
                 this.Close();
             }
             catch (Exception ex)
@@ -465,14 +457,14 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Nếu đang thi (đồng hồ đang chạy) mà bấm thoát thì cảnh báo
+            // Nếu đang làm bài mà thoát thì tự nộp bài để không mất kết quả.
             if (timer1.Enabled)
             {
                 DialogResult dr = MessageBox.Show("Bạn đang trong thời gian làm bài! Nếu thoát bây giờ, hệ thống sẽ tự động nộp bài và tính điểm. Bạn có chắc chắn muốn thoát?", "Cảnh báo nghiêm trọng", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (dr == DialogResult.Yes)
                 {
-                    btnNopBai.PerformClick(); // Tự động gọi nút Nộp Bài để lưu điểm
+                    btnNopBai.PerformClick(); // Gọi lại đúng luồng nộp bài để chấm và lưu điểm.
                 }
             }
             else
@@ -491,14 +483,12 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                // 1. Lấy thông số của ca thi đang chọn.
-                // Các biến này là biến toàn cục để lát nữa Nộp bài dùng lại đúng môn/lần thi vừa bắt đầu.
+                // Lấy thông tin ca thi đang chọn để lát nữa nộp bài còn biết lưu đúng môn/lần/ngày.
                 maMon = cmbMonThi.SelectedValue.ToString().Trim();
                 lanThi = int.Parse(cmbLanThi.Text);
                 DateTime ngayThi = dtpNgayThi.Value.Date;
 
-                // Sinh viên được chọn ngày thi theo file Word đề tài.
-                // Nếu ngày đó có đăng ký thi hợp lệ thì cho bắt đầu thi luôn theo lịch đã chọn.
+                // Giữ lại ngày đang chọn để khi ghi điểm không bị lệch sang ngày hệ thống.
                 ngayThiDangThi = ngayThi;
 
                 if (DaThi(maMon, lanThi))
@@ -508,15 +498,14 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                // Lần 2 chỉ hợp lệ khi sinh viên đã có điểm lần 1 của cùng môn.
-                // Điều này xử lý góp ý "thi lần 2 sau lần 1".
+                // Lần 2 chỉ được thi sau khi sinh viên đã có điểm lần 1 của cùng môn.
                 if (lanThi == 2 && !DaThi(maMon, 1))
                 {
                     MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                // 2. Tìm lịch thi: Khớp Môn, Lớp, Lần VÀ đúng cái NGÀY THI
+                // Tìm lịch thi khớp đủ môn, lớp, lần và ngày thi đang chọn.
                 DataTable dtDangKy = LayThongTinDangKy(maMon, lanThi, ngayThi);
 
                 if (dtDangKy.Rows.Count == 0)
@@ -525,13 +514,13 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                // 3. Đã qua được bước trên nghĩa là đúng lịch thi 100%, cứ thế Lấy các thông số cấu hình của đợt thi đó
+                // Có lịch hợp lệ thì lấy số câu, thời gian và trình độ của ca thi đó.
                 tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
                 int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
                 trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString().Trim();
                 thoiGianConLai = soPhut * 60;
 
-                // 4. Bốc bộ đề ngẫu nhiên từ CSDL dựa vào Môn và Trình Độ
+                // Bốc đề ngẫu nhiên theo môn và trình độ của lịch thi.
                 DataTable dtDeThi = LayDeThi(maMon, trinhDo, tongSoCau);
 
                 if (dtDeThi.Rows.Count < tongSoCau)
@@ -540,7 +529,7 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                // 5. Đổ dữ liệu từ DataTable vào List để dễ lật qua lật lại
+                // Đưa DataTable về List<CauHoiThi> để dễ chuyển câu và lưu đáp án tạm.
                 danhSachCauHoi.Clear();
                 foreach (DataRow row in dtDeThi.Rows)
                 {
@@ -556,11 +545,11 @@ namespace QLThiTracNghiem
                     danhSachCauHoi.Add(ch);
                 }
 
-                // 6. Mở khóa giao diện và hiển thị câu đầu tiên
+                // Mở phần làm bài và hiển thị câu đầu tiên.
                 cauHienTai = 0;
                 HienThiCauHoi(cauHienTai);
 
-                // Khóa các nút không cho chọn lại khi đang thi
+                // Đã bắt đầu thi thì không cho đổi lại ngày/môn/lần.
                 btnBatDau.Enabled = false;
                 btnNopBai.Enabled = true;
                 cmbMonThi.Enabled = false;
@@ -569,7 +558,7 @@ namespace QLThiTracNghiem
 
                 groupBox1.Enabled = true;
 
-                // 7. Khởi động đồng hồ
+                // Bắt đầu đếm giờ làm bài.
                 timer1.Start();
             }
             catch (Exception ex)
@@ -577,40 +566,40 @@ namespace QLThiTracNghiem
                 MessageBox.Show("Lỗi lấy đề thi: " + ex.Message, "Báo lỗi");
             }
         }
-        // Hàm hiển thị câu hỏi lên giao diện
+        // Hiển thị câu hỏi theo vị trí đang chọn trong danhSachCauHoi.
         private void HienThiCauHoi(int index)
         {
             if (index < 0 || index >= danhSachCauHoi.Count) return;
 
             CauHoiThi ch = danhSachCauHoi[index];
 
-            // Cập nhật nhãn câu hỏi
+            // Hiện nội dung câu hỏi kèm số thứ tự.
             lblNoiDungCauHoi.Text = $"Câu {index + 1}/{tongSoCau}: {ch.NoiDung}";
 
-            // Cập nhật chữ cho 4 đáp án
+            // Đưa 4 phương án lên radio button.
             rdoA.Text = ch.A;
             rdoB.Text = ch.B;
             rdoC.Text = ch.C;
             rdoD.Text = ch.D;
 
-            // Xóa các lựa chọn cũ đi để làm mới
+            // Xóa lựa chọn trên giao diện trước khi phục hồi đáp án đã chọn.
             rdoA.Checked = false;
             rdoB.Checked = false;
             rdoC.Checked = false;
             rdoD.Checked = false;
 
-            // Phục hồi lại đáp án sinh viên đã chọn (nếu có) khi họ bấm nút "Câu Trước" quay lại
+            // Nếu sinh viên đã chọn câu này rồi thì tick lại đáp án đó khi quay lại.
             if (ch.DapAnDaChon == "A") rdoA.Checked = true;
             else if (ch.DapAnDaChon == "B") rdoB.Checked = true;
             else if (ch.DapAnDaChon == "C") rdoC.Checked = true;
             else if (ch.DapAnDaChon == "D") rdoD.Checked = true;
 
-            // Bật/tắt nút Câu Trước, Câu Sau
-            btnCauTruoc.Enabled = (index > 0); // Đang ở câu đầu thì tắt nút Trước
-            btnCauSau.Enabled = (index < danhSachCauHoi.Count - 1); // Đang ở câu cuối thì tắt nút Sau
+            // Câu đầu không có nút Trước, câu cuối không có nút Sau.
+            btnCauTruoc.Enabled = (index > 0);
+            btnCauSau.Enabled = (index < danhSachCauHoi.Count - 1);
         }
 
-        // Hàm ngầm để ghi nhớ đáp án sinh viên vừa chọn vào bộ nhớ
+        // Lưu đáp án đang tick vào object câu hỏi hiện tại.
         private void LuuDapAn()
         {
             if (danhSachCauHoi.Count == 0) return;
@@ -623,7 +612,7 @@ namespace QLThiTracNghiem
 
         private void btnCauSau_Click(object sender, EventArgs e)
         {
-            LuuDapAn(); // Lưu lại đáp án của câu hiện tại
+            LuuDapAn(); // Trước khi chuyển câu thì giữ lại đáp án đang chọn.
             if (cauHienTai < danhSachCauHoi.Count - 1)
             {
                 cauHienTai++;
@@ -635,16 +624,16 @@ namespace QLThiTracNghiem
         {
             if (thoiGianConLai > 0)
             {
-                thoiGianConLai--; // Trừ đi 1 giây
+                thoiGianConLai--; // Mỗi Tick của timer trừ 1 giây.
 
-                // Tính phút và giây để hiển thị lên nhãn (lblThoiGian hoặc ô em đặt tên đồng hồ)
+                // Đổi tổng số giây còn lại sang phút:giây để hiển thị.
                 int phut = thoiGianConLai / 60;
                 int giay = thoiGianConLai % 60;
 
-                // Hiển thị định dạng 00:00 (Ví dụ: 14:59)
+                // Hiển thị dạng 00:00, ví dụ 14:59.
                 lblThoiGian.Text = string.Format("{0:00}:{1:00}", phut, giay);
 
-                // Cảnh báo khi còn dưới 30 giây (đổi màu đỏ cho kịch tính)
+                // Còn ít thời gian thì đổi màu đỏ để sinh viên dễ chú ý.
                 if (thoiGianConLai <= 30)
                 {
                     lblThoiGian.ForeColor = System.Drawing.Color.Red;
@@ -652,10 +641,10 @@ namespace QLThiTracNghiem
             }
             else
             {
-                // Hết giờ! Tự động nộp bài
+                // Hết giờ thì tự động nộp bài.
                 timer1.Stop();
                 MessageBox.Show("Đã hết thời gian làm bài!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                btnNopBai.PerformClick(); // Tự gọi nút Nộp bài
+                btnNopBai.PerformClick(); // Dùng lại đúng xử lý của nút Nộp bài.
             }
         }
 

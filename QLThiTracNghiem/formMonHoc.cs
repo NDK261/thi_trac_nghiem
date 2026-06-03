@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,31 +12,31 @@ namespace QLThiTracNghiem
 {
     public partial class formMonHoc : Form
     {
-        bool isAdding = false; // Biến kiểm tra xem đang Thêm hay Sửa
-        DataTable dtMonHocGoc; // Thêm biến này để giữ dữ liệu gốc
+        bool isAdding = false; // Mình dùng cờ này để biết nút Ghi đang xử lý Thêm hay Sửa.
+        DataTable dtMonHocGoc; // Giữ lại danh sách môn ban đầu để lọc tìm kiếm trên form.
         public formMonHoc()
         {
             InitializeComponent();
         }
 
-        // Hàm dùng để gọi dữ liệu từ SQL và đổ vào Lưới
+        // Tải danh sách môn học từ SQL rồi đưa lên DataGridView.
         private void LoadData()
         {
             try
             {
-                // Dùng SP_GET_MONHOC đã viết dưới SQL Server
+                // Phần lấy dữ liệu môn học được gom trong stored procedure SP_GET_MONHOC.
                 string sql = "EXEC SP_GET_MONHOC";
                 DataTable dt = DBHelper.GetDataTable(sql);
 
-                // dtMonHocGoc là bảng dữ liệu gốc dùng cho ô tìm kiếm live.
-                // Mỗi lần thêm/sửa/xóa xong ta gọi LoadData(), nên gán lại biến này để tìm kiếm không bị dùng dữ liệu cũ.
+                // dtMonHocGoc luôn được cập nhật lại sau khi thêm/sửa/xóa,
+                // nếu không thì ô tìm kiếm có thể lọc trên dữ liệu cũ.
                 dtMonHocGoc = dt;
                 dgvMonHoc.DataSource = dtMonHocGoc;
 
-                // Chỉnh lại tiêu đề cột cho đẹp
+                // Đặt lại tên cột cho người dùng nhìn dễ hiểu hơn tên cột trong database.
                 dgvMonHoc.Columns["MAMH"].HeaderText = "Mã Môn Học";
                 dgvMonHoc.Columns["TENMH"].HeaderText = "Tên Môn Học";
-                dgvMonHoc.Columns["TENMH"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; // Cho cột tên môn dãn đầy lưới
+                dgvMonHoc.Columns["TENMH"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; // Cột tên môn thường dài nên cho chiếm phần còn lại của lưới.
 
                 // Chỉ cho xem/chọn dữ liệu trên lưới; việc thêm/sửa/xóa phải đi qua các nút riêng.
                 dgvMonHoc.ReadOnly = true;
@@ -51,18 +51,18 @@ namespace QLThiTracNghiem
             }
         }
 
-        // Sự kiện chạy khi form vừa mở lên
+        // Khi form mở lên thì load dữ liệu và đưa các nút về trạng thái xem.
         private void formMonHoc_Load_1(object sender, EventArgs e)
         {
             LoadData();
 
-            // 1. Khóa các ô nhập liệu
+            // Ban đầu chỉ cho xem dữ liệu, chưa cho gõ trực tiếp.
             txtMaMH.Enabled = false;
             txtTenMH.Enabled = false;
             dgvMonHoc.Enabled = true;
             txtTimKiem.Enabled = true;
 
-            // 2. Tắt nút Ghi, Phục hồi. Bật nút Thêm, Sửa, Xóa
+            // Ghi/Phục hồi chỉ bật khi đang thêm hoặc sửa.
             btnGhi.Enabled = false;
             btnPhucHoi.Enabled = false;
             btnThem.Enabled = true;
@@ -73,7 +73,7 @@ namespace QLThiTracNghiem
 
         private void dgvMonHoc_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            // Kiểm tra xem có bấm đúng vào dòng có dữ liệu không
+            // Chỉ nhận dòng thật trong lưới, không xử lý header hoặc dòng rỗng.
             if (e.RowIndex >= 0)
             {
                 DataGridViewRow row = dgvMonHoc.Rows[e.RowIndex];
@@ -84,18 +84,18 @@ namespace QLThiTracNghiem
 
         private void btnThem_Click(object sender, EventArgs e)
         {
-            isAdding = true; // Bật cờ trạng thái đang Thêm
+            isAdding = true; // Từ đây nút Ghi sẽ gọi SP_THEM_MONHOC.
 
-            // 1. MỞ KHÓA CHO PHÉP NHẬP LIỆU
+            // Thêm mới thì cho nhập cả mã môn và tên môn.
             txtMaMH.Enabled = true;
             txtTenMH.Enabled = true;
 
-            // Xóa trắng chữ cũ và đưa con trỏ chuột nhấp nháy vào ô Mã
+            // Xóa dữ liệu cũ trên ô nhập để tránh người dùng tưởng đang sửa dòng đang chọn.
             txtMaMH.Clear();
             txtTenMH.Clear();
             txtMaMH.Focus();
 
-            // 2. ĐẢO TRẠNG THÁI NÚT BẤM (Bật Ghi/Phục hồi, Tắt Thêm/Sửa/Xóa)
+            // Trong lúc thêm thì chỉ cho Ghi hoặc Phục hồi, không cho bấm lẫn thao tác khác.
             btnGhi.Enabled = true;
             btnPhucHoi.Enabled = true;
             btnThem.Enabled = false;
@@ -160,14 +160,14 @@ namespace QLThiTracNghiem
                 MessageBox.Show("Vui lòng chọn môn học cần sửa từ danh sách!", "Thông báo");
                 return;
             }
-            isAdding = false; // Tắt cờ Thêm -> Tức là đang Sửa
+            isAdding = false; // Từ đây nút Ghi sẽ gọi SP_SUA_MONHOC.
 
-            // 1. CHỈ MỞ KHÓA Ô TÊN MÔN HỌC
-            txtMaMH.Enabled = false; // Cấm sửa mã
-            txtTenMH.Enabled = true; // Cho phép sửa tên
+            // Khi sửa chỉ cho đổi tên môn. Mã môn là khóa chính nên không cho sửa tự do.
+            txtMaMH.Enabled = false;
+            txtTenMH.Enabled = true;
             txtTenMH.Focus();
 
-            // 2. ĐẢO TRẠNG THÁI NÚT BẤM
+            // Khóa các nút thao tác khác cho tới khi người dùng Ghi hoặc Phục hồi.
             btnGhi.Enabled = true;
             btnPhucHoi.Enabled = true;
             btnThem.Enabled = false;
@@ -190,9 +190,8 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // Theo thiết kế CSDL, MAMH là NCHAR(5), TENMH là NVARCHAR(40).
-            // Kiểm tra ngay trên form giúp người dùng biết lỗi dễ hiểu hơn,
-            // thay vì để SQL Server báo lỗi cắt chuỗi/vi phạm ràng buộc khó đọc.
+            // Độ dài này lấy theo bảng MONHOC: MAMH tối đa 5 ký tự, TENMH tối đa 40 ký tự.
+            // Kiểm tra trước trên form để lỗi dễ hiểu hơn so với lỗi SQL Server trả về.
             if (maMH.Length > 5)
             {
                 MessageBox.Show("Mã môn học tối đa 5 ký tự!", "Báo lỗi");
@@ -220,7 +219,7 @@ namespace QLThiTracNghiem
                         cmd.Connection = conn;
                         cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
-                        // Gọi Stored Procedure tương ứng
+                        // Tùy trạng thái đang thêm hay sửa mà gọi stored procedure tương ứng.
                         if (isAdding)
                             cmd.CommandText = "SP_THEM_MONHOC";
                         else
@@ -229,7 +228,7 @@ namespace QLThiTracNghiem
                         cmd.Parameters.AddWithValue("@MAMH", maMH);
                         cmd.Parameters.AddWithValue("@TENMH", tenMH);
 
-                        // Thực thi SP và nhận mã lỗi trả về (Return Value)
+                        // Stored procedure trả RETURN code để C# biết lỗi cụ thể là gì.
                         System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
                         returnValue.Direction = System.Data.ParameterDirection.ReturnValue;
                         cmd.Parameters.Add(returnValue);
@@ -244,20 +243,20 @@ namespace QLThiTracNghiem
                         else
                         {
                             MessageBox.Show("Cập nhật thành công!", "Thông báo");
-                            LoadData(); // Tải lại lưới
+                            LoadData(); // Lưu xong thì tải lại lưới để thấy dữ liệu mới nhất.
                             txtTimKiem.Clear();
 
-                            // 1. Khóa các ô nhập liệu lại
+                            // Quay về trạng thái xem dữ liệu.
                             txtMaMH.Enabled = false;
                             txtTenMH.Enabled = false;
                             dgvMonHoc.Enabled = true;
                             txtTimKiem.Enabled = true;
 
-                            // 2. TẮT nút Ghi và Phục hồi (Lưu xong rồi thì không còn gì để Hủy/Phục hồi nữa)
+                            // Lưu xong rồi thì không còn dữ liệu nháp để Ghi hoặc Phục hồi.
                             btnGhi.Enabled = false;
                             btnPhucHoi.Enabled = false;
 
-                            // 3. Mở lại các nút thao tác cơ bản để làm tiếp
+                            // Mở lại các nút thao tác chính.
                             btnThem.Enabled = true;
                             btnSua.Enabled = true;
                             btnXoa.Enabled = true;
@@ -289,7 +288,7 @@ namespace QLThiTracNghiem
             this.Close();
         }
 
-        // Hàm chuyển Tiếng Việt có dấu thành không dấu
+        // Chuyển tiếng Việt có dấu thành không dấu để ô tìm kiếm dễ dùng hơn.
         public static string ChuyenKhongDau(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return "";
@@ -305,46 +304,43 @@ namespace QLThiTracNghiem
                     stringBuilder.Append(c);
                 }
             }
-            // Xử lý đặc biệt cho chữ Đ/đ và chuyển về in thường
+            // Riêng chữ Đ/đ không tự mất dấu bằng Normalize nên xử lý thêm ở cuối.
             return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC).Replace("đ", "d").Replace("Đ", "d").ToLower();
         }
 
         private void txtTimKiem_TextChanged(object sender, EventArgs e)
         {
-            // Nếu chưa có dữ liệu gốc thì thoát luôn
+            // Nếu chưa load dữ liệu thì không có gì để lọc.
             if (dtMonHocGoc == null) return;
 
-            // Chuyển từ khóa người dùng gõ thành không dấu
+            // Từ khóa và dữ liệu đều đưa về không dấu để so sánh cho dễ.
             string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
 
-            // Tạo một bảng ảo (trống) có cùng cấu trúc cột để chứa kết quả lọc
+            // Tạo bảng tạm cùng cấu trúc với bảng gốc để chứa các dòng tìm được.
             DataTable dtLoc = dtMonHocGoc.Clone();
 
-            // Duyệt qua từng dòng trong bảng gốc
             foreach (DataRow row in dtMonHocGoc.Rows)
             {
-                // Đem dữ liệu trong bảng đi "lột dấu"
                 string maMH = ChuyenKhongDau(row["MAMH"].ToString());
                 string tenMH = ChuyenKhongDau(row["TENMH"].ToString());
 
-                // Nếu mã hoặc tên KHÔNG DẤU có chứa TỪ KHÓA KHÔNG DẤU thì bốc dòng đó bỏ vào bảng kết quả
+                // Nếu mã hoặc tên môn có chứa từ khóa thì đưa dòng đó vào kết quả lọc.
                 if (maMH.Contains(keyword) || tenMH.Contains(keyword))
                 {
                     dtLoc.ImportRow(row);
                 }
             }
 
-            // Gắn bảng kết quả đã lọc lên lại Lưới
+            // Đưa kết quả lọc lên lưới.
             dgvMonHoc.DataSource = dtLoc;
         }
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // 1. Reset lại cờ trạng thái (Nếu em có dùng biến isAdding để phân biệt Thêm/Sửa)
+            // Phục hồi là hủy phần đang gõ dở, nên đưa cờ trạng thái về bình thường.
             isAdding = false;
 
-            // 2. Tải lại dữ liệu của dòng đang được chọn trên lưới lên TextBox
-            // (Thao tác này giúp xóa đi những chữ em vừa gõ dở, trả lại nguyên trạng)
+            // Nạp lại dòng đang chọn lên ô nhập để trả về dữ liệu trước khi sửa.
             if (dgvMonHoc.CurrentRow != null)
             {
                 txtMaMH.Text = dgvMonHoc.CurrentRow.Cells["MAMH"].Value.ToString();
@@ -356,20 +352,20 @@ namespace QLThiTracNghiem
                 txtTenMH.Clear();
             }
 
-            // 3. Khóa ô Mã Môn Học lại (Mã thì không nên cho sửa tự do)
+            // Khóa lại ô nhập vì đã quay về trạng thái xem.
             txtMaMH.Enabled = false;
-            txtTenMH.Enabled = false; // Khóa luôn ô Tên, khi nào bấm Thêm/Sửa mới mở ra
+            txtTenMH.Enabled = false;
             dgvMonHoc.Enabled = true;
             txtTimKiem.Enabled = true;
 
-            // 4. Trả các nút bấm về trạng thái Bình thường
+            // Trả các nút về trạng thái thao tác bình thường.
             btnThem.Enabled = true;
             bool hasCurrentRow = dgvMonHoc.CurrentRow != null && !dgvMonHoc.CurrentRow.IsNewRow;
             btnSua.Enabled = hasCurrentRow;
             btnXoa.Enabled = hasCurrentRow;
 
-            btnGhi.Enabled = false;       // Tắt nút Ghi vì đã phục hồi, không có gì để lưu
-            btnPhucHoi.Enabled = false;   // Tắt chính nó đi
+            btnGhi.Enabled = false;       // Không còn nội dung nháp để lưu.
+            btnPhucHoi.Enabled = false;   // Đã phục hồi xong nên tắt nút này.
         }
     }
 }
