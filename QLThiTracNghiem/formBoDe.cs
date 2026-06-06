@@ -19,16 +19,12 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
-        // Trạng thái chung của form Bộ đề:
-        // - Bình thường: chỉ cho chọn môn/chọn câu hỏi trên lưới, chưa cho sửa trực tiếp ô nhập.
-        // - Đang Thêm/Sửa: mở các ô cần nhập, bật Ghi + Phục hồi, khóa Thêm/Sửa/Xóa để tránh bấm lẫn thao tác.
-        // Tách riêng hàm này để các nút đưa form về cùng một kiểu, tránh mỗi chỗ bật/tắt khác nhau.
+        // Gom trạng thái nút/ô nhập để các thao tác Thêm, Sửa, Ghi, Phục hồi không bị lệch nhau.
         private void SetNormalState()
         {
             isAdding = false;
 
-            // Ở trạng thái xem thì chỉ chọn môn và chọn dòng trên lưới.
-            // Muốn thay đổi dữ liệu phải bấm Thêm hoặc Sửa trước.
+            // Trạng thái xem: chỉ chọn môn và chọn dòng trên lưới.
             SetInputState(false);
             cmbMonHoc.Enabled = true;
             dgvBoDe.Enabled = true;
@@ -47,12 +43,12 @@ namespace QLThiTracNghiem
         {
             isAdding = adding;
 
-            // Khi đang nhập thì khóa môn và lưới, tránh đang gõ dở mà người dùng đổi sang dòng khác.
+            // Đang nhập thì khóa môn và lưới để không đổi dòng giữa chừng.
             SetInputState(true);
             cmbMonHoc.Enabled = false;
             dgvBoDe.Enabled = false;
 
-            // CAUHOI là khóa chính do database tự cấp, nên form chỉ hiển thị chứ không cho nhập tay.
+            // CAUHOI do database tự cấp nên không cho nhập tay.
             txtCauHoi.Enabled = false;
             txtCauHoi.ReadOnly = true;
 
@@ -75,11 +71,11 @@ namespace QLThiTracNghiem
             txtD.Enabled = enabled;
             cmbDapAn.Enabled = enabled;
 
-            // Mã giảng viên lấy theo tài khoản đăng nhập để biết ai là người tạo câu hỏi.
+            // MAGV lấy theo tài khoản đăng nhập.
             txtMaGV.Enabled = false;
             txtMaGV.ReadOnly = true;
 
-            // Mã câu hỏi cũng do database quản lý để tránh trùng khóa chính.
+            // Mã câu hỏi cũng để database quản lý.
             txtCauHoi.ReadOnly = true;
         }
 
@@ -95,7 +91,7 @@ namespace QLThiTracNghiem
             if (cmbTrinhDo.Items.Count > 0) cmbTrinhDo.SelectedIndex = 0;
             if (cmbDapAn.Items.Count > 0) cmbDapAn.SelectedIndex = 0;
 
-            // Thêm câu hỏi mới thì giáo viên tạo câu hỏi chính là tài khoản đang đăng nhập.
+            // Thêm mới thì MAGV là tài khoản đang đăng nhập.
             txtMaGV.Text = Program.mUserName;
         }
 
@@ -121,8 +117,7 @@ namespace QLThiTracNghiem
 
         private bool ValidateInput()
         {
-            // Khi thêm thì CAUHOI tự tăng nên không cần kiểm tra.
-            // Khi sửa thì phải có mã câu hỏi cũ để biết cập nhật đúng dòng nào.
+            // Khi sửa phải có CAUHOI để cập nhật đúng dòng.
             if (!isAdding && !int.TryParse(txtCauHoi.Text.Trim(), out int _))
             {
                 MessageBox.Show("Mã câu hỏi phải là số nguyên!", "Báo lỗi");
@@ -163,8 +158,7 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            // Một câu trắc nghiệm nên có 4 phương án khác nhau.
-            // Mình Trim rồi so sánh không phân biệt hoa/thường để tránh nhập trùng kiểu "A" và "a".
+            // 4 đáp án phải khác nhau; so sánh không phân biệt hoa/thường.
             string[] dapAn = new string[]
             {
                 txtA.Text.Trim(),
@@ -186,25 +180,24 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // Đổ môn học vào ComboBox để chọn môn trước khi xem/thêm câu hỏi.
+                // Đổ môn học vào ComboBox.
                 DataTable dtMonHoc = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
                 cmbMonHoc.DataSource = dtMonHoc;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
 
-                // Trình độ chỉ có A, B, C theo thiết kế đề thi.
+                // Trình độ theo đề: A, B, C.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });
                 cmbTrinhDo.SelectedIndex = 0;
 
-                // Đáp án đúng chỉ nằm trong 4 lựa chọn A, B, C, D.
+                // Đáp án đúng chỉ nhận A, B, C, D.
                 cmbDapAn.Items.AddRange(new string[] { "A", "B", "C", "D" });
                 cmbDapAn.SelectedIndex = 0;
 
-                // Mã giáo viên tự lấy theo tài khoản đăng nhập.
+                // Mã giáo viên lấy theo tài khoản đăng nhập.
                 txtMaGV.Text = Program.mUserName;
 
-                // Form vừa mở lên chỉ nên ở trạng thái xem dữ liệu.
-                // Người dùng muốn nhập mới thì bấm Thêm, muốn đổi câu hỏi cũ thì bấm Sửa.
+                // Vừa mở form thì chỉ xem dữ liệu.
                 SetNormalState();
             }
             catch (Exception ex)
@@ -284,6 +277,7 @@ namespace QLThiTracNghiem
                             cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
                             cmd.Parameters.AddWithValue("@MAGV", Program.mUserName);
 
+                            // SP trả mã lỗi để biết câu đã thi hay không đúng giáo viên.
                             System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
                             returnValue.Direction = ParameterDirection.ReturnValue;
                             cmd.Parameters.Add(returnValue);
@@ -312,7 +306,7 @@ namespace QLThiTracNghiem
         {
             if (txtCauHoi.Text == "") return;
 
-            // Kiểm tra nhanh trên giao diện trước; SP vẫn kiểm tra lại lần nữa ở database.
+            // Form kiểm tra trước, SP vẫn kiểm tra lại ở database.
             if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
                 MessageBox.Show("Bạn không có quyền sửa câu hỏi của người khác!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -339,8 +333,7 @@ namespace QLThiTracNghiem
 
                         cmd.CommandText = isAdding ? "SP_THEM_BODE" : "SP_SUA_BODE";
 
-                        // Thêm mới không truyền @CAUHOI vì database tự sinh mã.
-                        // Sửa thì phải truyền @CAUHOI để SP biết dòng cần cập nhật.
+                        // Thêm mới không truyền @CAUHOI; sửa thì phải truyền để SP biết dòng cần cập nhật.
                         if (!isAdding)
                             cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
 
@@ -352,8 +345,9 @@ namespace QLThiTracNghiem
                         cmd.Parameters.AddWithValue("@C", txtC.Text.Trim());
                         cmd.Parameters.AddWithValue("@D", txtD.Text.Trim());
                         cmd.Parameters.AddWithValue("@DAP_AN", cmbDapAn.Text);
-                        cmd.Parameters.AddWithValue("@MAGV", Program.mUserName); // Truyền giáo viên hiện tại để SP kiểm tra quyền.
+                        cmd.Parameters.AddWithValue("@MAGV", Program.mUserName); // SP dùng MAGV để kiểm tra quyền.
 
+                        // SP kiểm tra lại quyền, câu đã thi và dữ liệu đáp án.
                         System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
                         returnValue.Direction = ParameterDirection.ReturnValue;
                         cmd.Parameters.Add(returnValue);
@@ -382,8 +376,7 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // Phục hồi chỉ bỏ phần đang gõ dở và tải lại dữ liệu thật từ database.
-            // Vì không gọi SP thêm/sửa/xóa nên dữ liệu không bị thay đổi.
+            // Phục hồi chỉ bỏ phần đang gõ dở và tải lại dữ liệu từ database.
             if (cmbMonHoc.SelectedValue != null)
                 LoadBoDe(cmbMonHoc.SelectedValue.ToString());
 
@@ -392,7 +385,7 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Nếu đang thêm/sửa mà chưa Ghi thì hỏi lại trước khi thoát để tránh mất nội dung đang nhập.
+            // Đang nhập dở thì hỏi lại trước khi thoát.
             if (btnGhi.Enabled)
             {
                 DialogResult result = MessageBox.Show(

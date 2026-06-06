@@ -20,10 +20,7 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
-        // Trạng thái chung của form Lớp - Sinh viên:
-        // - Bình thường: chọn lớp, chọn sinh viên trên lưới, các ô nhập bị khóa.
-        // - Đang Thêm: mở ô nhập, cho nhập Mã SV mới, bật Ghi + Phục hồi.
-        // - Đang Sửa: mở ô nhập nhưng khóa Mã SV vì MASV là khóa chính.
+        // Gom trạng thái form: xem dữ liệu, thêm sinh viên hoặc sửa sinh viên.
         private void SetNormalState()
         {
             isAdding = false;
@@ -48,12 +45,12 @@ namespace QLThiTracNghiem
             isAdding = adding;
             SetInputState(true);
 
-            // Đang thêm/sửa thì khóa lớp và lưới để tránh đổi dòng giữa chừng.
+            // Đang nhập thì khóa lớp và lưới.
             cmbLop.Enabled = false;
             dgvSinhVien.Enabled = false;
             txtTimKiem.Enabled = false;
 
-            // Mã sinh viên chỉ nhập khi thêm. Khi sửa, MASV dùng để xác định dòng cần UPDATE.
+            // MASV chỉ nhập khi thêm; khi sửa dùng để tìm dòng UPDATE.
             txtMaSV.Enabled = adding;
 
             btnGhi.Enabled = true;
@@ -103,17 +100,17 @@ namespace QLThiTracNghiem
                 dtpNgaySinh.Value = DateTime.Now;
         }
 
-        // Khi form mở lên thì tải danh sách lớp vào ComboBox.
+        // Mở form thì tải danh sách lớp vào ComboBox.
         private void formLopSinhVien_Load(object sender, EventArgs e)
         {
             try
             {
                 DataTable dtLop = DBHelper.GetDataTable("EXEC SP_GET_LOP");
                 cmbLop.DataSource = dtLop;
-                cmbLop.DisplayMember = "TENLOP"; // Người dùng nhìn thấy tên lớp.
-                cmbLop.ValueMember = "MALOP";    // Code dùng mã lớp để truy vấn sinh viên.
+                cmbLop.DisplayMember = "TENLOP"; // Hiển thị tên lớp.
+                cmbLop.ValueMember = "MALOP";    // Truy vấn bằng mã lớp.
 
-                // Vừa mở form chỉ ở trạng thái xem. Muốn đổi dữ liệu thì bấm Thêm hoặc Sửa.
+                // Vừa mở form thì chỉ xem dữ liệu.
                 SetNormalState();
             }
             catch (Exception ex)
@@ -124,7 +121,7 @@ namespace QLThiTracNghiem
 
         private void cmbLop_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Khi ComboBox đã có mã lớp thì tải sinh viên của lớp đó.
+            // Chọn lớp nào thì tải sinh viên lớp đó.
             if (cmbLop.SelectedValue != null && cmbLop.SelectedValue is string)
             {
                 string maLopDuocChon = cmbLop.SelectedValue.ToString();
@@ -136,8 +133,7 @@ namespace QLThiTracNghiem
         {
             try
             {
-                // Gọi SP bằng SqlParameter để tránh ghép chuỗi SQL trực tiếp.
-                // MALOP là NCHAR nên dùng parameter cũng đỡ lỗi khoảng trắng đệm hơn.
+                // Dùng SqlParameter thay vì ghép chuỗi SQL.
                 DataTable dtSV = DBHelper.ExecuteDataTable(
                     "SP_GET_SINHVIEN_THEO_LOP",
                     new SqlParameter("@MALOP", maLop));
@@ -172,8 +168,7 @@ namespace QLThiTracNghiem
             }
         }
 
-        // Chuyển tiếng Việt có dấu thành không dấu để tìm kiếm dễ hơn.
-        // Ví dụ gõ "thanh" vẫn tìm được "THÀNH".
+        // Tìm kiếm không dấu, ví dụ "thanh" vẫn ra "THÀNH".
         private string ChuyenKhongDau(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return "";
@@ -271,6 +266,7 @@ namespace QLThiTracNghiem
                             cmd.CommandType = CommandType.StoredProcedure;
                             cmd.Parameters.AddWithValue("@MASV", txtMaSV.Text.Trim());
 
+                            // SP trả 1 nếu sinh viên đã có điểm nên không được xóa.
                             SqlParameter returnValue = new SqlParameter();
                             returnValue.Direction = ParameterDirection.ReturnValue;
                             cmd.Parameters.Add(returnValue);
@@ -318,8 +314,7 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // Các độ dài này lấy theo bảng SINHVIEN.
-            // Kiểm tra ở form trước để báo lỗi rõ hơn trước khi gửi xuống SQL Server.
+            // Độ dài lấy theo bảng SINHVIEN, kiểm tra trước để báo lỗi dễ hiểu.
             if (maSV.Length > 8)
             {
                 MessageBox.Show("Mã sinh viên tối đa 8 ký tự!", "Báo lỗi");
@@ -371,6 +366,7 @@ namespace QLThiTracNghiem
                         cmd.Connection = conn;
                         cmd.CommandType = CommandType.StoredProcedure;
 
+                        // isAdding quyết định gọi SP thêm mới hay sửa sinh viên.
                         if (isAdding) cmd.CommandText = "SP_THEM_SINHVIEN";
                         else cmd.CommandText = "SP_SUA_SINHVIEN";
 
@@ -381,6 +377,7 @@ namespace QLThiTracNghiem
                         cmd.Parameters.AddWithValue("@DIACHI", diaChi);
                         cmd.Parameters.AddWithValue("@MALOP", cmbLop.SelectedValue.ToString());
 
+                        // RETURN code giúp biết trùng mã, sai lớp hay sửa không thấy sinh viên.
                         SqlParameter returnValue = new SqlParameter();
                         returnValue.Direction = ParameterDirection.ReturnValue;
                         cmd.Parameters.Add(returnValue);
@@ -399,7 +396,7 @@ namespace QLThiTracNghiem
                         {
                             MessageBox.Show("Cập nhật dữ liệu thành công!", "Thông báo");
                             LoadSinhVien(cmbLop.SelectedValue.ToString()); // Lưu xong thì tải lại lưới.
-                            SetNormalState(); // Quay về trạng thái xem dữ liệu.
+                            SetNormalState(); // Quay về trạng thái xem.
                         }
                     }
                 }
@@ -412,15 +409,14 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // Phục hồi chỉ bỏ dữ liệu đang nhập dở và tải lại dữ liệu từ database.
-            // Không gọi SP thêm/sửa/xóa nên dữ liệu thật không bị thay đổi.
+            // Phục hồi chỉ bỏ dữ liệu đang nhập dở và tải lại dữ liệu.
             LoadSinhVien(cmbLop.SelectedValue.ToString());
             SetNormalState();
         }
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Nếu đang thêm/sửa mà chưa Ghi thì hỏi lại trước khi thoát.
+            // Đang nhập dở thì hỏi lại trước khi thoát.
             if (btnGhi.Enabled)
             {
                 DialogResult result = MessageBox.Show(
