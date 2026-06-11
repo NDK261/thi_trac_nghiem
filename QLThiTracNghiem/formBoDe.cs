@@ -142,9 +142,9 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            if (txtNoiDung.Text.Trim().Length > 500)
+            if (txtNoiDung.Text.Trim().Length > 200)
             {
-                MessageBox.Show("Nội dung câu hỏi tối đa 500 ký tự!", "Báo lỗi");
+                MessageBox.Show("Nội dung câu hỏi tối đa 200 ký tự!", "Báo lỗi");
                 txtNoiDung.Focus();
                 return false;
             }
@@ -185,6 +185,13 @@ namespace QLThiTracNghiem
                 cmbMonHoc.DataSource = dtMonHoc;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
+
+                // Giới hạn nhập theo cấu trúc bảng BODE để người dùng biết lỗi ngay trên form.
+                txtNoiDung.MaxLength = 200;
+                txtA.MaxLength = 200;
+                txtB.MaxLength = 200;
+                txtC.MaxLength = 200;
+                txtD.MaxLength = 200;
 
                 // Trình độ theo đề: A, B, C.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });

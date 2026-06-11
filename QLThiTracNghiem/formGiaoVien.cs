@@ -79,9 +79,23 @@ namespace QLThiTracNghiem
                 return false;
             }
 
+            if (textHo.Text.Length > 40)
+            {
+                MessageBox.Show("Họ giáo viên tối đa 40 ký tự!", "Báo lỗi");
+                textHo.Focus();
+                return false;
+            }
+
             if (textTen.Text == "")
             {
                 MessageBox.Show("Tên không được để trống!", "Báo lỗi");
+                textTen.Focus();
+                return false;
+            }
+
+            if (textTen.Text.Length > 10)
+            {
+                MessageBox.Show("Tên giáo viên tối đa 10 ký tự!", "Báo lỗi");
                 textTen.Focus();
                 return false;
             }
@@ -98,6 +112,13 @@ namespace QLThiTracNghiem
             {
                 MessageBox.Show("Số điện thoại không hợp lệ!", "Báo lỗi");
                 textSoDT.Focus();
+                return false;
+            }
+
+            if (txtTenMH.Text.Length > 50)
+            {
+                MessageBox.Show("Địa chỉ tối đa 50 ký tự!", "Báo lỗi");
+                txtTenMH.Focus();
                 return false;
             }
 

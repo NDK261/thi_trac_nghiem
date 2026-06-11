@@ -55,9 +55,9 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            if (txtMaLop.Text.Length > 10)
+            if (txtMaLop.Text.Length > 15)
             {
-                MessageBox.Show("Mã lớp tối đa 10 ký tự!", "Báo lỗi");
+                MessageBox.Show("Mã lớp tối đa 15 ký tự!", "Báo lỗi");
                 txtMaLop.Focus();
                 return false;
             }
@@ -69,9 +69,9 @@ namespace QLThiTracNghiem
                 return false;
             }
 
-            if (textTenLop.Text.Length > 100)
+            if (textTenLop.Text.Length > 40)
             {
-                MessageBox.Show("Tên lớp tối đa 100 ký tự!", "Báo lỗi");
+                MessageBox.Show("Tên lớp tối đa 40 ký tự!", "Báo lỗi");
                 textTenLop.Focus();
                 return false;
             }
