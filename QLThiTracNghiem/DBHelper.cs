@@ -123,6 +123,42 @@ namespace QLThiTracNghiem
         }
 
         /// <summary>
+        /// Gọi stored procedure có RETURN code trong một transaction đang mở.
+        /// Dùng cho các nghiệp vụ phải lưu nhiều bảng cùng lúc, ví dụ nộp bài thi.
+        /// </summary>
+        public static int ExecuteNonQueryWithReturn(SqlConnection conn, SqlTransaction tran, string procedureName, params SqlParameter[] parameters)
+        {
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand(procedureName, conn, tran))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    if (parameters != null && parameters.Length > 0)
+                    {
+                        cmd.Parameters.AddRange(parameters);
+                    }
+
+                    SqlParameter returnValue = new SqlParameter();
+                    returnValue.Direction = ParameterDirection.ReturnValue;
+                    cmd.Parameters.Add(returnValue);
+
+                    cmd.ExecuteNonQuery();
+
+                    if (returnValue.Value != null && returnValue.Value != DBNull.Value)
+                    {
+                        return Convert.ToInt32(returnValue.Value);
+                    }
+                    return 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi thực thi trong transaction: " + procedureName + "\nChi tiết: " + ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Gọi stored procedure và lấy một giá trị đơn, ví dụ COUNT hoặc một mã nào đó.
         /// </summary>
         public static object ExecuteScalar(string procedureName, params SqlParameter[] parameters)

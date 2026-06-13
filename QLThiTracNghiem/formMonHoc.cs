@@ -19,14 +19,46 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
+        private void ThietLapGioiHanNhap()
+        {
+            txtMaMH.MaxLength = 5;
+            txtTenMH.MaxLength = 40;
+            txtMaMH.CharacterCasing = CharacterCasing.Upper;
+
+            cmbTimKiem.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTimKiem.Items.Clear();
+            cmbTimKiem.Items.AddRange(new string[] { "Tất cả", "Mã môn", "Tên môn" });
+            cmbTimKiem.SelectedIndex = 0;
+        }
+
+        private void LoadCurrentRowToInput()
+        {
+            if (dgvMonHoc.CurrentRow == null || dgvMonHoc.CurrentRow.IsNewRow)
+            {
+                txtMaMH.Clear();
+                txtTenMH.Clear();
+                return;
+            }
+
+            DataGridViewRow row = dgvMonHoc.CurrentRow;
+            txtMaMH.Text = row.Cells["MAMH"].Value?.ToString();
+            txtTenMH.Text = row.Cells["TENMH"].Value?.ToString();
+        }
+
+        private void CapNhatNutTheoDongHienTai()
+        {
+            bool hasCurrentRow = dgvMonHoc.CurrentRow != null && !dgvMonHoc.CurrentRow.IsNewRow;
+            btnSua.Enabled = hasCurrentRow;
+            btnXoa.Enabled = hasCurrentRow;
+        }
+
         // Tải danh sách môn học từ SQL rồi đưa lên DataGridView.
         private void LoadData()
         {
             try
             {
                 // Phần lấy dữ liệu môn học được gom trong stored procedure SP_GET_MONHOC.
-                string sql = "EXEC SP_GET_MONHOC";
-                DataTable dt = DBHelper.GetDataTable(sql);
+                DataTable dt = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
 
                 // Cập nhật bản gốc để ô tìm kiếm không lọc trên dữ liệu cũ.
                 dtMonHocGoc = dt;
@@ -43,6 +75,7 @@ namespace QLThiTracNghiem
                 dgvMonHoc.AllowUserToDeleteRows = false;
                 dgvMonHoc.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 dgvMonHoc.MultiSelect = false;
+                LoadCurrentRowToInput();
             }
             catch (Exception ex)
             {
@@ -53,6 +86,7 @@ namespace QLThiTracNghiem
             // Mở form thì load dữ liệu và đưa nút về trạng thái xem.
         private void formMonHoc_Load_1(object sender, EventArgs e)
         {
+            ThietLapGioiHanNhap();
             LoadData();
 
             // Ban đầu chỉ xem dữ liệu.
@@ -60,6 +94,9 @@ namespace QLThiTracNghiem
             txtTenMH.Enabled = false;
             dgvMonHoc.Enabled = true;
             txtTimKiem.Enabled = true;
+            cmbTimKiem.Enabled = true;
+            btnTimKiem.Enabled = true;
+            btnLamMoiTimKiem.Enabled = true;
 
             // Ghi/Phục hồi chỉ bật khi thêm hoặc sửa.
             btnGhi.Enabled = false;
@@ -75,9 +112,8 @@ namespace QLThiTracNghiem
             // Chỉ xử lý dòng dữ liệu thật.
             if (e.RowIndex >= 0)
             {
-                DataGridViewRow row = dgvMonHoc.Rows[e.RowIndex];
-                txtMaMH.Text = row.Cells["MAMH"].Value.ToString();
-                txtTenMH.Text = row.Cells["TENMH"].Value.ToString();
+                LoadCurrentRowToInput();
+                CapNhatNutTheoDongHienTai();
             }
         }
 
@@ -104,45 +140,43 @@ namespace QLThiTracNghiem
             // Khóa lưới/tìm kiếm để không đổi dòng khi đang gõ.
             dgvMonHoc.Enabled = false;
             txtTimKiem.Enabled = false;
+            cmbTimKiem.Enabled = false;
+            btnTimKiem.Enabled = false;
+            btnLamMoiTimKiem.Enabled = false;
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
-            if (txtMaMH.Text == "") return;
+            if (txtMaMH.Text == "")
+            {
+                MessageBox.Show("Vui lòng chọn môn học cần xóa từ danh sách!", "Thông báo");
+                return;
+            }
 
-            if (MessageBox.Show("Bạn có chắc chắn muốn xóa môn học này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            string thongBaoXoa =
+                "Bạn có chắc muốn xóa môn học này?\n\n" +
+                $"Mã môn: {txtMaMH.Text.Trim()}\n" +
+                $"Tên môn: {txtTenMH.Text.Trim()}";
+
+            if (MessageBox.Show(thongBaoXoa, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+                    int result = DBHelper.ExecuteNonQueryWithReturn(
+                        "SP_XOA_MONHOC",
+                        new System.Data.SqlClient.SqlParameter("@MAMH", txtMaMH.Text.Trim()));
+
+                    if (result == 1)
+                        MessageBox.Show("Không thể xóa môn học này vì đã có câu hỏi trong Bộ đề!", "Báo lỗi");
+                    else if (result == 2)
+                        MessageBox.Show("Không thể xóa môn học này vì đã có lịch Đăng ký thi!", "Báo lỗi");
+                    else if (result == 3)
+                        MessageBox.Show("Không thể xóa môn học này vì đã có điểm thi của sinh viên!", "Báo lỗi");
+                    else
                     {
-                        conn.Open();
-                        using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SP_XOA_MONHOC", conn))
-                        {
-                            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("@MAMH", txtMaMH.Text.Trim());
-
-                            System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
-                            returnValue.Direction = System.Data.ParameterDirection.ReturnValue;
-                            cmd.Parameters.Add(returnValue);
-
-                            cmd.ExecuteNonQuery();
-
-                            int result = (int)returnValue.Value;
-
-                            if (result == 1)
-                                MessageBox.Show("Không thể xóa môn học này vì đã có câu hỏi trong Bộ đề!", "Báo lỗi");
-                            else if (result == 2)
-                                MessageBox.Show("Không thể xóa môn học này vì đã có lịch Đăng ký thi!", "Báo lỗi");
-                            else if (result == 3)
-                                MessageBox.Show("Không thể xóa môn học này vì đã có điểm thi của sinh viên!", "Báo lỗi");
-                            else
-                            {
-                                MessageBox.Show("Xóa thành công!", "Thông báo");
-                                LoadData();
-                                txtTimKiem.Clear();
-                            }
-                        }
+                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                        LoadData();
+                        txtTimKiem.Clear();
                     }
                 }
                 catch (Exception ex)
@@ -176,6 +210,9 @@ namespace QLThiTracNghiem
             // Đang sửa thì không đổi dòng hoặc tìm kiếm.
             dgvMonHoc.Enabled = false;
             txtTimKiem.Enabled = false;
+            cmbTimKiem.Enabled = false;
+            btnTimKiem.Enabled = false;
+            btnLamMoiTimKiem.Enabled = false;
         }
 
         private void btnGhi_Click(object sender, EventArgs e)
@@ -209,57 +246,39 @@ namespace QLThiTracNghiem
 
             try
             {
-                using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+                // isAdding quyết định gọi SP thêm hay sửa.
+                string procedureName = isAdding ? "SP_THEM_MONHOC" : "SP_SUA_MONHOC";
+                int result = DBHelper.ExecuteNonQueryWithReturn(
+                    procedureName,
+                    new System.Data.SqlClient.SqlParameter("@MAMH", maMH),
+                    new System.Data.SqlClient.SqlParameter("@TENMH", tenMH));
+
+                if (result == 1) MessageBox.Show("Lỗi: Trùng Mã Môn Học!", "Báo lỗi");
+                else if (result == 2) MessageBox.Show("Lỗi: Tên Môn Học đã tồn tại!", "Báo lỗi");
+                else if (result == 3) MessageBox.Show("Dữ liệu môn học không hợp lệ hoặc vượt quá độ dài cho phép!", "Báo lỗi");
+                else if (result == 4) MessageBox.Show("Không tìm thấy môn học cần sửa/xóa!", "Báo lỗi");
+                else
                 {
-                    conn.Open();
-                    using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    MessageBox.Show("Cập nhật thành công!", "Thông báo");
+                    LoadData(); // Lưu xong thì tải lại lưới để thấy dữ liệu mới nhất.
+                    txtTimKiem.Clear();
 
-                        // isAdding quyết định gọi SP thêm hay sửa.
-                        if (isAdding)
-                            cmd.CommandText = "SP_THEM_MONHOC";
-                        else
-                            cmd.CommandText = "SP_SUA_MONHOC";
+                    // Quay về trạng thái xem dữ liệu.
+                    txtMaMH.Enabled = false;
+                    txtTenMH.Enabled = false;
+                    dgvMonHoc.Enabled = true;
+                    txtTimKiem.Enabled = true;
+                    cmbTimKiem.Enabled = true;
+                    btnTimKiem.Enabled = true;
+                    btnLamMoiTimKiem.Enabled = true;
 
-                        cmd.Parameters.AddWithValue("@MAMH", maMH);
-                        cmd.Parameters.AddWithValue("@TENMH", tenMH);
+                    // Lưu xong thì tắt Ghi/Phục hồi.
+                    btnGhi.Enabled = false;
+                    btnPhucHoi.Enabled = false;
 
-                        // RETURN code giúp form báo đúng lỗi cụ thể.
-                        System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
-                        returnValue.Direction = System.Data.ParameterDirection.ReturnValue;
-                        cmd.Parameters.Add(returnValue);
-
-                        cmd.ExecuteNonQuery();
-                        int result = (int)returnValue.Value;
-
-                        if (result == 1) MessageBox.Show("Lỗi: Trùng Mã Môn Học!", "Báo lỗi");
-                        else if (result == 2) MessageBox.Show("Lỗi: Tên Môn Học đã tồn tại!", "Báo lỗi");
-                        else if (result == 3) MessageBox.Show("Dữ liệu môn học không hợp lệ hoặc vượt quá độ dài cho phép!", "Báo lỗi");
-                        else if (result == 4) MessageBox.Show("Không tìm thấy môn học cần sửa/xóa!", "Báo lỗi");
-                        else
-                        {
-                            MessageBox.Show("Cập nhật thành công!", "Thông báo");
-                            LoadData(); // Lưu xong thì tải lại lưới để thấy dữ liệu mới nhất.
-                            txtTimKiem.Clear();
-
-                            // Quay về trạng thái xem dữ liệu.
-                            txtMaMH.Enabled = false;
-                            txtTenMH.Enabled = false;
-                            dgvMonHoc.Enabled = true;
-                            txtTimKiem.Enabled = true;
-
-                            // Lưu xong thì tắt Ghi/Phục hồi.
-                            btnGhi.Enabled = false;
-                            btnPhucHoi.Enabled = false;
-
-                            // Mở lại các nút thao tác chính.
-                            btnThem.Enabled = true;
-                            btnSua.Enabled = true;
-                            btnXoa.Enabled = true;
-                        }
-                    }
+                    // Mở lại các nút thao tác chính.
+                    btnThem.Enabled = true;
+                    CapNhatNutTheoDongHienTai();
                 }
             }
             catch (Exception ex)
@@ -307,11 +326,25 @@ namespace QLThiTracNghiem
 
         private void txtTimKiem_TextChanged(object sender, EventArgs e)
         {
+            LocMonHocTheoTuKhoa();
+        }
+
+        private void LocMonHocTheoTuKhoa()
+        {
             // Nếu chưa load dữ liệu thì không có gì để lọc.
             if (dtMonHocGoc == null) return;
 
             // Đưa từ khóa và dữ liệu về không dấu để so sánh.
             string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
+            string kieuTim = cmbTimKiem.SelectedItem?.ToString() ?? "Tất cả";
+
+            if (keyword == "")
+            {
+                dgvMonHoc.DataSource = dtMonHocGoc;
+                LoadCurrentRowToInput();
+                CapNhatNutTheoDongHienTai();
+                return;
+            }
 
             // Bảng tạm chứa các dòng tìm được.
             DataTable dtLoc = dtMonHocGoc.Clone();
@@ -322,7 +355,12 @@ namespace QLThiTracNghiem
                 string tenMH = ChuyenKhongDau(row["TENMH"].ToString());
 
                 // Nếu mã hoặc tên môn có chứa từ khóa thì đưa dòng đó vào kết quả lọc.
-                if (maMH.Contains(keyword) || tenMH.Contains(keyword))
+                bool khop =
+                    (kieuTim == "Tất cả" && (maMH.Contains(keyword) || tenMH.Contains(keyword))) ||
+                    (kieuTim == "Mã môn" && maMH.Contains(keyword)) ||
+                    (kieuTim == "Tên môn" && tenMH.Contains(keyword));
+
+                if (khop)
                 {
                     dtLoc.ImportRow(row);
                 }
@@ -330,6 +368,26 @@ namespace QLThiTracNghiem
 
             // Đưa kết quả lọc lên lưới.
             dgvMonHoc.DataSource = dtLoc;
+            LoadCurrentRowToInput();
+            CapNhatNutTheoDongHienTai();
+        }
+
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+            LocMonHocTheoTuKhoa();
+        }
+
+        private void btnLamMoiTimKiem_Click(object sender, EventArgs e)
+        {
+            txtTimKiem.Clear();
+            cmbTimKiem.SelectedIndex = 0;
+            LocMonHocTheoTuKhoa();
+            txtTimKiem.Focus();
+        }
+
+        private void cmbTimKiem_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LocMonHocTheoTuKhoa();
         }
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
@@ -354,6 +412,9 @@ namespace QLThiTracNghiem
             txtTenMH.Enabled = false;
             dgvMonHoc.Enabled = true;
             txtTimKiem.Enabled = true;
+            cmbTimKiem.Enabled = true;
+            btnTimKiem.Enabled = true;
+            btnLamMoiTimKiem.Enabled = true;
 
             // Trả các nút về trạng thái bình thường.
             btnThem.Enabled = true;

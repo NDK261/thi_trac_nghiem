@@ -14,9 +14,36 @@ namespace QLThiTracNghiem
     public partial class formBoDe : Form
     {
         bool isAdding = false;
+        DataTable dtBoDeGoc;
         public formBoDe()
         {
             InitializeComponent();
+        }
+
+        private void ThietLapGioiHanNhap()
+        {
+            txtNoiDung.MaxLength = 200;
+            txtA.MaxLength = 200;
+            txtB.MaxLength = 200;
+            txtC.MaxLength = 200;
+            txtD.MaxLength = 200;
+
+            cmbMonHoc.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTrinhDo.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbDapAn.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTimKiem.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTimKiem.Items.Clear();
+            cmbTimKiem.Items.AddRange(new string[]
+            {
+                "Tất cả",
+                "Mã câu hỏi",
+                "Trình độ",
+                "Nội dung",
+                "Đáp án A-D",
+                "Đáp án đúng",
+                "Mã giáo viên"
+            });
+            cmbTimKiem.SelectedIndex = 0;
         }
 
         // Gom trạng thái nút/ô nhập để các thao tác Thêm, Sửa, Ghi, Phục hồi không bị lệch nhau.
@@ -28,6 +55,10 @@ namespace QLThiTracNghiem
             SetInputState(false);
             cmbMonHoc.Enabled = true;
             dgvBoDe.Enabled = true;
+            txtTimKiem.Enabled = true;
+            cmbTimKiem.Enabled = true;
+            btnTimKiem.Enabled = true;
+            btnLamMoiTimKiem.Enabled = true;
 
             btnGhi.Enabled = false;
             btnPhucHoi.Enabled = false;
@@ -47,6 +78,10 @@ namespace QLThiTracNghiem
             SetInputState(true);
             cmbMonHoc.Enabled = false;
             dgvBoDe.Enabled = false;
+            txtTimKiem.Enabled = false;
+            cmbTimKiem.Enabled = false;
+            btnTimKiem.Enabled = false;
+            btnLamMoiTimKiem.Enabled = false;
 
             // CAUHOI do database tự cấp nên không cho nhập tay.
             txtCauHoi.Enabled = false;
@@ -181,17 +216,13 @@ namespace QLThiTracNghiem
             try
             {
                 // Đổ môn học vào ComboBox.
-                DataTable dtMonHoc = DBHelper.GetDataTable("EXEC SP_GET_MONHOC");
+                DataTable dtMonHoc = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
                 cmbMonHoc.DataSource = dtMonHoc;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
 
                 // Giới hạn nhập theo cấu trúc bảng BODE để người dùng biết lỗi ngay trên form.
-                txtNoiDung.MaxLength = 200;
-                txtA.MaxLength = 200;
-                txtB.MaxLength = 200;
-                txtC.MaxLength = 200;
-                txtD.MaxLength = 200;
+                ThietLapGioiHanNhap();
 
                 // Trình độ theo đề: A, B, C.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });
@@ -227,7 +258,9 @@ namespace QLThiTracNghiem
                 DataTable dtBoDe = DBHelper.ExecuteDataTable(
                     "SP_GET_BODE_THEO_MONHOC",
                     new SqlParameter("@MAMH", maMH));
-                dgvBoDe.DataSource = dtBoDe;
+                dtBoDeGoc = dtBoDe;
+                dgvBoDe.DataSource = dtBoDeGoc;
+                txtTimKiem.Clear();
 
                 dgvBoDe.ReadOnly = true;
                 dgvBoDe.AllowUserToAddRows = false;
@@ -242,6 +275,116 @@ namespace QLThiTracNghiem
             {
                 MessageBox.Show("Lỗi tải bộ đề: " + ex.Message);
             }
+        }
+
+        private string ChuyenKhongDau(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return "";
+
+            string normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                System.Globalization.UnicodeCategory unicodeCategory =
+                    System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(System.Text.NormalizationForm.FormC)
+                .Replace("đ", "d")
+                .Replace("Đ", "d")
+                .ToLower();
+        }
+
+        private void LocBoDeTheoTuKhoa()
+        {
+            if (dtBoDeGoc == null) return;
+
+            string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
+            string kieuTim = cmbTimKiem.SelectedItem?.ToString() ?? "Tất cả";
+            if (keyword == "")
+            {
+                dgvBoDe.DataSource = dtBoDeGoc;
+                LoadCurrentRowToInput();
+                SetNormalState();
+                return;
+            }
+
+            DataTable dtLoc = dtBoDeGoc.Clone();
+
+            foreach (DataRow row in dtBoDeGoc.Rows)
+            {
+                string maCauHoi = ChuyenKhongDau(row["CAUHOI"].ToString());
+                string trinhDo = ChuyenKhongDau(row["TRINHDO"].ToString().Trim());
+                string noiDung = ChuyenKhongDau(row["NOIDUNG"].ToString());
+                string dapAnA = ChuyenKhongDau(row["A"].ToString());
+                string dapAnB = ChuyenKhongDau(row["B"].ToString());
+                string dapAnC = ChuyenKhongDau(row["C"].ToString());
+                string dapAnD = ChuyenKhongDau(row["D"].ToString());
+                string dapAnDung = ChuyenKhongDau(row["DAP_AN"].ToString().Trim());
+                string maGV = ChuyenKhongDau(row["MAGV"].ToString());
+
+                bool khop =
+                    (kieuTim == "Tất cả" &&
+                        (maCauHoi.Contains(keyword) ||
+                         trinhDo.Contains(keyword) ||
+                         noiDung.Contains(keyword) ||
+                         dapAnA.Contains(keyword) ||
+                         dapAnB.Contains(keyword) ||
+                         dapAnC.Contains(keyword) ||
+                         dapAnD.Contains(keyword) ||
+                         dapAnDung.Contains(keyword) ||
+                         maGV.Contains(keyword))) ||
+                    (kieuTim == "Mã câu hỏi" && maCauHoi == keyword) ||
+                    (kieuTim == "Trình độ" && trinhDo == keyword) ||
+                    (kieuTim == "Nội dung" && noiDung.Contains(keyword)) ||
+                    (kieuTim == "Đáp án A-D" &&
+                        (dapAnA.Contains(keyword) ||
+                         dapAnB.Contains(keyword) ||
+                         dapAnC.Contains(keyword) ||
+                         dapAnD.Contains(keyword))) ||
+                    (kieuTim == "Đáp án đúng" && dapAnDung == keyword) ||
+                    (kieuTim == "Mã giáo viên" && maGV.Contains(keyword));
+
+                if (khop)
+                {
+                    dtLoc.ImportRow(row);
+                }
+            }
+
+            dgvBoDe.DataSource = dtLoc;
+            LoadCurrentRowToInput();
+            SetNormalState();
+        }
+
+        private void txtTimKiem_TextChanged(object sender, EventArgs e)
+        {
+            LocBoDeTheoTuKhoa();
+        }
+
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+            LocBoDeTheoTuKhoa();
+        }
+
+        private void btnLamMoiTimKiem_Click(object sender, EventArgs e)
+        {
+            txtTimKiem.Clear();
+            cmbTimKiem.SelectedIndex = 0;
+            LocBoDeTheoTuKhoa();
+            txtTimKiem.Focus();
+        }
+
+        private void cmbTimKiem_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LocBoDeTheoTuKhoa();
         }
 
         private void dgvBoDe_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -263,7 +406,11 @@ namespace QLThiTracNghiem
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
-            if (txtCauHoi.Text == "") return;
+            if (txtCauHoi.Text == "")
+            {
+                MessageBox.Show("Vui lòng chọn câu hỏi cần xóa trên lưới!", "Thông báo");
+                return;
+            }
 
             if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
@@ -271,35 +418,31 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            if (MessageBox.Show("Bạn có chắc muốn xóa câu hỏi này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            string noiDungNgan = txtNoiDung.Text.Trim();
+            if (noiDungNgan.Length > 90)
+                noiDungNgan = noiDungNgan.Substring(0, 90) + "...";
+
+            string thongBaoXoa =
+                "Bạn có chắc muốn xóa câu hỏi này?\n\n" +
+                $"Mã câu hỏi: {txtCauHoi.Text.Trim()}\n" +
+                $"Nội dung: {noiDungNgan}";
+
+            if (MessageBox.Show(thongBaoXoa, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+                    // SP trả mã lỗi để biết câu đã thi hay không đúng giáo viên.
+                    int result = DBHelper.ExecuteNonQueryWithReturn(
+                        "SP_XOA_BODE",
+                        new SqlParameter("@CAUHOI", int.Parse(txtCauHoi.Text.Trim())),
+                        new SqlParameter("@MAGV", Program.mUserName));
+
+                    if (result == 1) MessageBox.Show("Không thể xóa câu hỏi đã xuất hiện trong bài thi hoặc bài thi tạm của sinh viên!", "Báo lỗi");
+                    else if (result == 2) MessageBox.Show("Bạn không có quyền xóa câu hỏi này!", "Báo lỗi");
+                    else
                     {
-                        conn.Open();
-                        using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SP_XOA_BODE", conn))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
-                            cmd.Parameters.AddWithValue("@MAGV", Program.mUserName);
-
-                            // SP trả mã lỗi để biết câu đã thi hay không đúng giáo viên.
-                            System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
-                            returnValue.Direction = ParameterDirection.ReturnValue;
-                            cmd.Parameters.Add(returnValue);
-
-                            cmd.ExecuteNonQuery();
-
-                            int result = (int)returnValue.Value;
-                            if (result == 1) MessageBox.Show("Không thể xóa câu hỏi đã xuất hiện trong bài thi của sinh viên!", "Báo lỗi");
-                            else if (result == 2) MessageBox.Show("Bạn không có quyền xóa câu hỏi này!", "Báo lỗi");
-                            else
-                            {
-                                MessageBox.Show("Xóa thành công!", "Thông báo");
-                                LoadBoDe(cmbMonHoc.SelectedValue.ToString());
-                            }
-                        }
+                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                        LoadBoDe(cmbMonHoc.SelectedValue.ToString());
                     }
                 }
                 catch (Exception ex)
@@ -311,7 +454,11 @@ namespace QLThiTracNghiem
 
         private void btnSua_Click(object sender, EventArgs e)
         {
-            if (txtCauHoi.Text == "") return;
+            if (txtCauHoi.Text == "")
+            {
+                MessageBox.Show("Vui lòng chọn câu hỏi cần sửa trên lưới!", "Thông báo");
+                return;
+            }
 
             // Form kiểm tra trước, SP vẫn kiểm tra lại ở database.
             if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
@@ -330,49 +477,37 @@ namespace QLThiTracNghiem
 
             try
             {
-                using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+                string procedureName = isAdding ? "SP_THEM_BODE" : "SP_SUA_BODE";
+                List<SqlParameter> parameters = new List<SqlParameter>();
+
+                // Thêm mới không truyền @CAUHOI; sửa thì phải truyền để SP biết dòng cần cập nhật.
+                if (!isAdding)
+                    parameters.Add(new SqlParameter("@CAUHOI", int.Parse(txtCauHoi.Text.Trim())));
+
+                parameters.AddRange(new SqlParameter[]
                 {
-                    conn.Open();
-                    using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandType = CommandType.StoredProcedure;
+                    new SqlParameter("@MAMH", cmbMonHoc.SelectedValue.ToString()),
+                    new SqlParameter("@TRINHDO", cmbTrinhDo.Text),
+                    new SqlParameter("@NOIDUNG", txtNoiDung.Text.Trim()),
+                    new SqlParameter("@A", txtA.Text.Trim()),
+                    new SqlParameter("@B", txtB.Text.Trim()),
+                    new SqlParameter("@C", txtC.Text.Trim()),
+                    new SqlParameter("@D", txtD.Text.Trim()),
+                    new SqlParameter("@DAP_AN", cmbDapAn.Text),
+                    new SqlParameter("@MAGV", Program.mUserName) // SP dùng MAGV để kiểm tra quyền.
+                });
 
-                        cmd.CommandText = isAdding ? "SP_THEM_BODE" : "SP_SUA_BODE";
-
-                        // Thêm mới không truyền @CAUHOI; sửa thì phải truyền để SP biết dòng cần cập nhật.
-                        if (!isAdding)
-                            cmd.Parameters.AddWithValue("@CAUHOI", int.Parse(txtCauHoi.Text.Trim()));
-
-                        cmd.Parameters.AddWithValue("@MAMH", cmbMonHoc.SelectedValue.ToString());
-                        cmd.Parameters.AddWithValue("@TRINHDO", cmbTrinhDo.Text);
-                        cmd.Parameters.AddWithValue("@NOIDUNG", txtNoiDung.Text.Trim());
-                        cmd.Parameters.AddWithValue("@A", txtA.Text.Trim());
-                        cmd.Parameters.AddWithValue("@B", txtB.Text.Trim());
-                        cmd.Parameters.AddWithValue("@C", txtC.Text.Trim());
-                        cmd.Parameters.AddWithValue("@D", txtD.Text.Trim());
-                        cmd.Parameters.AddWithValue("@DAP_AN", cmbDapAn.Text);
-                        cmd.Parameters.AddWithValue("@MAGV", Program.mUserName); // SP dùng MAGV để kiểm tra quyền.
-
-                        // SP kiểm tra lại quyền, câu đã thi và dữ liệu đáp án.
-                        System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
-                        returnValue.Direction = ParameterDirection.ReturnValue;
-                        cmd.Parameters.Add(returnValue);
-
-                        cmd.ExecuteNonQuery();
-
-                        int result = (int)returnValue.Value;
-                        if (result == 1) MessageBox.Show("Mã câu hỏi đã tồn tại!", "Báo lỗi");
-                        else if (result == 2) MessageBox.Show("Bạn không có quyền sửa câu hỏi này!", "Báo lỗi");
-                        else if (result == 3) MessageBox.Show("Không thể sửa câu hỏi đã xuất hiện trong bài thi, vì sửa sẽ làm sai lịch sử bài làm của sinh viên!", "Báo lỗi");
-                        else if (result == 4) MessageBox.Show("Dữ liệu câu hỏi không hợp lệ hoặc có đáp án bị trùng!", "Báo lỗi");
-                        else
-                        {
-                            MessageBox.Show("Lưu thành công!", "Thông báo");
-                            LoadBoDe(cmbMonHoc.SelectedValue.ToString());
-                            SetNormalState();
-                        }
-                    }
+                // SP kiểm tra lại quyền, câu đã thi và dữ liệu đáp án.
+                int result = DBHelper.ExecuteNonQueryWithReturn(procedureName, parameters.ToArray());
+                if (result == 1) MessageBox.Show("Mã câu hỏi đã tồn tại!", "Báo lỗi");
+                else if (result == 2) MessageBox.Show("Bạn không có quyền sửa câu hỏi này!", "Báo lỗi");
+                else if (result == 3) MessageBox.Show("Không thể sửa câu hỏi đã xuất hiện trong bài thi hoặc bài thi tạm, vì sửa sẽ làm sai nội dung bài làm của sinh viên!", "Báo lỗi");
+                else if (result == 4) MessageBox.Show("Dữ liệu câu hỏi không hợp lệ hoặc có đáp án bị trùng!", "Báo lỗi");
+                else
+                {
+                    MessageBox.Show("Lưu thành công!", "Thông báo");
+                    LoadBoDe(cmbMonHoc.SelectedValue.ToString());
+                    SetNormalState();
                 }
             }
             catch (Exception ex)

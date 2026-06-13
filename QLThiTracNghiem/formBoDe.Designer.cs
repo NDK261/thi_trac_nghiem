@@ -56,6 +56,11 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.txtTimKiem = new System.Windows.Forms.TextBox();
+            this.btnTimKiem = new System.Windows.Forms.Button();
+            this.btnLamMoiTimKiem = new System.Windows.Forms.Button();
+            this.cmbTimKiem = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvBoDe)).BeginInit();
             this.SuspendLayout();
             // 
@@ -109,7 +114,7 @@
             // cmbMonHoc
             // 
             this.cmbMonHoc.FormattingEnabled = true;
-            this.cmbMonHoc.Location = new System.Drawing.Point(755, 29);
+            this.cmbMonHoc.Location = new System.Drawing.Point(492, 29);
             this.cmbMonHoc.Name = "cmbMonHoc";
             this.cmbMonHoc.Size = new System.Drawing.Size(236, 28);
             this.cmbMonHoc.TabIndex = 8;
@@ -247,7 +252,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(626, 32);
+            this.label5.Location = new System.Drawing.Point(363, 30);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(123, 20);
             this.label5.TabIndex = 25;
@@ -307,11 +312,62 @@
             this.label9.TabIndex = 34;
             this.label9.Text = "B :";
             // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(760, 31);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(93, 20);
+            this.label12.TabIndex = 35;
+            this.label12.Text = "Tìm câu hỏi:";
+            // 
+            // txtTimKiem
+            // 
+            this.txtTimKiem.Location = new System.Drawing.Point(982, 28);
+            this.txtTimKiem.Name = "txtTimKiem";
+            this.txtTimKiem.Size = new System.Drawing.Size(210, 26);
+            this.txtTimKiem.TabIndex = 36;
+            this.txtTimKiem.TextChanged += new System.EventHandler(this.txtTimKiem_TextChanged);
+            // 
+            // btnTimKiem
+            // 
+            this.btnTimKiem.Location = new System.Drawing.Point(1198, 25);
+            this.btnTimKiem.Name = "btnTimKiem";
+            this.btnTimKiem.Size = new System.Drawing.Size(75, 34);
+            this.btnTimKiem.TabIndex = 37;
+            this.btnTimKiem.Text = "Tìm";
+            this.btnTimKiem.UseVisualStyleBackColor = true;
+            this.btnTimKiem.Click += new System.EventHandler(this.btnTimKiem_Click);
+            // 
+            // btnLamMoiTimKiem
+            // 
+            this.btnLamMoiTimKiem.Location = new System.Drawing.Point(1279, 24);
+            this.btnLamMoiTimKiem.Name = "btnLamMoiTimKiem";
+            this.btnLamMoiTimKiem.Size = new System.Drawing.Size(96, 34);
+            this.btnLamMoiTimKiem.TabIndex = 38;
+            this.btnLamMoiTimKiem.Text = "Làm mới";
+            this.btnLamMoiTimKiem.UseVisualStyleBackColor = true;
+            this.btnLamMoiTimKiem.Click += new System.EventHandler(this.btnLamMoiTimKiem_Click);
+            // 
+            // cmbTimKiem
+            // 
+            this.cmbTimKiem.FormattingEnabled = true;
+            this.cmbTimKiem.Location = new System.Drawing.Point(859, 27);
+            this.cmbTimKiem.Name = "cmbTimKiem";
+            this.cmbTimKiem.Size = new System.Drawing.Size(117, 28);
+            this.cmbTimKiem.TabIndex = 39;
+            this.cmbTimKiem.SelectedIndexChanged += new System.EventHandler(this.cmbTimKiem_SelectedIndexChanged);
+            // 
             // formBoDe
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1558, 652);
+            this.Controls.Add(this.cmbTimKiem);
+            this.Controls.Add(this.btnLamMoiTimKiem);
+            this.Controls.Add(this.btnTimKiem);
+            this.Controls.Add(this.txtTimKiem);
+            this.Controls.Add(this.label12);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label11);
@@ -378,5 +434,10 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.TextBox txtTimKiem;
+        private System.Windows.Forms.Button btnTimKiem;
+        private System.Windows.Forms.Button btnLamMoiTimKiem;
+        private System.Windows.Forms.ComboBox cmbTimKiem;
     }
 }

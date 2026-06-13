@@ -3,3 +3,6 @@ bin/
 obj/
 packages/
 *.user
+.docx_inspect/
+.docx_render_report/
+tools/
