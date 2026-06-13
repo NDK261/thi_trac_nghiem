@@ -43,11 +43,14 @@
             this.label3 = new System.Windows.Forms.Label();
             this.txtTimKiem = new System.Windows.Forms.TextBox();
             this.btnPhucHoi = new System.Windows.Forms.Button();
+            this.btnTimKiem = new System.Windows.Forms.Button();
+            this.btnLamMoiTimKiem = new System.Windows.Forms.Button();
+            this.cmbTimKiem = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMonHoc)).BeginInit();
             this.SuspendLayout();
-            // 
+            //
             // dgvMonHoc
-            // 
+            //
             this.dgvMonHoc.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvMonHoc.Location = new System.Drawing.Point(12, 313);
             this.dgvMonHoc.Name = "dgvMonHoc";
@@ -56,29 +59,29 @@
             this.dgvMonHoc.Size = new System.Drawing.Size(1090, 288);
             this.dgvMonHoc.TabIndex = 0;
             this.dgvMonHoc.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvMonHoc_CellContentClick);
-            // 
+            //
             // contextMenuStrip1
-            // 
+            //
             this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
-            // 
+            //
             // txtMaMH
-            // 
+            //
             this.txtMaMH.Location = new System.Drawing.Point(331, 111);
             this.txtMaMH.Name = "txtMaMH";
             this.txtMaMH.Size = new System.Drawing.Size(100, 26);
             this.txtMaMH.TabIndex = 2;
-            // 
+            //
             // txtTenMH
-            // 
+            //
             this.txtTenMH.Location = new System.Drawing.Point(655, 111);
             this.txtTenMH.Name = "txtTenMH";
             this.txtTenMH.Size = new System.Drawing.Size(241, 26);
             this.txtTenMH.TabIndex = 3;
-            // 
+            //
             // btnThem
-            // 
+            //
             this.btnThem.Location = new System.Drawing.Point(150, 191);
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(86, 48);
@@ -86,9 +89,9 @@
             this.btnThem.Text = "Thêm";
             this.btnThem.UseVisualStyleBackColor = true;
             this.btnThem.Click += new System.EventHandler(this.btnThem_Click);
-            // 
+            //
             // btnXoa
-            // 
+            //
             this.btnXoa.Location = new System.Drawing.Point(267, 191);
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(83, 48);
@@ -96,9 +99,9 @@
             this.btnXoa.Text = "Xóa";
             this.btnXoa.UseVisualStyleBackColor = true;
             this.btnXoa.Click += new System.EventHandler(this.btnXoa_Click);
-            // 
+            //
             // btnSua
-            // 
+            //
             this.btnSua.Location = new System.Drawing.Point(384, 191);
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(87, 48);
@@ -106,9 +109,9 @@
             this.btnSua.Text = "Sửa";
             this.btnSua.UseVisualStyleBackColor = true;
             this.btnSua.Click += new System.EventHandler(this.btnSua_Click);
-            // 
+            //
             // btnGhi
-            // 
+            //
             this.btnGhi.Location = new System.Drawing.Point(586, 191);
             this.btnGhi.Name = "btnGhi";
             this.btnGhi.Size = new System.Drawing.Size(89, 48);
@@ -116,9 +119,9 @@
             this.btnGhi.Text = "Lưu/Ghi";
             this.btnGhi.UseVisualStyleBackColor = true;
             this.btnGhi.Click += new System.EventHandler(this.btnGhi_Click);
-            // 
+            //
             // btnThoat
-            // 
+            //
             this.btnThoat.Location = new System.Drawing.Point(845, 191);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(90, 48);
@@ -126,44 +129,44 @@
             this.btnThoat.Text = "Thoát";
             this.btnThoat.UseVisualStyleBackColor = true;
             this.btnThoat.Click += new System.EventHandler(this.btnThoat_Click);
-            // 
+            //
             // label1
-            // 
+            //
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(226, 114);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(99, 20);
             this.label1.TabIndex = 9;
             this.label1.Text = "Mã Môn Học";
-            // 
+            //
             // label2
-            // 
+            //
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(545, 114);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(104, 20);
             this.label2.TabIndex = 10;
             this.label2.Text = "Tên Môn Học";
-            // 
+            //
             // label3
-            // 
+            //
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(303, 281);
+            this.label3.Location = new System.Drawing.Point(210, 281);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(140, 20);
+            this.label3.Size = new System.Drawing.Size(136, 20);
             this.label3.TabIndex = 11;
-            this.label3.Text = "Tìm kiếm môn học:";
-            // 
+            this.label3.Text = "Tìm kiếm môn học";
+            //
             // txtTimKiem
-            // 
-            this.txtTimKiem.Location = new System.Drawing.Point(449, 278);
+            //
+            this.txtTimKiem.Location = new System.Drawing.Point(522, 278);
             this.txtTimKiem.Name = "txtTimKiem";
-            this.txtTimKiem.Size = new System.Drawing.Size(290, 26);
+            this.txtTimKiem.Size = new System.Drawing.Size(217, 26);
             this.txtTimKiem.TabIndex = 12;
             this.txtTimKiem.TextChanged += new System.EventHandler(this.txtTimKiem_TextChanged);
-            // 
+            //
             // btnPhucHoi
-            // 
+            //
             this.btnPhucHoi.Location = new System.Drawing.Point(712, 191);
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(96, 48);
@@ -171,12 +174,44 @@
             this.btnPhucHoi.Text = "Phục Hồi";
             this.btnPhucHoi.UseVisualStyleBackColor = true;
             this.btnPhucHoi.Click += new System.EventHandler(this.btnPhucHoi_Click);
-            // 
+            //
+            // btnTimKiem
+            //
+            this.btnTimKiem.Location = new System.Drawing.Point(758, 274);
+            this.btnTimKiem.Name = "btnTimKiem";
+            this.btnTimKiem.Size = new System.Drawing.Size(78, 34);
+            this.btnTimKiem.TabIndex = 14;
+            this.btnTimKiem.Text = "Tìm";
+            this.btnTimKiem.UseVisualStyleBackColor = true;
+            this.btnTimKiem.Click += new System.EventHandler(this.btnTimKiem_Click);
+            //
+            // btnLamMoiTimKiem
+            //
+            this.btnLamMoiTimKiem.Location = new System.Drawing.Point(850, 274);
+            this.btnLamMoiTimKiem.Name = "btnLamMoiTimKiem";
+            this.btnLamMoiTimKiem.Size = new System.Drawing.Size(96, 34);
+            this.btnLamMoiTimKiem.TabIndex = 15;
+            this.btnLamMoiTimKiem.Text = "Làm mới";
+            this.btnLamMoiTimKiem.UseVisualStyleBackColor = true;
+            this.btnLamMoiTimKiem.Click += new System.EventHandler(this.btnLamMoiTimKiem_Click);
+            //
+            // cmbTimKiem
+            //
+            this.cmbTimKiem.FormattingEnabled = true;
+            this.cmbTimKiem.Location = new System.Drawing.Point(352, 278);
+            this.cmbTimKiem.Name = "cmbTimKiem";
+            this.cmbTimKiem.Size = new System.Drawing.Size(154, 28);
+            this.cmbTimKiem.TabIndex = 16;
+            this.cmbTimKiem.SelectedIndexChanged += new System.EventHandler(this.cmbTimKiem_SelectedIndexChanged);
+            //
             // formMonHoc
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1114, 613);
+            this.Controls.Add(this.cmbTimKiem);
+            this.Controls.Add(this.btnLamMoiTimKiem);
+            this.Controls.Add(this.btnTimKiem);
             this.Controls.Add(this.btnPhucHoi);
             this.Controls.Add(this.txtTimKiem);
             this.Controls.Add(this.label3);
@@ -215,5 +250,8 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtTimKiem;
         private System.Windows.Forms.Button btnPhucHoi;
+        private System.Windows.Forms.Button btnTimKiem;
+        private System.Windows.Forms.Button btnLamMoiTimKiem;
+        private System.Windows.Forms.ComboBox cmbTimKiem;
     }
 }

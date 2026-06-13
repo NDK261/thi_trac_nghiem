@@ -20,6 +20,21 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
+        private void ThietLapGioiHanNhap()
+        {
+            txtMaSV.MaxLength = 8;
+            txtHo.MaxLength = 40;
+            txtTen.MaxLength = 10;
+            txtDiaChi.MaxLength = 100;
+            txtMaSV.CharacterCasing = CharacterCasing.Upper;
+            dtpNgaySinh.MaxDate = DateTime.Today;
+
+            cmbTimKiem.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbTimKiem.Items.Clear();
+            cmbTimKiem.Items.AddRange(new string[] { "Tất cả", "Mã SV", "Họ tên", "Ngày sinh", "Địa chỉ" });
+            cmbTimKiem.SelectedIndex = 0;
+        }
+
         // Gom trạng thái form: xem dữ liệu, thêm sinh viên hoặc sửa sinh viên.
         private void SetNormalState()
         {
@@ -29,6 +44,9 @@ namespace QLThiTracNghiem
             cmbLop.Enabled = true;
             dgvSinhVien.Enabled = true;
             txtTimKiem.Enabled = true;
+            cmbTimKiem.Enabled = true;
+            btnTimKiem.Enabled = true;
+            btnLamMoiTimKiem.Enabled = true;
 
             btnGhi.Enabled = false;
             btnPhucHoi.Enabled = false;
@@ -49,6 +67,9 @@ namespace QLThiTracNghiem
             cmbLop.Enabled = false;
             dgvSinhVien.Enabled = false;
             txtTimKiem.Enabled = false;
+            cmbTimKiem.Enabled = false;
+            btnTimKiem.Enabled = false;
+            btnLamMoiTimKiem.Enabled = false;
 
             // MASV chỉ nhập khi thêm; khi sửa dùng để tìm dòng UPDATE.
             txtMaSV.Enabled = adding;
@@ -76,7 +97,7 @@ namespace QLThiTracNghiem
             txtHo.Clear();
             txtTen.Clear();
             txtDiaChi.Clear();
-            dtpNgaySinh.Value = DateTime.Now;
+            dtpNgaySinh.Value = DateTime.Today;
         }
 
         private void LoadCurrentRowToInput()
@@ -95,9 +116,12 @@ namespace QLThiTracNghiem
 
             // NGAYSINH có thể NULL nên kiểm tra trước khi đổi sang DateTime.
             if (row.Cells["NGAYSINH"].Value != DBNull.Value && row.Cells["NGAYSINH"].Value != null)
-                dtpNgaySinh.Value = Convert.ToDateTime(row.Cells["NGAYSINH"].Value);
+            {
+                DateTime ngaySinh = Convert.ToDateTime(row.Cells["NGAYSINH"].Value).Date;
+                dtpNgaySinh.Value = ngaySinh > DateTime.Today ? DateTime.Today : ngaySinh;
+            }
             else
-                dtpNgaySinh.Value = DateTime.Now;
+                dtpNgaySinh.Value = DateTime.Today;
         }
 
         // Mở form thì tải danh sách lớp vào ComboBox.
@@ -105,7 +129,9 @@ namespace QLThiTracNghiem
         {
             try
             {
-                DataTable dtLop = DBHelper.GetDataTable("EXEC SP_GET_LOP");
+                ThietLapGioiHanNhap();
+
+                DataTable dtLop = DBHelper.ExecuteDataTable("SP_GET_LOP");
                 cmbLop.DataSource = dtLop;
                 cmbLop.DisplayMember = "TENLOP"; // Hiển thị tên lớp.
                 cmbLop.ValueMember = "MALOP";    // Truy vấn bằng mã lớp.
@@ -197,9 +223,15 @@ namespace QLThiTracNghiem
 
         private void txtTimKiem_TextChanged(object sender, EventArgs e)
         {
+            LocSinhVienTheoTuKhoa();
+        }
+
+        private void LocSinhVienTheoTuKhoa()
+        {
             if (dtSinhVienGoc == null) return;
 
             string keyword = ChuyenKhongDau(txtTimKiem.Text.Trim());
+            string kieuTim = cmbTimKiem.SelectedItem?.ToString() ?? "Tất cả";
 
             if (keyword == "")
             {
@@ -218,12 +250,24 @@ namespace QLThiTracNghiem
                 string ten = ChuyenKhongDau(row["TEN"].ToString());
                 string diaChi = ChuyenKhongDau(row["DIACHI"].ToString());
                 string hoTen = ChuyenKhongDau(row["HO"].ToString() + " " + row["TEN"].ToString());
+                string ngaySinh = "";
+                if (row["NGAYSINH"] != DBNull.Value && row["NGAYSINH"] != null)
+                    ngaySinh = Convert.ToDateTime(row["NGAYSINH"]).ToString("dd/MM/yyyy");
 
-                if (maSV.Contains(keyword) ||
-                    ho.Contains(keyword) ||
-                    ten.Contains(keyword) ||
-                    hoTen.Contains(keyword) ||
-                    diaChi.Contains(keyword))
+                bool khop =
+                    (kieuTim == "Tất cả" &&
+                        (maSV.Contains(keyword) ||
+                         ho.Contains(keyword) ||
+                         ten.Contains(keyword) ||
+                         hoTen.Contains(keyword) ||
+                         ChuyenKhongDau(ngaySinh).Contains(keyword) ||
+                         diaChi.Contains(keyword))) ||
+                    (kieuTim == "Mã SV" && maSV.Contains(keyword)) ||
+                    (kieuTim == "Họ tên" && hoTen.Contains(keyword)) ||
+                    (kieuTim == "Ngày sinh" && ChuyenKhongDau(ngaySinh).Contains(keyword)) ||
+                    (kieuTim == "Địa chỉ" && diaChi.Contains(keyword));
+
+                if (khop)
                 {
                     dtLoc.ImportRow(row);
                 }
@@ -232,6 +276,24 @@ namespace QLThiTracNghiem
             dgvSinhVien.DataSource = dtLoc;
             LoadCurrentRowToInput();
             SetNormalState();
+        }
+
+        private void btnTimKiem_Click(object sender, EventArgs e)
+        {
+            LocSinhVienTheoTuKhoa();
+        }
+
+        private void btnLamMoiTimKiem_Click(object sender, EventArgs e)
+        {
+            txtTimKiem.Clear();
+            cmbTimKiem.SelectedIndex = 0;
+            LocSinhVienTheoTuKhoa();
+            txtTimKiem.Focus();
+        }
+
+        private void cmbTimKiem_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LocSinhVienTheoTuKhoa();
         }
 
         private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -254,33 +316,26 @@ namespace QLThiTracNghiem
         {
             if (txtMaSV.Text == "") return;
 
-            if (MessageBox.Show($"Bạn có chắc muốn xóa sinh viên {txtHo.Text} {txtTen.Text}?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            string thongBaoXoa =
+                "Bạn có chắc muốn xóa sinh viên này?\n\n" +
+                $"Mã SV: {txtMaSV.Text.Trim()}\n" +
+                $"Họ tên: {txtHo.Text.Trim()} {txtTen.Text.Trim()}";
+
+            if (MessageBox.Show(thongBaoXoa, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    using (SqlConnection conn = DBHelper.GetConnection())
+                    // SP trả 1 nếu sinh viên đã có điểm nên không được xóa.
+                    int result = DBHelper.ExecuteNonQueryWithReturn(
+                        "SP_XOA_SINHVIEN",
+                        new SqlParameter("@MASV", txtMaSV.Text.Trim()));
+
+                    if (result == 1)
+                        MessageBox.Show("Không thể xóa vì sinh viên này đã có điểm thi!", "Báo lỗi");
+                    else
                     {
-                        conn.Open();
-                        using (SqlCommand cmd = new SqlCommand("SP_XOA_SINHVIEN", conn))
-                        {
-                            cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("@MASV", txtMaSV.Text.Trim());
-
-                            // SP trả 1 nếu sinh viên đã có điểm nên không được xóa.
-                            SqlParameter returnValue = new SqlParameter();
-                            returnValue.Direction = ParameterDirection.ReturnValue;
-                            cmd.Parameters.Add(returnValue);
-
-                            cmd.ExecuteNonQuery();
-
-                            if ((int)returnValue.Value == 1)
-                                MessageBox.Show("Không thể xóa vì sinh viên này đã có điểm thi!", "Báo lỗi");
-                            else
-                            {
-                                MessageBox.Show("Xóa thành công!", "Thông báo");
-                                LoadSinhVien(cmbLop.SelectedValue.ToString());
-                            }
-                        }
+                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                        LoadSinhVien(cmbLop.SelectedValue.ToString());
                     }
                 }
                 catch (Exception ex)
@@ -303,7 +358,7 @@ namespace QLThiTracNghiem
 
         private void btnGhi_Click(object sender, EventArgs e)
         {
-            string maSV = txtMaSV.Text.Trim();
+            string maSV = txtMaSV.Text.Trim().ToUpper();
             string ho = txtHo.Text.Trim();
             string ten = txtTen.Text.Trim();
             string diaChi = txtDiaChi.Text.Trim();
@@ -356,49 +411,37 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            txtMaSV.Text = maSV;
+            txtHo.Text = ho;
+            txtTen.Text = ten;
+            txtDiaChi.Text = diaChi;
+
             try
             {
-                using (SqlConnection conn = DBHelper.GetConnection())
+                // isAdding quyết định gọi SP thêm mới hay sửa sinh viên.
+                string procedureName = isAdding ? "SP_THEM_SINHVIEN" : "SP_SUA_SINHVIEN";
+                int result = DBHelper.ExecuteNonQueryWithReturn(
+                    procedureName,
+                    new SqlParameter("@MASV", maSV),
+                    new SqlParameter("@HO", ho),
+                    new SqlParameter("@TEN", ten),
+                    new SqlParameter("@NGAYSINH", dtpNgaySinh.Value),
+                    new SqlParameter("@DIACHI", diaChi),
+                    new SqlParameter("@MALOP", cmbLop.SelectedValue.ToString()));
+
+                if (result == 1)
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandType = CommandType.StoredProcedure;
-
-                        // isAdding quyết định gọi SP thêm mới hay sửa sinh viên.
-                        if (isAdding) cmd.CommandText = "SP_THEM_SINHVIEN";
-                        else cmd.CommandText = "SP_SUA_SINHVIEN";
-
-                        cmd.Parameters.AddWithValue("@MASV", maSV);
-                        cmd.Parameters.AddWithValue("@HO", ho);
-                        cmd.Parameters.AddWithValue("@TEN", ten);
-                        cmd.Parameters.AddWithValue("@NGAYSINH", dtpNgaySinh.Value);
-                        cmd.Parameters.AddWithValue("@DIACHI", diaChi);
-                        cmd.Parameters.AddWithValue("@MALOP", cmbLop.SelectedValue.ToString());
-
-                        // RETURN code giúp biết trùng mã, sai lớp hay sửa không thấy sinh viên.
-                        SqlParameter returnValue = new SqlParameter();
-                        returnValue.Direction = ParameterDirection.ReturnValue;
-                        cmd.Parameters.Add(returnValue);
-
-                        cmd.ExecuteNonQuery();
-
-                        if ((int)returnValue.Value == 1)
-                        {
-                            MessageBox.Show("Lỗi: Mã Sinh Viên này đã tồn tại!", "Báo lỗi");
-                        }
-                        else if ((int)returnValue.Value == 2)
-                        {
-                            MessageBox.Show("Không tìm thấy sinh viên cần sửa hoặc lớp không tồn tại!", "Báo lỗi");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Cập nhật dữ liệu thành công!", "Thông báo");
-                            LoadSinhVien(cmbLop.SelectedValue.ToString()); // Lưu xong thì tải lại lưới.
-                            SetNormalState(); // Quay về trạng thái xem.
-                        }
-                    }
+                    MessageBox.Show("Lỗi: Mã Sinh Viên này đã tồn tại!", "Báo lỗi");
+                }
+                else if (result == 2)
+                {
+                    MessageBox.Show("Không tìm thấy sinh viên cần sửa hoặc lớp không tồn tại!", "Báo lỗi");
+                }
+                else
+                {
+                    MessageBox.Show("Cập nhật dữ liệu thành công!", "Thông báo");
+                    LoadSinhVien(cmbLop.SelectedValue.ToString()); // Lưu xong thì tải lại lưới.
+                    SetNormalState(); // Quay về trạng thái xem.
                 }
             }
             catch (Exception ex)
@@ -410,7 +453,9 @@ namespace QLThiTracNghiem
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
             // Phục hồi chỉ bỏ dữ liệu đang nhập dở và tải lại dữ liệu.
-            LoadSinhVien(cmbLop.SelectedValue.ToString());
+            if (cmbLop.SelectedValue != null)
+                LoadSinhVien(cmbLop.SelectedValue.ToString());
+
             SetNormalState();
         }
 

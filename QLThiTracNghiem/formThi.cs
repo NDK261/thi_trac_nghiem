@@ -38,28 +38,249 @@ namespace QLThiTracNghiem
         int lanThi;
         DateTime ngayThiDangThi; // Giữ đúng ngày thi sinh viên đã chọn khi bắt đầu.
         Label lblThongTinLichThi;
+        Label lblTrangThaiTraLoi;
+        FlowLayoutPanel pnlDanhSachCauHoi;
+        List<Button> nutCauHoi = new List<Button>();
+        bool dangHienThiCauHoi = false;
+        bool dangNopBai = false;
+        int demGiayLuuTam = 0;
+        bool dangLamBaiHienThi = false;
 
         public formThi()
         {
             InitializeComponent();
+            cmbMonThi.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbLanThi.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.MinimumSize = new Size(1180, 740);
+            this.Text = "Thi tr\u1eafc nghi\u1ec7m";
 
             // Thêm label nhỏ để hiện trình độ, số câu và thời gian.
             lblThongTinLichThi = new Label();
-            lblThongTinLichThi.AutoSize = true;
-            lblThongTinLichThi.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
-            lblThongTinLichThi.Location = new Point(330, 201);
+            lblThongTinLichThi.AutoSize = false;
+            lblThongTinLichThi.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            lblThongTinLichThi.Location = new Point(350, 165);
+            lblThongTinLichThi.Size = new Size(860, 56);
             lblThongTinLichThi.Text = "";
             this.Controls.Add(lblThongTinLichThi);
+
+            lblTrangThaiTraLoi = new Label();
+            lblTrangThaiTraLoi.AutoSize = false;
+            lblTrangThaiTraLoi.Font = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+            lblTrangThaiTraLoi.Location = new Point(350, 55);
+            lblTrangThaiTraLoi.Size = new Size(220, 28);
+            lblTrangThaiTraLoi.Text = "Đã trả lời: 0/0";
+            this.Controls.Add(lblTrangThaiTraLoi);
+
+            pnlDanhSachCauHoi = new FlowLayoutPanel();
+            pnlDanhSachCauHoi.AutoScroll = true;
+            pnlDanhSachCauHoi.BackColor = Color.White;
+            pnlDanhSachCauHoi.FlowDirection = FlowDirection.LeftToRight;
+            pnlDanhSachCauHoi.WrapContents = true;
+            pnlDanhSachCauHoi.Padding = new Padding(6);
+            pnlDanhSachCauHoi.Location = new Point(350, 83);
+            pnlDanhSachCauHoi.Size = new Size(720, 72);
+            pnlDanhSachCauHoi.BorderStyle = BorderStyle.FixedSingle;
+            this.Controls.Add(pnlDanhSachCauHoi);
 
             // Đổi ngày/môn/lần thì cập nhật lại thông tin ca thi.
             cmbMonThi.SelectedIndexChanged += cmbMonThi_SelectedIndexChanged;
             cmbLanThi.SelectedIndexChanged += cmbLanThi_SelectedIndexChanged;
             dtpNgayThi.ValueChanged += dtpNgayThi_ValueChanged;
+
+            rdoA.CheckedChanged += DapAn_CheckedChanged;
+            rdoB.CheckedChanged += DapAn_CheckedChanged;
+            rdoC.CheckedChanged += DapAn_CheckedChanged;
+            rdoD.CheckedChanged += DapAn_CheckedChanged;
+            this.FormClosing += formThi_FormClosing;
+            this.Resize += formThi_Resize;
+
+            CaiThienGiaoDienFormThi();
+            DatTrangThaiHienThiBaiThi(false);
+            SapXepBoCucFormThi();
+        }
+
+        private void CaiThienGiaoDienFormThi()
+        {
+            this.BackColor = Color.FromArgb(245, 247, 250);
+
+            Font fontChu = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            Font fontChuDam = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+            Font fontCauHoi = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+
+            lblHoTen.Font = fontChuDam;
+            lblTenLop.Font = fontChu;
+            lblMonThi.Font = fontChu;
+            lblLanThi.Font = fontChu;
+            lblNgayThi.Font = fontChu;
+            lblMaLop.Visible = false;
+
+            label1.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            lblThoiGian.Font = new Font("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+            lblTrangThaiTraLoi.Font = fontChuDam;
+            lblThongTinLichThi.Font = fontChu;
+
+            lblNoiDungCauHoi.Font = fontCauHoi;
+            lblNoiDungCauHoi.BackColor = Color.White;
+            lblNoiDungCauHoi.BorderStyle = BorderStyle.FixedSingle;
+            lblNoiDungCauHoi.TextAlign = ContentAlignment.MiddleLeft;
+
+            groupBox1.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
+            groupBox1.BackColor = Color.White;
+            rdoA.Font = fontCauHoi;
+            rdoB.Font = fontCauHoi;
+            rdoC.Font = fontCauHoi;
+            rdoD.Font = fontCauHoi;
+            rdoA.BackColor = Color.White;
+            rdoB.BackColor = Color.White;
+            rdoC.BackColor = Color.White;
+            rdoD.BackColor = Color.White;
+
+            pnlDanhSachCauHoi.BackColor = Color.White;
+
+            CaiThienNutLenh(btnBatDau, Color.FromArgb(0, 120, 215), Color.White);
+            CaiThienNutLenh(btnNopBai, Color.FromArgb(198, 55, 55), Color.White);
+            CaiThienNutLenh(btnThoat, Color.White, Color.FromArgb(40, 40, 40));
+            CaiThienNutLenh(btnCauTruoc, Color.White, Color.FromArgb(40, 40, 40));
+            CaiThienNutLenh(btnCauSau, Color.White, Color.FromArgb(40, 40, 40));
+        }
+
+        private void CaiThienNutLenh(Button button, Color mauNen, Color mauChu)
+        {
+            button.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+            button.BackColor = mauNen;
+            button.ForeColor = mauChu;
+            button.FlatStyle = FlatStyle.Flat;
+            button.FlatAppearance.BorderColor = Color.FromArgb(205, 213, 224);
+            button.FlatAppearance.BorderSize = mauNen == Color.White ? 1 : 0;
+        }
+
+        private void DatTrangThaiHienThiBaiThi(bool dangLamBai)
+        {
+            dangLamBaiHienThi = dangLamBai;
+
+            label1.Visible = dangLamBai;
+            lblThoiGian.Visible = dangLamBai;
+            lblTrangThaiTraLoi.Visible = dangLamBai;
+            pnlDanhSachCauHoi.Visible = dangLamBai;
+            lblNoiDungCauHoi.Visible = dangLamBai;
+            groupBox1.Visible = dangLamBai;
+            btnCauTruoc.Visible = dangLamBai;
+            btnCauSau.Visible = dangLamBai;
+            btnNopBai.Visible = dangLamBai;
+            btnBatDau.Visible = !dangLamBai;
+            btnThoat.Visible = !dangLamBai;
+            this.ControlBox = !dangLamBai;
+
+            SapXepBoCucFormThi();
+        }
+
+        private void SapXepBoCucFormThi()
+        {
+            int leNgoai = 32;
+            int doRongCotTrai = 300;
+            int doRongNoiDung = Math.Min(980, Math.Max(780, this.ClientSize.Width - 420));
+            int doRongToanKhoi = doRongCotTrai + 40 + doRongNoiDung;
+            int xCotTrai = Math.Max(leNgoai, (this.ClientSize.Width - doRongToanKhoi) / 2);
+            int xNoiDung = xCotTrai + doRongCotTrai + 40;
+            int yDau = Math.Max(30, Math.Min(90, (this.ClientSize.Height - 680) / 3 + 30));
+
+            lblHoTen.Location = new Point(xCotTrai, yDau);
+            lblHoTen.MaximumSize = new Size(doRongCotTrai, 0);
+            lblTenLop.Location = new Point(xCotTrai, yDau + 42);
+            lblTenLop.MaximumSize = new Size(doRongCotTrai, 0);
+
+            int xNhan = xCotTrai;
+            int xNhap = xCotTrai + 95;
+            int yNhap = yDau + 100;
+            lblMonThi.Location = new Point(xNhan, yNhap);
+            cmbMonThi.Location = new Point(xNhap, yNhap - 2);
+            cmbMonThi.Size = new Size(205, 28);
+
+            lblLanThi.Location = new Point(xNhan, yNhap + 48);
+            cmbLanThi.Location = new Point(xNhap, yNhap + 46);
+            cmbLanThi.Size = new Size(150, 28);
+
+            lblNgayThi.Location = new Point(xNhan, yNhap + 96);
+            dtpNgayThi.Location = new Point(xNhap, yNhap + 94);
+            dtpNgayThi.Size = new Size(205, 28);
+
+            btnBatDau.Location = new Point(xNhap, yNhap + 150);
+            btnBatDau.Size = new Size(128, 42);
+
+            label1.Location = new Point(xNoiDung + doRongNoiDung - 295, yDau);
+            lblThoiGian.Location = new Point(xNoiDung + doRongNoiDung - 88, yDau - 5);
+            lblTrangThaiTraLoi.Location = new Point(xNoiDung, yDau + 54);
+            lblTrangThaiTraLoi.Size = new Size(240, 28);
+
+            pnlDanhSachCauHoi.Location = new Point(xNoiDung, yDau + 88);
+            pnlDanhSachCauHoi.Size = new Size(doRongNoiDung, 92);
+
+            lblThongTinLichThi.Location = dangLamBaiHienThi
+                ? new Point(xNoiDung, yDau + 190)
+                : new Point(xNoiDung, yDau + 104);
+            lblThongTinLichThi.Size = new Size(doRongNoiDung, dangLamBaiHienThi ? 42 : 86);
+
+            lblNoiDungCauHoi.Location = new Point(xNoiDung, yDau + 245);
+            lblNoiDungCauHoi.Size = new Size(doRongNoiDung, 82);
+
+            groupBox1.Location = new Point(xNoiDung, yDau + 345);
+            groupBox1.Size = new Size(doRongNoiDung, 250);
+
+            int doRongLuaChon = doRongNoiDung - 78;
+            rdoA.Location = new Point(38, 45);
+            rdoB.Location = new Point(38, 95);
+            rdoC.Location = new Point(38, 145);
+            rdoD.Location = new Point(38, 195);
+            rdoA.Size = new Size(doRongLuaChon, 38);
+            rdoB.Size = new Size(doRongLuaChon, 38);
+            rdoC.Size = new Size(doRongLuaChon, 38);
+            rdoD.Size = new Size(doRongLuaChon, 38);
+
+            int yNutLamBai = groupBox1.Bottom + 24;
+            btnCauTruoc.Location = new Point(xNoiDung + 170, yNutLamBai);
+            btnCauTruoc.Size = new Size(120, 42);
+            btnCauSau.Location = new Point(xNoiDung + 310, yNutLamBai);
+            btnCauSau.Size = new Size(112, 42);
+            btnNopBai.Location = new Point(xNoiDung + doRongNoiDung - 260, yNutLamBai);
+            btnNopBai.Size = new Size(112, 42);
+            btnThoat.Location = dangLamBaiHienThi
+                ? new Point(xNoiDung + doRongNoiDung - 128, yNutLamBai)
+                : new Point(xNhap + 145, yNhap + 150);
+            btnThoat.Size = new Size(112, 42);
+        }
+
+        private void formThi_Resize(object sender, EventArgs e)
+        {
+            SapXepBoCucFormThi();
+        }
+
+        private DateTime NgayThiToiThieu
+        {
+            get { return DateTime.Today.AddDays(1); }
+        }
+
+        private void ApDungGioiHanNgayThi()
+        {
+            DateTime ngayToiThieu = NgayThiToiThieu;
+            dtpNgayThi.MinDate = DateTimePicker.MinimumDateTime;
+            if (dtpNgayThi.Value.Date < ngayToiThieu)
+                dtpNgayThi.Value = ngayToiThieu;
+
+            dtpNgayThi.MinDate = ngayToiThieu;
+        }
+
+        private void HienThiNgayDangThi(DateTime ngayThi)
+        {
+            dtpNgayThi.MinDate = DateTimePicker.MinimumDateTime;
+            dtpNgayThi.Value = ngayThi.Date;
         }
 
         private void btnCauTruoc_Click(object sender, EventArgs e)
         {
             LuuDapAn(); // Trước khi chuyển câu thì giữ lại đáp án đang chọn.
+            LuuDapAnTam(cauHienTai);
+            LuuTrangThaiBaiThiTam(false);
             if (cauHienTai > 0)
             {
                 cauHienTai--;
@@ -67,64 +288,23 @@ namespace QLThiTracNghiem
             }
         }
 
-        private DataTable ExecuteQuery(string sql, params SqlParameter[] parameters)
-        {
-            // Dùng parameter để tránh lỗi dấu nháy và xử lý mã NCHAR ổn hơn.
-            using (SqlConnection conn = DBHelper.GetConnection())
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-            {
-                if (parameters != null && parameters.Length > 0)
-                    cmd.Parameters.AddRange(parameters);
-
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-                return dt;
-            }
-        }
-
-        private int ExecuteScalarInt(string sql, params SqlParameter[] parameters)
-        {
-            // Dùng cho các câu SELECT COUNT(*) cần lấy về một con số.
-            using (SqlConnection conn = DBHelper.GetConnection())
-            using (SqlCommand cmd = new SqlCommand(sql, conn))
-            {
-                if (parameters != null && parameters.Length > 0)
-                    cmd.Parameters.AddRange(parameters);
-
-                conn.Open();
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-        }
-
         private bool DaThi(string maMonCanKiemTra, int lanCanKiemTra)
         {
-            // Có dòng trong BANGDIEM nghĩa là sinh viên đã thi môn/lần đó.
-            string sql = @"
-                SELECT COUNT(*)
-                FROM BANGDIEM
-                WHERE MASV = @MASV
-                  AND MAMH = @MAMH
-                  AND LAN = @LAN";
-
-            return ExecuteScalarInt(sql,
+            // Gọi SP kiểm tra BANGDIEM để biết sinh viên đã thi môn/lần này chưa.
+            object result = DBHelper.ExecuteScalar(
+                "SP_KIEMTRA_SINHVIEN_DA_THI",
                 new SqlParameter("@MASV", Program.mUserName),
                 new SqlParameter("@MAMH", maMonCanKiemTra),
-                new SqlParameter("@LAN", lanCanKiemTra)) > 0;
+                new SqlParameter("@LAN", lanCanKiemTra));
+
+            return Convert.ToInt32(result) == 1;
         }
 
         private DataTable LayThongTinDangKy(string maMonCanThi, int lanCanThi, DateTime ngayThi)
         {
-            // Lấy cấu hình ca thi đúng môn, lớp, lần và ngày sinh viên chọn.
-            string sql = @"
-                SELECT SOCAUTHI, THOIGIAN, TRINHDO, NGAYTHI
-                FROM GIAOVIEN_DANGKY
-                WHERE MAMH = @MAMH
-                  AND MALOP = @MALOP
-                  AND LAN = @LAN
-                  AND CAST(NGAYTHI AS DATE) = @NGAYTHI";
-
-            return ExecuteQuery(sql,
+            // Lấy cấu hình ca thi từ SP để C# không viết truy vấn SQL trực tiếp.
+            return DBHelper.ExecuteDataTable(
+                "SP_GET_THONGTIN_DANGKY_THI",
                 new SqlParameter("@MAMH", maMonCanThi),
                 new SqlParameter("@MALOP", maLop),
                 new SqlParameter("@LAN", lanCanThi),
@@ -134,41 +314,314 @@ namespace QLThiTracNghiem
         private DataTable LayDeThi(string maMonCanThi, string trinhDoCanThi, int soCauThi)
         {
             // SP_LAY_DE_THI bốc câu ngẫu nhiên theo luật 70/30.
-            using (SqlConnection conn = DBHelper.GetConnection())
-            using (SqlCommand cmd = new SqlCommand("SP_LAY_DE_THI", conn))
-            using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@MAMH", maMonCanThi);
-                cmd.Parameters.AddWithValue("@TRINHDO", trinhDoCanThi);
-                cmd.Parameters.AddWithValue("@SOCAU", soCauThi);
+            return DBHelper.ExecuteDataTable(
+                "SP_LAY_DE_THI",
+                new SqlParameter("@MAMH", maMonCanThi),
+                new SqlParameter("@TRINHDO", trinhDoCanThi),
+                new SqlParameter("@SOCAU", soCauThi));
+        }
 
-                DataTable dt = new DataTable();
-                da.Fill(dt);
-                return dt;
+        private SqlParameter TaoThamSoDapAnTam(string tenThamSo, string dapAn)
+        {
+            SqlParameter parameter = new SqlParameter(tenThamSo, SqlDbType.NChar, 1);
+            parameter.Value = string.IsNullOrWhiteSpace(dapAn)
+                ? (object)DBNull.Value
+                : dapAn.Trim().ToUpper();
+            return parameter;
+        }
+
+        private void TaoNutCauHoi()
+        {
+            pnlDanhSachCauHoi.Controls.Clear();
+            nutCauHoi.Clear();
+
+            for (int i = 0; i < danhSachCauHoi.Count; i++)
+            {
+                Button btn = new Button();
+                btn.Width = 42;
+                btn.Height = 32;
+                btn.Margin = new Padding(4);
+                btn.FlatStyle = FlatStyle.Flat;
+                btn.FlatAppearance.BorderColor = Color.FromArgb(190, 200, 212);
+                btn.FlatAppearance.BorderSize = 1;
+                btn.Text = (i + 1).ToString();
+                btn.Tag = i;
+                btn.Click += btnSoCauHoi_Click;
+                pnlDanhSachCauHoi.Controls.Add(btn);
+                nutCauHoi.Add(btn);
             }
+
+            CapNhatTrangThaiCauHoi();
+        }
+
+        private void CapNhatTrangThaiCauHoi()
+        {
+            int soCauDaTraLoi = danhSachCauHoi.Count(cau => !string.IsNullOrWhiteSpace(cau.DapAnDaChon));
+            lblTrangThaiTraLoi.Text = $"Đã trả lời: {soCauDaTraLoi}/{danhSachCauHoi.Count}";
+
+            for (int i = 0; i < nutCauHoi.Count; i++)
+            {
+                Button btn = nutCauHoi[i];
+                bool daTraLoi = !string.IsNullOrWhiteSpace(danhSachCauHoi[i].DapAnDaChon);
+
+                if (i == cauHienTai)
+                {
+                    btn.BackColor = Color.FromArgb(255, 236, 153);
+                    btn.Font = new Font(btn.Font, FontStyle.Bold);
+                }
+                else
+                {
+                    btn.BackColor = daTraLoi ? Color.FromArgb(198, 239, 206) : Color.White;
+                    btn.Font = new Font(btn.Font, FontStyle.Regular);
+                }
+
+                btn.Text = daTraLoi ? "✓" + (i + 1) : (i + 1).ToString();
+            }
+        }
+
+        private void btnSoCauHoi_Click(object sender, EventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int index)
+            {
+                LuuDapAn();
+                LuuDapAnTam(cauHienTai);
+                LuuTrangThaiBaiThiTam(false);
+                cauHienTai = index;
+                HienThiCauHoi(cauHienTai);
+            }
+        }
+
+        private void DapAn_CheckedChanged(object sender, EventArgs e)
+        {
+            if (dangHienThiCauHoi || danhSachCauHoi.Count == 0) return;
+
+            RadioButton radio = sender as RadioButton;
+            if (radio == null || !radio.Checked) return;
+
+            LuuDapAn();
+            CapNhatTrangThaiCauHoi();
+            LuuDapAnTam(cauHienTai);
+        }
+
+        private void BatDauLamBai()
+        {
+            DatTrangThaiHienThiBaiThi(true);
+            TaoNutCauHoi();
+            HienThiCauHoi(cauHienTai);
+
+            btnBatDau.Enabled = false;
+            btnNopBai.Enabled = true;
+            cmbMonThi.Enabled = false;
+            cmbLanThi.Enabled = false;
+            dtpNgayThi.Enabled = false;
+            groupBox1.Enabled = true;
+
+            demGiayLuuTam = 0;
+            lblThoiGian.ForeColor = SystemColors.ControlText;
+            timer1.Start();
+        }
+
+        private void TaoBaiThiTam()
+        {
+            using (SqlConnection conn = DBHelper.GetConnection())
+            {
+                conn.Open();
+                using (SqlTransaction tran = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int result = DBHelper.ExecuteNonQueryWithReturn(
+                            conn,
+                            tran,
+                            "SP_TAO_BAITHI_TAM",
+                            new SqlParameter("@MASV", Program.mUserName),
+                            new SqlParameter("@MAMH", maMon),
+                            new SqlParameter("@LAN", lanThi),
+                            new SqlParameter("@NGAYTHI", ngayThiDangThi),
+                            new SqlParameter("@MALOP", maLop),
+                            new SqlParameter("@TRINHDO", trinhDo),
+                            new SqlParameter("@SOCAUTHI", tongSoCau),
+                            new SqlParameter("@THOIGIAN", thoiGianConLai / 60),
+                            new SqlParameter("@THOIGIANCONLAI", thoiGianConLai),
+                            new SqlParameter("@CAUHIENTAI", cauHienTai));
+
+                        if (result != 0)
+                            throw new Exception("Không tạo được bài thi tạm. Mã lỗi: " + result);
+
+                        for (int i = 0; i < danhSachCauHoi.Count; i++)
+                        {
+                            CauHoiThi cauHoi = danhSachCauHoi[i];
+                            int resultChiTiet = DBHelper.ExecuteNonQueryWithReturn(
+                                conn,
+                                tran,
+                                "SP_LUU_CHI_TIET_BAITHI_TAM",
+                                new SqlParameter("@MASV", Program.mUserName),
+                                new SqlParameter("@MAMH", maMon),
+                                new SqlParameter("@LAN", lanThi),
+                                new SqlParameter("@STT", i + 1),
+                                new SqlParameter("@CAUHOI", cauHoi.MaCauHoi),
+                                TaoThamSoDapAnTam("@DAP_AN_SV", cauHoi.DapAnDaChon));
+
+                            if (resultChiTiet != 0)
+                                throw new Exception("Không lưu được câu tạm số " + (i + 1) + ". Mã lỗi: " + resultChiTiet);
+                        }
+
+                        tran.Commit();
+                    }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        private void LuuTrangThaiBaiThiTam(bool hienThongBaoLoi)
+        {
+            if (danhSachCauHoi.Count == 0 || string.IsNullOrWhiteSpace(maMon)) return;
+
+            try
+            {
+                DBHelper.ExecuteNonQueryWithReturn(
+                    "SP_CAPNHAT_BAITHI_TAM",
+                    new SqlParameter("@MASV", Program.mUserName),
+                    new SqlParameter("@MAMH", maMon),
+                    new SqlParameter("@LAN", lanThi),
+                    new SqlParameter("@THOIGIANCONLAI", thoiGianConLai),
+                    new SqlParameter("@CAUHIENTAI", cauHienTai));
+            }
+            catch (Exception ex)
+            {
+                if (hienThongBaoLoi)
+                    MessageBox.Show("Không lưu được trạng thái bài thi tạm: " + ex.Message, "Cảnh báo");
+            }
+        }
+
+        private void LuuDapAnTam(int index)
+        {
+            if (index < 0 || index >= danhSachCauHoi.Count || string.IsNullOrWhiteSpace(maMon)) return;
+
+            try
+            {
+                CauHoiThi cauHoi = danhSachCauHoi[index];
+                DBHelper.ExecuteNonQueryWithReturn(
+                    "SP_LUU_CHI_TIET_BAITHI_TAM",
+                    new SqlParameter("@MASV", Program.mUserName),
+                    new SqlParameter("@MAMH", maMon),
+                    new SqlParameter("@LAN", lanThi),
+                    new SqlParameter("@STT", index + 1),
+                    new SqlParameter("@CAUHOI", cauHoi.MaCauHoi),
+                    TaoThamSoDapAnTam("@DAP_AN_SV", cauHoi.DapAnDaChon));
+
+                LuuTrangThaiBaiThiTam(false);
+            }
+            catch
+            {
+                // Nếu đang mất kết nối SQL tạm thời thì vẫn giữ đáp án trong RAM; lần lưu kế tiếp sẽ thử lại.
+            }
+        }
+
+        private void XoaBaiThiTam()
+        {
+            if (string.IsNullOrWhiteSpace(maMon)) return;
+
+            DBHelper.ExecuteNonQueryWithReturn(
+                "SP_XOA_BAITHI_TAM",
+                new SqlParameter("@MASV", Program.mUserName),
+                new SqlParameter("@MAMH", maMon),
+                new SqlParameter("@LAN", lanThi));
+        }
+
+        private bool KiemTraVaKhoiPhucBaiThiTam()
+        {
+            DataTable dtTam = DBHelper.ExecuteDataTable(
+                "SP_GET_BAITHI_TAM_DANG_CO",
+                new SqlParameter("@MASV", Program.mUserName));
+
+            if (dtTam.Rows.Count == 0) return false;
+
+            DataRow row = dtTam.Rows[0];
+            string tenMonTam = row["TENMH"].ToString();
+            int lanTam = Convert.ToInt32(row["LAN"]);
+            int thoiGianTam = Convert.ToInt32(row["THOIGIANCONLAI"]);
+
+            DialogResult result = MessageBox.Show(
+                $"Bạn có bài thi tạm môn {tenMonTam} lần {lanTam}, còn khoảng {thoiGianTam / 60:00}:{thoiGianTam % 60:00}. Bạn có muốn thi tiếp không?",
+                "Khôi phục bài thi tạm",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes)
+            {
+                DBHelper.ExecuteNonQueryWithReturn(
+                    "SP_XOA_BAITHI_TAM",
+                    new SqlParameter("@MASV", Program.mUserName),
+                    new SqlParameter("@MAMH", row["MAMH"].ToString()),
+                    new SqlParameter("@LAN", lanTam));
+                return false;
+            }
+
+            return KhoiPhucBaiThiTam(row);
+        }
+
+        private bool KhoiPhucBaiThiTam(DataRow row)
+        {
+            maMon = row["MAMH"].ToString().Trim();
+            lanThi = Convert.ToInt32(row["LAN"]);
+            ngayThiDangThi = Convert.ToDateTime(row["NGAYTHI"]).Date;
+            trinhDo = row["TRINHDO"].ToString().Trim();
+            tongSoCau = Convert.ToInt32(row["SOCAUTHI"]);
+            thoiGianConLai = Convert.ToInt32(row["THOIGIANCONLAI"]);
+            cauHienTai = Convert.ToInt32(row["CAUHIENTAI"]);
+
+            DataTable dtChiTiet = DBHelper.ExecuteDataTable(
+                "SP_GET_CHI_TIET_BAITHI_TAM",
+                new SqlParameter("@MASV", Program.mUserName),
+                new SqlParameter("@MAMH", maMon),
+                new SqlParameter("@LAN", lanThi));
+
+            if (dtChiTiet.Rows.Count == 0)
+            {
+                MessageBox.Show("Bài thi tạm không có chi tiết câu hỏi, hệ thống sẽ xóa bài tạm này.", "Báo lỗi");
+                XoaBaiThiTam();
+                return false;
+            }
+
+            danhSachCauHoi.Clear();
+            foreach (DataRow chiTiet in dtChiTiet.Rows)
+            {
+                CauHoiThi ch = new CauHoiThi();
+                ch.MaCauHoi = Convert.ToInt32(chiTiet["CAUHOI"]);
+                ch.NoiDung = chiTiet["NOIDUNG"].ToString();
+                ch.A = chiTiet["A"].ToString();
+                ch.B = chiTiet["B"].ToString();
+                ch.C = chiTiet["C"].ToString();
+                ch.D = chiTiet["D"].ToString();
+                ch.DapAnDung = chiTiet["DAP_AN"].ToString().Trim().ToUpper();
+                ch.DapAnDaChon = chiTiet["DAP_AN_SV"] == DBNull.Value ? "" : chiTiet["DAP_AN_SV"].ToString().Trim().ToUpper();
+                danhSachCauHoi.Add(ch);
+            }
+
+            tongSoCau = danhSachCauHoi.Count;
+            if (cauHienTai < 0 || cauHienTai >= tongSoCau) cauHienTai = 0;
+
+            lblThongTinLichThi.Text = $"Đang thi tiếp | Trình độ: {trinhDo} | Số câu: {tongSoCau} | Còn lại: {thoiGianConLai / 60:00}:{thoiGianConLai % 60:00}";
+            lblThoiGian.Text = string.Format("{0:00}:{1:00}", thoiGianConLai / 60, thoiGianConLai % 60);
+            lblNgayThi.Text = "Ngày thi:";
+            HienThiNgayDangThi(ngayThiDangThi);
+
+            BatDauLamBai();
+            return true;
         }
 
         private void LoadMonThiTheoNgayDaChon()
         {
             DateTime ngayDangChon = dtpNgayThi.Value.Date;
 
-            // Môn thi lọc theo ngày sinh viên đang chọn.
-            // LEFT JOIN BANGDIEM để loại các môn/lần sinh viên đã thi rồi.
-            string sql = @"
-                SELECT DISTINCT MH.MAMH, MH.TENMH
-                FROM GIAOVIEN_DANGKY DK
-                INNER JOIN MONHOC MH ON DK.MAMH = MH.MAMH
-                LEFT JOIN BANGDIEM BD
-                    ON BD.MASV = @MASV
-                   AND BD.MAMH = DK.MAMH
-                   AND BD.LAN = DK.LAN
-                WHERE DK.MALOP = @MALOP
-                  AND CAST(DK.NGAYTHI AS DATE) = @NGAYTHI
-                  AND BD.MASV IS NULL
-                ORDER BY MH.TENMH";
-
-            DataTable dtMon = ExecuteQuery(sql,
+            // SP lọc môn thi trong ngày và bỏ qua môn/lần sinh viên đã có điểm.
+            DataTable dtMon = DBHelper.ExecuteDataTable(
+                "SP_GET_MON_THI_CHUA_THI_THEO_NGAY",
                 new SqlParameter("@MASV", Program.mUserName),
                 new SqlParameter("@MALOP", maLop),
                 new SqlParameter("@NGAYTHI", ngayDangChon));
@@ -199,20 +652,10 @@ namespace QLThiTracNghiem
 
             string monDangChon = cmbMonThi.SelectedValue.ToString();
             DateTime ngayDangChon = dtpNgayThi.Value.Date;
-            string sql = @"
-                SELECT DK.LAN, DK.NGAYTHI, DK.TRINHDO, DK.SOCAUTHI, DK.THOIGIAN
-                FROM GIAOVIEN_DANGKY DK
-                LEFT JOIN BANGDIEM BD
-                    ON BD.MASV = @MASV
-                   AND BD.MAMH = DK.MAMH
-                   AND BD.LAN = DK.LAN
-                WHERE DK.MALOP = @MALOP
-                  AND DK.MAMH = @MAMH
-                  AND CAST(DK.NGAYTHI AS DATE) = @NGAYTHI
-                  AND BD.MASV IS NULL
-                ORDER BY DK.LAN";
 
-            DataTable dtLan = ExecuteQuery(sql,
+            // Lấy các lần thi chưa có điểm của môn đang chọn.
+            DataTable dtLan = DBHelper.ExecuteDataTable(
+                "SP_GET_LAN_THI_CHUA_THI",
                 new SqlParameter("@MASV", Program.mUserName),
                 new SqlParameter("@MALOP", maLop),
                 new SqlParameter("@MAMH", monDangChon),
@@ -267,14 +710,12 @@ namespace QLThiTracNghiem
             btnCauSau.Enabled = false;
             btnNopBai.Enabled = false;
             groupBox1.Enabled = false;
+            DatTrangThaiHienThiBaiThi(false);
 
             // Lấy lớp của sinh viên để lọc đúng lịch thi.
-            string sqlLop = @"
-                SELECT SV.MALOP, L.TENLOP
-                FROM SINHVIEN SV
-                INNER JOIN LOP L ON SV.MALOP = L.MALOP
-                WHERE SV.MASV = @MASV";
-            DataTable dtSV = ExecuteQuery(sqlLop, new SqlParameter("@MASV", Program.mUserName));
+            DataTable dtSV = DBHelper.ExecuteDataTable(
+                "SP_GET_LOP_CUA_SINHVIEN",
+                new SqlParameter("@MASV", Program.mUserName));
 
             if (dtSV.Rows.Count > 0)
             {
@@ -289,10 +730,15 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // Sinh viên chọn ngày thi bằng DateTimePicker.
-            dtpNgayThi.Value = DateTime.Today;
+            // Sinh viên chọn ngày thi bằng DateTimePicker, chỉ chọn từ ngày mai trở đi.
+            ApDungGioiHanNgayThi();
             dtpNgayThi.Enabled = true;
             lblNgayThi.Text = "Ngày thi:";
+
+            if (KiemTraVaKhoiPhucBaiThiTam())
+            {
+                return;
+            }
 
             LoadMonThiTheoNgayDaChon();
 
@@ -301,6 +747,7 @@ namespace QLThiTracNghiem
             btnCauSau.Enabled = false;
             btnNopBai.Enabled = false;
             groupBox1.Enabled = false;
+            DatTrangThaiHienThiBaiThi(false);
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
@@ -330,11 +777,88 @@ namespace QLThiTracNghiem
 
         }
 
+        private List<int> LayDanhSachCauChuaTraLoi()
+        {
+            List<int> cauChuaTraLoi = new List<int>();
+
+            for (int i = 0; i < danhSachCauHoi.Count; i++)
+            {
+                if (string.IsNullOrWhiteSpace(danhSachCauHoi[i].DapAnDaChon))
+                {
+                    cauChuaTraLoi.Add(i + 1);
+                }
+            }
+
+            return cauChuaTraLoi;
+        }
+
+        private string TaoChuoiCauChuaTraLoi(List<int> cauChuaTraLoi)
+        {
+            const int soCauHienThiToiDa = 15;
+            string danhSachRutGon = string.Join(", ", cauChuaTraLoi.Take(soCauHienThiToiDa));
+
+            if (cauChuaTraLoi.Count > soCauHienThiToiDa)
+            {
+                danhSachRutGon += ", ...";
+            }
+
+            return danhSachRutGon;
+        }
+
+        private bool XacNhanTruocKhiNopBai()
+        {
+            if (thoiGianConLai <= 0)
+            {
+                return true;
+            }
+
+            List<int> cauChuaTraLoi = LayDanhSachCauChuaTraLoi();
+
+            if (cauChuaTraLoi.Count > 0)
+            {
+                string danhSachCau = TaoChuoiCauChuaTraLoi(cauChuaTraLoi);
+                DialogResult xacNhanNopBai = MessageBox.Show(
+                    $"Bạn còn {cauChuaTraLoi.Count}/{tongSoCau} câu chưa trả lời.\n\nCâu chưa trả lời: {danhSachCau}\n\nBạn có muốn nộp bài luôn không?",
+                    "Còn câu chưa trả lời",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (xacNhanNopBai != DialogResult.Yes)
+                {
+                    cauHienTai = cauChuaTraLoi[0] - 1;
+                    HienThiCauHoi(cauHienTai);
+                    groupBox1.Focus();
+                    return false;
+                }
+
+                return true;
+            }
+
+            DialogResult xacNhanNopDu = MessageBox.Show(
+                $"Bạn đã trả lời đủ {tongSoCau}/{tongSoCau} câu.\n\nBạn có chắc chắn muốn nộp bài không?\nSau khi nộp, bạn sẽ không thể sửa đáp án.",
+                "Xác nhận nộp bài",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            return xacNhanNopDu == DialogResult.Yes;
+        }
+
         private void btnNopBai_Click(object sender, EventArgs e)
         {
             // Dừng timer trước khi chấm và lưu bài.
             timer1.Stop();
             LuuDapAn(); // Câu đang đứng cũng phải được lưu đáp án trước khi chấm.
+            LuuDapAnTam(cauHienTai);
+            LuuTrangThaiBaiThiTam(false);
+
+            if (!XacNhanTruocKhiNopBai())
+            {
+                timer1.Start();
+                return;
+            }
+
+            dangNopBai = true;
+            btnNopBai.Enabled = false;
 
             // Chấm điểm bằng cách so sánh đáp án đã chọn với đáp án đúng.
             int soCauDung = 0;
@@ -369,31 +893,25 @@ namespace QLThiTracNghiem
                     {
                         try
                         {
-                            using (SqlCommand cmd = new SqlCommand("SP_GHI_DIEM_THI", conn, tran))
+                            int result = DBHelper.ExecuteNonQueryWithReturn(
+                                conn,
+                                tran,
+                                "SP_GHI_DIEM_THI",
+                                new SqlParameter("@MASV", Program.mUserName), // Mã sinh viên đang thi.
+                                new SqlParameter("@MAMH", maMon),
+                                new SqlParameter("@LAN", lanThi),
+                                new SqlParameter("@NGAYTHI", ngayThiDangThi), // Lưu đúng ngày sinh viên đã chọn.
+                                new SqlParameter("@DIEM", diem));
+
+                            // SP trả 1 nếu bài đã có điểm, tránh ghi đè điểm cũ.
+                            if (result == 1)
                             {
-                                cmd.CommandType = CommandType.StoredProcedure;
-                                cmd.Parameters.AddWithValue("@MASV", Program.mUserName); // Mã sinh viên đang thi.
-                                cmd.Parameters.AddWithValue("@MAMH", maMon);
-                                cmd.Parameters.AddWithValue("@LAN", lanThi);
-                                // Lưu đúng ngày sinh viên đã chọn.
-                                cmd.Parameters.AddWithValue("@NGAYTHI", ngayThiDangThi);
-                                cmd.Parameters.AddWithValue("@DIEM", diem);
-
-                                // SP trả 1 nếu bài đã có điểm, tránh ghi đè điểm cũ.
-                                SqlParameter retVal = new SqlParameter();
-                                retVal.Direction = ParameterDirection.ReturnValue;
-                                cmd.Parameters.Add(retVal);
-
-                                cmd.ExecuteNonQuery();
-
-                                int result = Convert.ToInt32(retVal.Value);
-                                if (result == 1)
-                                {
-                                    tran.Rollback();
-                                    MessageBox.Show("Bài thi này đã có điểm trước đó, hệ thống không ghi đè điểm cũ.", "Không lưu lại");
-                                    LoadMonThiTheoNgayDaChon();
-                                    return;
-                                }
+                                tran.Rollback();
+                                dangNopBai = false;
+                                btnNopBai.Enabled = true;
+                                MessageBox.Show("Bài thi này đã có điểm trước đó, hệ thống không ghi đè điểm cũ.", "Không lưu lại");
+                                LoadMonThiTheoNgayDaChon();
+                                return;
                             }
 
                             // Mỗi câu làm bài được lưu thành một dòng trong CT_BAITHI.
@@ -401,33 +919,26 @@ namespace QLThiTracNghiem
                             {
                                 CauHoiThi cauHoi = danhSachCauHoi[i];
 
-                                using (SqlCommand cmdChiTiet = new SqlCommand("SP_GHI_CHI_TIET_BAI_THI", conn, tran))
+                                // Không chọn đáp án thì lưu NULL để biết câu đó bị bỏ trống.
+                                SqlParameter dapAnSV = new SqlParameter("@DAP_AN_SV", SqlDbType.NChar, 1);
+                                dapAnSV.Value = string.IsNullOrWhiteSpace(cauHoi.DapAnDaChon)
+                                    ? (object)DBNull.Value
+                                    : cauHoi.DapAnDaChon.Trim().ToUpper();
+
+                                int resultChiTiet = DBHelper.ExecuteNonQueryWithReturn(
+                                    conn,
+                                    tran,
+                                    "SP_GHI_CHI_TIET_BAI_THI",
+                                    new SqlParameter("@MASV", Program.mUserName),
+                                    new SqlParameter("@MAMH", maMon),
+                                    new SqlParameter("@LAN", lanThi),
+                                    new SqlParameter("@STT", i + 1),
+                                    new SqlParameter("@CAUHOI", cauHoi.MaCauHoi),
+                                    dapAnSV);
+
+                                if (resultChiTiet != 0)
                                 {
-                                    cmdChiTiet.CommandType = CommandType.StoredProcedure;
-                                    cmdChiTiet.Parameters.AddWithValue("@MASV", Program.mUserName);
-                                    cmdChiTiet.Parameters.AddWithValue("@MAMH", maMon);
-                                    cmdChiTiet.Parameters.AddWithValue("@LAN", lanThi);
-                                    cmdChiTiet.Parameters.AddWithValue("@STT", i + 1);
-                                    cmdChiTiet.Parameters.AddWithValue("@CAUHOI", cauHoi.MaCauHoi);
-
-                                    // Không chọn đáp án thì lưu NULL để biết câu đó bị bỏ trống.
-                                    SqlParameter dapAnSV = new SqlParameter("@DAP_AN_SV", SqlDbType.NChar, 1);
-                                    dapAnSV.Value = string.IsNullOrWhiteSpace(cauHoi.DapAnDaChon)
-                                        ? (object)DBNull.Value
-                                        : cauHoi.DapAnDaChon.Trim().ToUpper();
-                                    cmdChiTiet.Parameters.Add(dapAnSV);
-
-                                    SqlParameter retValChiTiet = new SqlParameter();
-                                    retValChiTiet.Direction = ParameterDirection.ReturnValue;
-                                    cmdChiTiet.Parameters.Add(retValChiTiet);
-
-                                    cmdChiTiet.ExecuteNonQuery();
-
-                                    int resultChiTiet = Convert.ToInt32(retValChiTiet.Value);
-                                    if (resultChiTiet != 0)
-                                    {
-                                        throw new Exception("Không lưu được chi tiết câu hỏi số " + (i + 1) + ".");
-                                    }
+                                    throw new Exception("Không lưu được chi tiết câu hỏi số " + (i + 1) + ".");
                                 }
                             }
 
@@ -441,6 +952,7 @@ namespace QLThiTracNghiem
                         }
                     }
                 }
+                XoaBaiThiTam();
                 MessageBox.Show("Đã lưu kết quả thi thành công!", "Thông báo");
 
                 // Lưu xong thì đóng form.
@@ -448,6 +960,10 @@ namespace QLThiTracNghiem
             }
             catch (Exception ex)
             {
+                dangNopBai = false;
+                btnNopBai.Enabled = true;
+                if (thoiGianConLai > 0)
+                    timer1.Start();
                 MessageBox.Show("Lỗi lưu điểm: " + ex.Message);
             }
         }
@@ -459,19 +975,29 @@ namespace QLThiTracNghiem
 
         private void btnThoat_Click(object sender, EventArgs e)
         {
-            // Đang làm bài mà thoát thì tự nộp bài.
             if (timer1.Enabled)
             {
-                DialogResult dr = MessageBox.Show("Bạn đang trong thời gian làm bài! Nếu thoát bây giờ, hệ thống sẽ tự động nộp bài và tính điểm. Bạn có chắc chắn muốn thoát?", "Cảnh báo nghiêm trọng", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                if (dr == DialogResult.Yes)
-                {
-                    btnNopBai.PerformClick(); // Gọi lại đúng luồng nộp bài để chấm và lưu điểm.
-                }
+                MessageBox.Show(
+                    "Bạn đang trong thời gian làm bài.\n\nKhông thể thoát khi chưa nộp bài. Vui lòng nộp bài trước khi rời khỏi màn hình thi.",
+                    "Không thể thoát",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
             }
-            else
+
+            this.Close();
+        }
+
+        private void formThi_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (dangLamBaiHienThi && !dangNopBai)
             {
-                this.Close();
+                e.Cancel = true;
+                MessageBox.Show(
+                    "Bạn đang trong thời gian làm bài.\n\nKhông thể đóng form khi chưa nộp bài. Vui lòng nộp bài trước khi rời khỏi màn hình thi.",
+                    "Không thể đóng form",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
         }
 
@@ -549,19 +1075,8 @@ namespace QLThiTracNghiem
 
                 // Mở phần làm bài và hiện câu đầu tiên.
                 cauHienTai = 0;
-                HienThiCauHoi(cauHienTai);
-
-                // Đã bắt đầu thì không cho đổi ngày/môn/lần.
-                btnBatDau.Enabled = false;
-                btnNopBai.Enabled = true;
-                cmbMonThi.Enabled = false;
-                cmbLanThi.Enabled = false;
-                dtpNgayThi.Enabled = false;
-
-                groupBox1.Enabled = true;
-
-                // Bắt đầu đếm giờ.
-                timer1.Start();
+                TaoBaiThiTam();
+                BatDauLamBai();
             }
             catch (Exception ex)
             {
@@ -584,6 +1099,8 @@ namespace QLThiTracNghiem
             rdoC.Text = ch.C;
             rdoD.Text = ch.D;
 
+            dangHienThiCauHoi = true;
+
             // Xóa lựa chọn cũ trước khi tick lại đáp án đã chọn.
             rdoA.Checked = false;
             rdoB.Checked = false;
@@ -596,9 +1113,12 @@ namespace QLThiTracNghiem
             else if (ch.DapAnDaChon == "C") rdoC.Checked = true;
             else if (ch.DapAnDaChon == "D") rdoD.Checked = true;
 
+            dangHienThiCauHoi = false;
+
             // Câu đầu/cuối thì khóa nút Trước/Sau tương ứng.
             btnCauTruoc.Enabled = (index > 0);
             btnCauSau.Enabled = (index < danhSachCauHoi.Count - 1);
+            CapNhatTrangThaiCauHoi();
         }
 
         // Lưu đáp án đang tick vào object câu hỏi hiện tại.
@@ -615,6 +1135,8 @@ namespace QLThiTracNghiem
         private void btnCauSau_Click(object sender, EventArgs e)
         {
             LuuDapAn(); // Trước khi chuyển câu thì giữ lại đáp án đang chọn.
+            LuuDapAnTam(cauHienTai);
+            LuuTrangThaiBaiThiTam(false);
             if (cauHienTai < danhSachCauHoi.Count - 1)
             {
                 cauHienTai++;
@@ -639,6 +1161,17 @@ namespace QLThiTracNghiem
                 if (thoiGianConLai <= 30)
                 {
                     lblThoiGian.ForeColor = System.Drawing.Color.Red;
+                }
+                else
+                {
+                    lblThoiGian.ForeColor = SystemColors.ControlText;
+                }
+
+                demGiayLuuTam++;
+                if (demGiayLuuTam >= 5)
+                {
+                    demGiayLuuTam = 0;
+                    LuuTrangThaiBaiThiTam(false);
                 }
             }
             else

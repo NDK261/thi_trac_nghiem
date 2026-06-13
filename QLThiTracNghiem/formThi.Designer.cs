@@ -93,10 +93,10 @@
             // 
             // rdoA
             // 
-            this.rdoA.AutoSize = true;
-            this.rdoA.Location = new System.Drawing.Point(57, 53);
+            this.rdoA.AutoSize = false;
+            this.rdoA.Location = new System.Drawing.Point(55, 42);
             this.rdoA.Name = "rdoA";
-            this.rdoA.Size = new System.Drawing.Size(55, 37);
+            this.rdoA.Size = new System.Drawing.Size(780, 36);
             this.rdoA.TabIndex = 7;
             this.rdoA.TabStop = true;
             this.rdoA.Text = "A";
@@ -104,10 +104,10 @@
             // 
             // rdoB
             // 
-            this.rdoB.AutoSize = true;
-            this.rdoB.Location = new System.Drawing.Point(57, 114);
+            this.rdoB.AutoSize = false;
+            this.rdoB.Location = new System.Drawing.Point(55, 88);
             this.rdoB.Name = "rdoB";
-            this.rdoB.Size = new System.Drawing.Size(55, 37);
+            this.rdoB.Size = new System.Drawing.Size(780, 36);
             this.rdoB.TabIndex = 8;
             this.rdoB.TabStop = true;
             this.rdoB.Text = "B";
@@ -115,10 +115,10 @@
             // 
             // rdoC
             // 
-            this.rdoC.AutoSize = true;
-            this.rdoC.Location = new System.Drawing.Point(57, 181);
+            this.rdoC.AutoSize = false;
+            this.rdoC.Location = new System.Drawing.Point(55, 134);
             this.rdoC.Name = "rdoC";
-            this.rdoC.Size = new System.Drawing.Size(57, 37);
+            this.rdoC.Size = new System.Drawing.Size(780, 36);
             this.rdoC.TabIndex = 9;
             this.rdoC.TabStop = true;
             this.rdoC.Text = "C";
@@ -127,10 +127,10 @@
             // 
             // rdoD
             // 
-            this.rdoD.AutoSize = true;
-            this.rdoD.Location = new System.Drawing.Point(57, 248);
+            this.rdoD.AutoSize = false;
+            this.rdoD.Location = new System.Drawing.Point(55, 180);
             this.rdoD.Name = "rdoD";
-            this.rdoD.Size = new System.Drawing.Size(57, 37);
+            this.rdoD.Size = new System.Drawing.Size(780, 36);
             this.rdoD.TabIndex = 10;
             this.rdoD.TabStop = true;
             this.rdoD.Text = "D";
@@ -139,7 +139,7 @@
             // btnCauTruoc
             // 
             this.btnCauTruoc.Enabled = false;
-            this.btnCauTruoc.Location = new System.Drawing.Point(472, 702);
+            this.btnCauTruoc.Location = new System.Drawing.Point(390, 600);
             this.btnCauTruoc.Name = "btnCauTruoc";
             this.btnCauTruoc.Size = new System.Drawing.Size(117, 47);
             this.btnCauTruoc.TabIndex = 11;
@@ -150,7 +150,7 @@
             // btnCauSau
             // 
             this.btnCauSau.Enabled = false;
-            this.btnCauSau.Location = new System.Drawing.Point(681, 702);
+            this.btnCauSau.Location = new System.Drawing.Point(550, 600);
             this.btnCauSau.Name = "btnCauSau";
             this.btnCauSau.Size = new System.Drawing.Size(104, 47);
             this.btnCauSau.TabIndex = 12;
@@ -161,7 +161,7 @@
             // btnNopBai
             // 
             this.btnNopBai.Enabled = false;
-            this.btnNopBai.Location = new System.Drawing.Point(1033, 702);
+            this.btnNopBai.Location = new System.Drawing.Point(770, 600);
             this.btnNopBai.Name = "btnNopBai";
             this.btnNopBai.Size = new System.Drawing.Size(97, 47);
             this.btnNopBai.TabIndex = 13;
@@ -173,7 +173,7 @@
             // 
             this.lblThoiGian.AutoSize = true;
             this.lblThoiGian.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblThoiGian.Location = new System.Drawing.Point(1500, 43);
+            this.lblThoiGian.Location = new System.Drawing.Point(1010, 24);
             this.lblThoiGian.Name = "lblThoiGian";
             this.lblThoiGian.Size = new System.Drawing.Size(86, 32);
             this.lblThoiGian.TabIndex = 14;
@@ -186,9 +186,9 @@
             this.groupBox1.Controls.Add(this.rdoC);
             this.groupBox1.Controls.Add(this.rdoD);
             this.groupBox1.Font = new System.Drawing.Font("Arial Narrow", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.groupBox1.Location = new System.Drawing.Point(149, 364);
+            this.groupBox1.Location = new System.Drawing.Point(170, 335);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1446, 306);
+            this.groupBox1.Size = new System.Drawing.Size(900, 240);
             this.groupBox1.TabIndex = 17;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Câu trả lời";
@@ -197,15 +197,15 @@
             // lblNoiDungCauHoi
             // 
             this.lblNoiDungCauHoi.Font = new System.Drawing.Font("Arial Narrow", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblNoiDungCauHoi.Location = new System.Drawing.Point(149, 250);
+            this.lblNoiDungCauHoi.Location = new System.Drawing.Point(170, 230);
             this.lblNoiDungCauHoi.Name = "lblNoiDungCauHoi";
-            this.lblNoiDungCauHoi.Size = new System.Drawing.Size(1446, 111);
+            this.lblNoiDungCauHoi.Size = new System.Drawing.Size(900, 90);
             this.lblNoiDungCauHoi.TabIndex = 18;
             this.lblNoiDungCauHoi.Click += new System.EventHandler(this.lblNoiDungCauHoi_Click);
             // 
             // btnBatDau
             // 
-            this.btnBatDau.Location = new System.Drawing.Point(206, 702);
+            this.btnBatDau.Location = new System.Drawing.Point(170, 600);
             this.btnBatDau.Name = "btnBatDau";
             this.btnBatDau.Size = new System.Drawing.Size(117, 47);
             this.btnBatDau.TabIndex = 19;
@@ -215,7 +215,7 @@
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(1212, 702);
+            this.btnThoat.Location = new System.Drawing.Point(900, 600);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(97, 47);
             this.btnThoat.TabIndex = 20;
@@ -237,7 +237,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(1293, 46);
+            this.label1.Location = new System.Drawing.Point(805, 27);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(210, 29);
             this.label1.TabIndex = 23;
@@ -293,7 +293,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1742, 807);
+            this.ClientSize = new System.Drawing.Size(1260, 740);
             this.Controls.Add(this.lblNgayThi);
             this.Controls.Add(this.dtpNgayThi);
             this.Controls.Add(this.lblMaLop);
