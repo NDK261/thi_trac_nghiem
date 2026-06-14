@@ -46,7 +46,7 @@ namespace QLThiTracNghiem
             cmbTimKiem.SelectedIndex = 0;
         }
 
-        // Gom trạng thái nút/ô nhập để các thao tác Thêm, Sửa, Ghi, Phục hồi không bị lệch nhau.
+        // Đưa các nút và ô nhập về đúng trạng thái hiện tại của form.
         private void SetNormalState()
         {
             isAdding = false;

@@ -71,7 +71,7 @@ namespace QLThiTracNghiem
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // Giả sử Program.mUserName đang lưu MASV sau khi sinh viên đăng nhập
+                    // Sinh viên tự xem thì dùng MASV đang đăng nhập; giáo viên mở từ bảng điểm thì dùng MASV được truyền vào.
                     string masv = string.IsNullOrWhiteSpace(maSvDuocChon) ? Program.mUserName : maSvDuocChon;
                     cmd.Parameters.AddWithValue("@MASV", masv);
 
@@ -85,7 +85,7 @@ namespace QLThiTracNghiem
                         return;
                     }
 
-                    // Tạo cột hiển thị đẹp hơn cho ComboBox
+                    // Tạo cột phụ chỉ để ComboBox hiển thị kỳ thi dễ nhìn hơn.
                     if (!dtKyThi.Columns.Contains("HIENTHI"))
                         dtKyThi.Columns.Add("HIENTHI", typeof(string));
 
@@ -172,7 +172,7 @@ namespace QLThiTracNghiem
                         return;
                     }
 
-                    // Đổ phần thông tin đầu form
+                    // Thông tin đầu form lấy từ dòng đầu vì các dòng chi tiết cùng một bài thi.
                     lblMaSVValue.Text = dt.Rows[0]["MASV"].ToString().Trim();
                     lblHoTenValue.Text = dt.Rows[0]["HOTEN"].ToString().Trim();
                     lblLopValue.Text = dt.Rows[0]["LOP"].ToString().Trim();
@@ -187,7 +187,7 @@ namespace QLThiTracNghiem
 
                     dgvKetQua.DataSource = dt;
 
-                    // Ẩn các cột header lặp lại
+                    // Các cột thông tin chung đã hiển thị ở đầu form nên ẩn khỏi lưới chi tiết.
                     AnCotNeuCo("LOP");
                     AnCotNeuCo("HOTEN");
                     AnCotNeuCo("MASV");
@@ -196,7 +196,7 @@ namespace QLThiTracNghiem
                     AnCotNeuCo("LAN");
                     AnCotNeuCo("TRINHDO");
 
-                    // Đặt tên cột
+                    // Đặt lại tiêu đề cột cho đúng ngôn ngữ người dùng.
                     DatHeader("STT_HIENTHI", "STT");
                     DatHeader("CAUSO", "Câu số");
                     DatHeader("NOIDUNG", "Nội dung câu hỏi");

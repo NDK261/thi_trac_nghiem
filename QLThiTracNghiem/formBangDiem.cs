@@ -34,6 +34,7 @@ namespace QLThiTracNghiem
         {
             try
             {
+                // Lấy danh sách lớp từ SP để chọn điều kiện in/xem bảng điểm.
                 using (SqlConnection conn = DBHelper.GetConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.SP_GET_LOP", conn))
                 using (SqlDataAdapter da = new SqlDataAdapter(cmd))
@@ -59,6 +60,7 @@ namespace QLThiTracNghiem
         {
             try
             {
+                // Lấy danh sách môn học từ SP, tránh viết lại SELECT ở nhiều form.
                 using (SqlConnection conn = DBHelper.GetConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.SP_GET_MONHOC", conn))
                 using (SqlDataAdapter da = new SqlDataAdapter(cmd))
@@ -146,6 +148,7 @@ namespace QLThiTracNghiem
                 using (SqlDataAdapter da = new SqlDataAdapter(cmd))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    // Ba tham số này đúng với khóa tra cứu bảng điểm: lớp, môn và lần thi.
                     cmd.Parameters.AddWithValue("@MALOP", malop);
                     cmd.Parameters.AddWithValue("@MAMH", mamh);
                     cmd.Parameters.AddWithValue("@LAN", lan);
@@ -160,7 +163,7 @@ namespace QLThiTracNghiem
                         return;
                     }
 
-                    // Cấu hình cột hiển thị
+                    // Đổi tên cột cho dễ đọc, dữ liệu vẫn lấy từ SP_GET_BANGDIEM.
                     dgvBangDiem.DataSource = dt;
 
                     if (dgvBangDiem.Columns.Contains("STT"))
@@ -195,7 +198,7 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            // TODO: Implement printing functionality
+            // Phần in báo cáo chưa làm, hiện chỉ nhắc người dùng thay vì để nút im lặng.
             MessageBox.Show("Chức năng in đang được phát triển.", "Thông báo");
         }
 
@@ -243,6 +246,7 @@ namespace QLThiTracNghiem
             }
 
             string mamh = cmbMonHoc.SelectedValue.ToString();
+            // Mở lại form xem kết quả với đúng sinh viên, môn và lần thi đang chọn.
             using (formXemKetQua f = new formXemKetQua(masv, mamh, lan))
             {
                 f.ShowDialog();

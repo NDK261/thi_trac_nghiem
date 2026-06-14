@@ -52,12 +52,12 @@ namespace QLThiTracNghiem
             btnXoa.Enabled = hasCurrentRow;
         }
 
-        // Tải danh sách môn học từ SQL rồi đưa lên DataGridView.
+        // Tải danh sách môn học từ SP rồi đưa lên lưới.
         private void LoadData()
         {
             try
             {
-                // Phần lấy dữ liệu môn học được gom trong stored procedure SP_GET_MONHOC.
+                // SP_GET_MONHOC là nguồn dữ liệu chính của form môn học.
                 DataTable dt = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
 
                 // Cập nhật bản gốc để ô tìm kiếm không lọc trên dữ liệu cũ.
@@ -83,7 +83,7 @@ namespace QLThiTracNghiem
             }
         }
 
-            // Mở form thì load dữ liệu và đưa nút về trạng thái xem.
+        // Mở form thì tải dữ liệu và đưa nút về trạng thái xem.
         private void formMonHoc_Load_1(object sender, EventArgs e)
         {
             ThietLapGioiHanNhap();
@@ -331,7 +331,7 @@ namespace QLThiTracNghiem
 
         private void LocMonHocTheoTuKhoa()
         {
-            // Nếu chưa load dữ liệu thì không có gì để lọc.
+            // Nếu chưa tải dữ liệu thì không có gì để lọc.
             if (dtMonHocGoc == null) return;
 
             // Đưa từ khóa và dữ liệu về không dấu để so sánh.

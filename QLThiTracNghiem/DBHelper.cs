@@ -11,6 +11,7 @@ namespace QLThiTracNghiem
             return new SqlConnection(Program.GetActiveConnectionString());
         }
 
+        // Kiểm tra nhanh chuỗi kết nối trước khi mở các form nghiệp vụ.
         public static bool TestConnection(out string message)
         {
             try
@@ -105,10 +106,7 @@ namespace QLThiTracNghiem
             }
         }
 
-        /// <summary>
-        /// Gọi stored procedure có RETURN code trong một transaction đang mở.
-        /// Dùng cho các nghiệp vụ phải lưu nhiều bảng cùng lúc, ví dụ nộp bài thi.
-        /// </summary>
+        // Dùng cho các thao tác cần transaction, ví dụ nộp bài phải lưu điểm và chi tiết cùng lúc.
         public static int ExecuteNonQueryWithReturn(SqlConnection conn, SqlTransaction tran, string procedureName, params SqlParameter[] parameters)
         {
             try
@@ -141,9 +139,7 @@ namespace QLThiTracNghiem
             }
         }
 
-        /// <summary>
-        /// Gọi stored procedure và lấy một giá trị đơn, ví dụ COUNT hoặc một mã nào đó.
-        /// </summary>
+        // Gọi stored procedure chỉ cần một giá trị trả về, thường là COUNT hoặc mã kiểm tra.
         public static object ExecuteScalar(string procedureName, params SqlParameter[] parameters)
         {
             try

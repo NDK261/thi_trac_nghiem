@@ -42,7 +42,7 @@ namespace QLThiTracNghiem
             cmbTimKiem.SelectedIndex = 0;
         }
 
-        // Gom trạng thái form: xem dữ liệu, thêm sinh viên hoặc sửa sinh viên.
+        // Đưa form về trạng thái xem, thêm mới hoặc sửa sinh viên.
         private void SetNormalState()
         {
             isAdding = false;

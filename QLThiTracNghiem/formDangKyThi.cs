@@ -73,7 +73,7 @@ namespace QLThiTracNghiem
                 e.Handled = true;
         }
 
-        // Gom trạng thái form: xem dữ liệu, thêm lịch mới hoặc sửa lịch đang chọn.
+        // Đưa form về trạng thái xem, thêm mới hoặc sửa lịch thi.
         private void SetNormalState()
         {
             isAdding = false;
@@ -273,13 +273,13 @@ namespace QLThiTracNghiem
                 txtMaGV.Text = Program.mUserName;
                 ThietLapGioiHanNhap();
 
-                // Load lớp cho ComboBox.
+                // Tải lớp cho ComboBox.
                 DataTable dtLop = DBHelper.ExecuteDataTable("SP_GET_LOP");
                 cmbLop.DataSource = dtLop;
                 cmbLop.DisplayMember = "TENLOP";
                 cmbLop.ValueMember = "MALOP";
 
-                // Load môn học cho ComboBox.
+                // Tải môn học cho ComboBox.
                 DataTable dtMon = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
                 cmbMonHoc.DataSource = dtMon;
                 cmbMonHoc.DisplayMember = "TENMH";
