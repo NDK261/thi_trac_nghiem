@@ -17,27 +17,51 @@ namespace QLThiTracNghiem
             InitializeComponent();
         }
 
+        private void LoadGiaoVienChuaCoTaiKhoan()
+        {
+            try
+            {
+                System.Data.DataTable dtGV = DBHelper.GetDataTable("EXEC dbo.SP_GET_GIAOVIEN_CHUA_CO_TAIKHOAN");
+                cmbGiaoVien.DataSource = dtGV;
+                cmbGiaoVien.DisplayMember = "HOTEN";
+                cmbGiaoVien.ValueMember = "MAGV";
+
+                if (dtGV.Rows.Count == 0)
+                {
+                    txtMaGV.Clear();
+                    cmbGiaoVien.Enabled = false;
+                    btnTaoTaiKhoan.Enabled = false;
+                    MessageBox.Show("Tất cả giáo viên hiện có đã được cấp tài khoản.", "Thông báo");
+                }
+                else
+                {
+                    cmbGiaoVien.Enabled = true;
+                    btnTaoTaiKhoan.Enabled = true;
+                    cmbGiaoVien.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách giáo viên chưa có tài khoản: " + ex.Message);
+            }
+        }
+
         private void formTaoTaiKhoan_Load(object sender, EventArgs e)
         {
             try
             {
-                // 1. Đổ dữ liệu vào ComboBox Giáo viên
-                System.Data.DataTable dtGV = DBHelper.GetDataTable("EXEC SP_GET_GIAOVIEN");
-                cmbGiaoVien.DataSource = dtGV;
-                cmbGiaoVien.DisplayMember = "HOTEN"; // Chữ hiện lên màn hình
-                cmbGiaoVien.ValueMember = "MAGV";    // Cái mã ngầm ẩn bên dưới để xài
-
-                // 2. Add cứng 2 Nhóm quyền vào ComboBox Nhóm Quyền
                 cmbNhomQuyen.Items.Add("PGV");
                 cmbNhomQuyen.Items.Add("GIANGVIEN");
-                cmbNhomQuyen.SelectedIndex = 1; // Mặc định chọn GIANGVIEN
+                cmbNhomQuyen.SelectedIndex = 1;
+
+                LoadGiaoVienChuaCoTaiKhoan();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải danh sách: " + ex.Message);
+                MessageBox.Show("Lỗi tải form tạo tài khoản: " + ex.Message);
             }
         }
-        // 3. Code sự kiện khi chọn 1 Tên Giáo viên thì Mã GV tự động nhảy vào txtMaGV
+
         private void cmbGiaoVien_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbGiaoVien.SelectedValue != null && cmbGiaoVien.SelectedValue is string)
@@ -106,9 +130,9 @@ namespace QLThiTracNghiem
                             case 0:
                                 MessageBox.Show("Tạo tài khoản thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                                // Reset lại ô nhập liệu cho lần tạo tiếp theo
                                 txtTaiKhoan.Text = "";
                                 txtMatKhau.Text = "";
+                                LoadGiaoVienChuaCoTaiKhoan();
                                 break;
 
                             case 1:

@@ -15,9 +15,16 @@ namespace QLThiTracNghiem
     {
         bool isAdding = false; // Cờ này cho biết nút Ghi đang thêm mới hay sửa sinh viên.
         DataTable dtSinhVienGoc; // Giữ danh sách sinh viên gốc để tìm kiếm ngay trên form.
+        private readonly string maLopDuocTruyen;
+
         public formLopSinhVien()
         {
             InitializeComponent();
+        }
+
+        public formLopSinhVien(string maLop) : this()
+        {
+            maLopDuocTruyen = (maLop ?? "").Trim();
         }
 
         private void ThietLapGioiHanNhap()
@@ -41,20 +48,23 @@ namespace QLThiTracNghiem
             isAdding = false;
             SetInputState(false);
 
+            bool viewingInactive = chkHienThiNgungHoatDong.Checked;
             cmbLop.Enabled = true;
             dgvSinhVien.Enabled = true;
             txtTimKiem.Enabled = true;
             cmbTimKiem.Enabled = true;
             btnTimKiem.Enabled = true;
             btnLamMoiTimKiem.Enabled = true;
+            chkHienThiNgungHoatDong.Enabled = true;
 
             btnGhi.Enabled = false;
             btnPhucHoi.Enabled = false;
-            btnThem.Enabled = true;
+            btnThem.Enabled = !viewingInactive;
 
             bool hasCurrentRow = dgvSinhVien.CurrentRow != null && !dgvSinhVien.CurrentRow.IsNewRow;
-            btnSua.Enabled = hasCurrentRow;
-            btnXoa.Enabled = hasCurrentRow;
+            btnSua.Enabled = hasCurrentRow && !viewingInactive;
+            btnXoa.Enabled = hasCurrentRow && !viewingInactive;
+            btnKhoiPhucSinhVien.Enabled = hasCurrentRow && viewingInactive;
             btnThoat.Enabled = true;
         }
 
@@ -70,6 +80,7 @@ namespace QLThiTracNghiem
             cmbTimKiem.Enabled = false;
             btnTimKiem.Enabled = false;
             btnLamMoiTimKiem.Enabled = false;
+            chkHienThiNgungHoatDong.Enabled = false;
 
             // MASV chỉ nhập khi thêm; khi sửa dùng để tìm dòng UPDATE.
             txtMaSV.Enabled = adding;
@@ -79,6 +90,7 @@ namespace QLThiTracNghiem
             btnThem.Enabled = false;
             btnSua.Enabled = false;
             btnXoa.Enabled = false;
+            btnKhoiPhucSinhVien.Enabled = false;
             btnThoat.Enabled = true;
         }
 
@@ -137,6 +149,12 @@ namespace QLThiTracNghiem
                 cmbLop.ValueMember = "MALOP";    // Truy vấn bằng mã lớp.
 
                 // Vừa mở form thì chỉ xem dữ liệu.
+                if (!string.IsNullOrWhiteSpace(maLopDuocTruyen))
+                {
+                    cmbLop.SelectedValue = maLopDuocTruyen;
+                    this.Text = "Sinh viên lớp " + maLopDuocTruyen;
+                }
+
                 SetNormalState();
             }
             catch (Exception ex)
@@ -160,8 +178,12 @@ namespace QLThiTracNghiem
             try
             {
                 // Dùng SqlParameter thay vì ghép chuỗi SQL.
+                string procedureName = chkHienThiNgungHoatDong.Checked
+                    ? "SP_GET_SINHVIEN_NGUNG_HOATDONG_THEO_LOP"
+                    : "SP_GET_SINHVIEN_THEO_LOP";
+
                 DataTable dtSV = DBHelper.ExecuteDataTable(
-                    "SP_GET_SINHVIEN_THEO_LOP",
+                    procedureName,
                     new SqlParameter("@MALOP", maLop));
 
                 dtSinhVienGoc = dtSV;
@@ -184,6 +206,7 @@ namespace QLThiTracNghiem
                 dgvSinhVien.AllowUserToDeleteRows = false;
                 dgvSinhVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 dgvSinhVien.MultiSelect = false;
+                ApplyGridFormat();
 
                 LoadCurrentRowToInput();
                 SetNormalState();
@@ -221,6 +244,27 @@ namespace QLThiTracNghiem
                 .ToLower();
         }
 
+        private bool IsValidCode(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.All(c => (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
+        }
+
+        private bool IsValidPersonName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+
+            foreach (char c in value)
+            {
+                if (char.IsLetter(c) || char.IsWhiteSpace(c))
+                    continue;
+
+                return false;
+            }
+
+            return true;
+        }
+
         private void txtTimKiem_TextChanged(object sender, EventArgs e)
         {
             LocSinhVienTheoTuKhoa();
@@ -236,6 +280,7 @@ namespace QLThiTracNghiem
             if (keyword == "")
             {
                 dgvSinhVien.DataSource = dtSinhVienGoc;
+                ApplyGridFormat();
                 LoadCurrentRowToInput();
                 SetNormalState();
                 return;
@@ -274,8 +319,69 @@ namespace QLThiTracNghiem
             }
 
             dgvSinhVien.DataSource = dtLoc;
+            ApplyGridFormat();
             LoadCurrentRowToInput();
             SetNormalState();
+        }
+
+        private void ApplyGridFormat()
+        {
+            dgvSinhVien.ReadOnly = true;
+            dgvSinhVien.AllowUserToAddRows = false;
+            dgvSinhVien.AllowUserToDeleteRows = false;
+            dgvSinhVien.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvSinhVien.MultiSelect = false;
+            dgvSinhVien.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvSinhVien.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells;
+            dgvSinhVien.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvSinhVien.DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopLeft;
+            dgvSinhVien.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvSinhVien.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvSinhVien.RowTemplate.Height = 40;
+            dgvSinhVien.BackgroundColor = Color.White;
+
+            DatHeader("MASV", "Mã SV");
+            DatHeader("HO", "Họ");
+            DatHeader("TEN", "Tên");
+            DatHeader("NGAYSINH", "Ngày sinh");
+            DatHeader("DIACHI", "Địa chỉ");
+
+            if (dgvSinhVien.Columns.Contains("MALOP"))
+                dgvSinhVien.Columns["MALOP"].Visible = false;
+
+            DatTyLeCot("MASV", 90, 80);
+            DatTyLeCot("HO", 180, 130);
+            DatTyLeCot("TEN", 90, 80);
+            DatTyLeCot("NGAYSINH", 115, 105);
+            DatTyLeCot("DIACHI", 340, 220);
+
+            CanGiuaCot("MASV");
+            CanGiuaCot("TEN");
+            CanGiuaCot("NGAYSINH");
+
+            if (dgvSinhVien.Columns.Contains("NGAYSINH"))
+                dgvSinhVien.Columns["NGAYSINH"].DefaultCellStyle.Format = "dd/MM/yyyy";
+        }
+
+        private void DatHeader(string columnName, string header)
+        {
+            if (dgvSinhVien.Columns.Contains(columnName))
+                dgvSinhVien.Columns[columnName].HeaderText = header;
+        }
+
+        private void DatTyLeCot(string columnName, float fillWeight, int minimumWidth)
+        {
+            if (!dgvSinhVien.Columns.Contains(columnName)) return;
+
+            DataGridViewColumn column = dgvSinhVien.Columns[columnName];
+            column.FillWeight = fillWeight;
+            column.MinimumWidth = minimumWidth;
+        }
+
+        private void CanGiuaCot(string columnName)
+        {
+            if (dgvSinhVien.Columns.Contains(columnName))
+                dgvSinhVien.Columns[columnName].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
         }
 
         private void btnTimKiem_Click(object sender, EventArgs e)
@@ -294,6 +400,12 @@ namespace QLThiTracNghiem
         private void cmbTimKiem_SelectedIndexChanged(object sender, EventArgs e)
         {
             LocSinhVienTheoTuKhoa();
+        }
+
+        private void chkHienThiNgungHoatDong_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cmbLop.SelectedValue != null)
+                LoadSinhVien(cmbLop.SelectedValue.ToString());
         }
 
         private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -315,26 +427,43 @@ namespace QLThiTracNghiem
         private void btnXoa_Click(object sender, EventArgs e)
         {
             if (txtMaSV.Text == "") return;
+            if (chkHienThiNgungHoatDong.Checked)
+            {
+                MessageBox.Show("Sinh viên đang ngưng hoạt động. Hãy dùng chức năng Khôi phục SV nếu muốn mở lại.", "Thông báo");
+                return;
+            }
 
-            string thongBaoXoa =
-                "Bạn có chắc muốn xóa sinh viên này?\n\n" +
-                $"Mã SV: {txtMaSV.Text.Trim()}\n" +
-                $"Họ tên: {txtHo.Text.Trim()} {txtTen.Text.Trim()}";
+            bool coDuLieuLienQuan = SinhVienCoDuLieuLienQuan(txtMaSV.Text.Trim(), out int soBangDiem, out int soBaiThiTam);
+            string thongBaoXoa = coDuLieuLienQuan
+                ? "Sinh viên này đã có dữ liệu liên quan:\n" +
+                  $"- Số bảng điểm: {soBangDiem}\n" +
+                  $"- Số bài thi tạm: {soBaiThiTam}\n\n" +
+                  "Hệ thống sẽ ngưng hoạt động sinh viên thay vì xóa hẳn. Sinh viên này sẽ không đăng nhập/thi được nữa. Bạn có chắc muốn tiếp tục?"
+                : "Sinh viên này chưa có dữ liệu thi liên quan.\n\n" +
+                  $"Mã SV: {txtMaSV.Text.Trim()}\n" +
+                  $"Họ tên: {txtHo.Text.Trim()} {txtTen.Text.Trim()}\n\n" +
+                  "Hệ thống sẽ xóa hẳn sinh viên khỏi database. Bạn có chắc muốn xóa?";
 
             if (MessageBox.Show(thongBaoXoa, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    // SP trả 1 nếu sinh viên đã có điểm nên không được xóa.
                     int result = DBHelper.ExecuteNonQueryWithReturn(
                         "SP_XOA_SINHVIEN",
                         new SqlParameter("@MASV", txtMaSV.Text.Trim()));
 
                     if (result == 1)
-                        MessageBox.Show("Không thể xóa vì sinh viên này đã có điểm thi!", "Báo lỗi");
+                    {
+                        MessageBox.Show("Không thể xóa sinh viên này!", "Báo lỗi");
+                    }
+                    else if (result == 2)
+                    {
+                        MessageBox.Show("Sinh viên đã có dữ liệu liên quan nên hệ thống đã ngưng hoạt động sinh viên.", "Thông báo");
+                        LoadSinhVien(cmbLop.SelectedValue.ToString());
+                    }
                     else
                     {
-                        MessageBox.Show("Xóa thành công!", "Thông báo");
+                        MessageBox.Show("Xóa hẳn sinh viên thành công!", "Thông báo");
                         LoadSinhVien(cmbLop.SelectedValue.ToString());
                     }
                 }
@@ -343,6 +472,35 @@ namespace QLThiTracNghiem
                     MessageBox.Show("Lỗi: " + ex.Message, "Báo lỗi");
                 }
             }
+        }
+
+        private bool SinhVienCoDuLieuLienQuan(string maSV, out int soBangDiem, out int soBaiThiTam)
+        {
+            soBangDiem = 0;
+            soBaiThiTam = 0;
+
+            using (SqlConnection conn = DBHelper.GetConnection())
+            {
+                conn.Open();
+                using (SqlCommand cmd = new SqlCommand(@"
+                    SELECT
+                        SoBangDiem = (SELECT COUNT(*) FROM dbo.BANGDIEM WHERE RTRIM(MASV) = RTRIM(@MASV)),
+                        SoBaiThiTam = (SELECT COUNT(*) FROM dbo.BAITHI_TAM WHERE RTRIM(MASV) = RTRIM(@MASV));", conn))
+                {
+                    cmd.Parameters.AddWithValue("@MASV", maSV);
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            soBangDiem = Convert.ToInt32(reader["SoBangDiem"]);
+                            soBaiThiTam = Convert.ToInt32(reader["SoBaiThiTam"]);
+                        }
+                    }
+                }
+            }
+
+            return soBangDiem > 0 || soBaiThiTam > 0;
         }
 
         private void btnSua_Click(object sender, EventArgs e)
@@ -377,6 +535,13 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            if (!IsValidCode(maSV))
+            {
+                MessageBox.Show("Mã sinh viên chỉ được gồm chữ cái A-Z và chữ số 0-9!", "Báo lỗi");
+                txtMaSV.Focus();
+                return;
+            }
+
             if (ho.Length > 40)
             {
                 MessageBox.Show("Họ sinh viên tối đa 40 ký tự!", "Báo lỗi");
@@ -384,9 +549,23 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            if (!IsValidPersonName(ho))
+            {
+                MessageBox.Show("Họ sinh viên chỉ được nhập chữ và khoảng trắng!", "Báo lỗi");
+                txtHo.Focus();
+                return;
+            }
+
             if (ten.Length > 10)
             {
                 MessageBox.Show("Tên sinh viên tối đa 10 ký tự!", "Báo lỗi");
+                txtTen.Focus();
+                return;
+            }
+
+            if (!IsValidPersonName(ten))
+            {
+                MessageBox.Show("Tên sinh viên chỉ được nhập chữ và khoảng trắng!", "Báo lỗi");
                 txtTen.Focus();
                 return;
             }
@@ -457,6 +636,50 @@ namespace QLThiTracNghiem
                 LoadSinhVien(cmbLop.SelectedValue.ToString());
 
             SetNormalState();
+        }
+
+        private void btnKhoiPhucSinhVien_Click(object sender, EventArgs e)
+        {
+            if (!chkHienThiNgungHoatDong.Checked)
+            {
+                MessageBox.Show("Hãy bật 'Hiển thị SV ngưng hoạt động' trước khi khôi phục.", "Thông báo");
+                return;
+            }
+
+            if (txtMaSV.Text.Trim() == "")
+            {
+                MessageBox.Show("Vui lòng chọn sinh viên cần khôi phục!", "Thông báo");
+                return;
+            }
+
+            DialogResult dr = MessageBox.Show(
+                $"Bạn có chắc muốn khôi phục sinh viên {txtMaSV.Text.Trim()}?",
+                "Xác nhận",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (dr != DialogResult.Yes) return;
+
+            try
+            {
+                int result = DBHelper.ExecuteNonQueryWithReturn(
+                    "SP_KHOIPHUC_SINHVIEN",
+                    new SqlParameter("@MASV", txtMaSV.Text.Trim()));
+
+                if (result == 0)
+                {
+                    MessageBox.Show("Khôi phục sinh viên thành công!", "Thông báo");
+                    LoadSinhVien(cmbLop.SelectedValue.ToString());
+                }
+                else
+                {
+                    MessageBox.Show("Không thể khôi phục sinh viên này!", "Báo lỗi");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message, "Báo lỗi");
+            }
         }
 
         private void btnThoat_Click(object sender, EventArgs e)

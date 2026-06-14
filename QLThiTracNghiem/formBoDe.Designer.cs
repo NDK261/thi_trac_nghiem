@@ -66,6 +66,7 @@
             // 
             // cmbTrinhDo
             // 
+            this.cmbTrinhDo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbTrinhDo.FormattingEnabled = true;
             this.cmbTrinhDo.Location = new System.Drawing.Point(628, 295);
             this.cmbTrinhDo.Name = "cmbTrinhDo";
@@ -74,6 +75,7 @@
             // 
             // cmbDapAn
             // 
+            this.cmbDapAn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbDapAn.FormattingEnabled = true;
             this.cmbDapAn.Location = new System.Drawing.Point(939, 365);
             this.cmbDapAn.Name = "cmbDapAn";
@@ -82,6 +84,7 @@
             // 
             // txtMaGV
             // 
+            this.txtMaGV.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtMaGV.Enabled = false;
             this.txtMaGV.Location = new System.Drawing.Point(649, 370);
             this.txtMaGV.Name = "txtMaGV";
@@ -91,6 +94,7 @@
             // 
             // txtCauHoi
             // 
+            this.txtCauHoi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtCauHoi.Location = new System.Drawing.Point(419, 295);
             this.txtCauHoi.Name = "txtCauHoi";
             this.txtCauHoi.Size = new System.Drawing.Size(100, 26);
@@ -98,17 +102,23 @@
             // 
             // txtNoiDung
             // 
+            this.txtNoiDung.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtNoiDung.Location = new System.Drawing.Point(939, 295);
             this.txtNoiDung.Multiline = true;
             this.txtNoiDung.Name = "txtNoiDung";
-            this.txtNoiDung.Size = new System.Drawing.Size(469, 26);
+            this.txtNoiDung.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtNoiDung.Size = new System.Drawing.Size(469, 58);
             this.txtNoiDung.TabIndex = 6;
             // 
             // txtB
             // 
+            this.txtB.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtB.Location = new System.Drawing.Point(694, 451);
+            this.txtB.Multiline = true;
             this.txtB.Name = "txtB";
-            this.txtB.Size = new System.Drawing.Size(187, 26);
+            this.txtB.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtB.Size = new System.Drawing.Size(187, 48);
             this.txtB.TabIndex = 7;
             // 
             // cmbMonHoc
@@ -122,6 +132,9 @@
             // 
             // dgvBoDe
             // 
+            this.dgvBoDe.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvBoDe.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvBoDe.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvBoDe.Location = new System.Drawing.Point(12, 72);
@@ -134,27 +147,37 @@
             // 
             // txtA
             // 
+            this.txtA.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtA.Location = new System.Drawing.Point(453, 451);
+            this.txtA.Multiline = true;
             this.txtA.Name = "txtA";
-            this.txtA.Size = new System.Drawing.Size(169, 26);
+            this.txtA.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtA.Size = new System.Drawing.Size(169, 48);
             this.txtA.TabIndex = 10;
             // 
             // txtD
             // 
+            this.txtD.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtD.Location = new System.Drawing.Point(1225, 451);
+            this.txtD.Multiline = true;
             this.txtD.Name = "txtD";
-            this.txtD.Size = new System.Drawing.Size(183, 26);
+            this.txtD.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtD.Size = new System.Drawing.Size(183, 48);
             this.txtD.TabIndex = 12;
             // 
             // txtC
             // 
+            this.txtC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtC.Location = new System.Drawing.Point(969, 451);
+            this.txtC.Multiline = true;
             this.txtC.Name = "txtC";
-            this.txtC.Size = new System.Drawing.Size(185, 26);
+            this.txtC.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtC.Size = new System.Drawing.Size(185, 48);
             this.txtC.TabIndex = 14;
             // 
             // btnThem
             // 
+            this.btnThem.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnThem.Location = new System.Drawing.Point(317, 550);
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(91, 40);
@@ -165,6 +188,7 @@
             // 
             // btnXoa
             // 
+            this.btnXoa.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnXoa.Location = new System.Drawing.Point(449, 550);
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(100, 40);
@@ -175,6 +199,7 @@
             // 
             // btnSua
             // 
+            this.btnSua.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnSua.Location = new System.Drawing.Point(594, 550);
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(94, 40);
@@ -185,6 +210,7 @@
             // 
             // btnGhi
             // 
+            this.btnGhi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnGhi.Location = new System.Drawing.Point(828, 550);
             this.btnGhi.Name = "btnGhi";
             this.btnGhi.Size = new System.Drawing.Size(98, 40);
@@ -195,6 +221,7 @@
             // 
             // btnPhucHoi
             // 
+            this.btnPhucHoi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnPhucHoi.Location = new System.Drawing.Point(960, 550);
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(109, 40);
@@ -205,6 +232,7 @@
             // 
             // btnThoat
             // 
+            this.btnThoat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnThoat.Location = new System.Drawing.Point(1111, 550);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(108, 40);
@@ -215,6 +243,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(344, 454);
             this.label1.Name = "label1";
@@ -224,6 +253,7 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(798, 298);
             this.label2.Name = "label2";
@@ -233,6 +263,7 @@
             // 
             // label3
             // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(548, 298);
             this.label3.Name = "label3";
@@ -242,6 +273,7 @@
             // 
             // label4
             // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(313, 298);
             this.label4.Name = "label4";
@@ -260,6 +292,7 @@
             // 
             // label6
             // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(824, 368);
             this.label6.Name = "label6";
@@ -269,6 +302,7 @@
             // 
             // label7
             // 
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(521, 373);
             this.label7.Name = "label7";
@@ -278,6 +312,7 @@
             // 
             // label10
             // 
+            this.label10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(935, 454);
             this.label10.Name = "label10";
@@ -287,6 +322,7 @@
             // 
             // label11
             // 
+            this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(1190, 454);
             this.label11.Name = "label11";
@@ -296,6 +332,7 @@
             // 
             // label8
             // 
+            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(419, 454);
             this.label8.Name = "label8";
@@ -305,6 +342,7 @@
             // 
             // label9
             // 
+            this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(660, 454);
             this.label9.Name = "label9";
@@ -363,6 +401,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1558, 652);
+            this.MinimumSize = new System.Drawing.Size(1574, 691);
             this.Controls.Add(this.cmbTimKiem);
             this.Controls.Add(this.btnLamMoiTimKiem);
             this.Controls.Add(this.btnTimKiem);

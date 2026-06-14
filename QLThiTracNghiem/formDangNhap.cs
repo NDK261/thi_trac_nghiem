@@ -41,12 +41,12 @@ namespace QLThiTracNghiem
                 // LẤY ĐÚNG TÊN TÀI KHOẢN TỪ Ô TEXTBOX
                 Program.mLogin = txtTenDangNhap.Text.Trim();
                 string pass = txtMatKhau.Text.Trim();
-                Program.connStr = $"Server={Program.serverName};Database={Program.dbName};User Id={Program.mLogin};Password={pass};TrustServerCertificate=True;";
+                Program.connStr = Program.BuildConnectionString(Program.mLogin, pass);
             }
             else // Sinh viên
             {
                 Program.mLogin = "sv";
-                Program.connStr = $"Server={Program.serverName};Database={Program.dbName};User Id=sv;Password=123;TrustServerCertificate=True;";
+                Program.connStr = Program.BuildConnectionString("sv", "123");
             }
 
             // 2. Kết nối CSDL và gọi SP

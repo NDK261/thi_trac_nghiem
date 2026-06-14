@@ -61,6 +61,9 @@
             //
             // dgvDangKy
             //
+            this.dgvDangKy.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvDangKy.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvDangKy.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvDangKy.Location = new System.Drawing.Point(12, 125);
@@ -82,6 +85,7 @@
             //
             // cmbTrinhDo
             //
+            this.cmbTrinhDo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbTrinhDo.FormattingEnabled = true;
             this.cmbTrinhDo.Location = new System.Drawing.Point(244, 301);
             this.cmbTrinhDo.Name = "cmbTrinhDo";
@@ -91,6 +95,7 @@
             //
             // cmbLanThi
             //
+            this.cmbLanThi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmbLanThi.FormattingEnabled = true;
             this.cmbLanThi.Location = new System.Drawing.Point(244, 351);
             this.cmbLanThi.Name = "cmbLanThi";
@@ -99,6 +104,7 @@
             //
             // dtpNgayThi
             //
+            this.dtpNgayThi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.dtpNgayThi.CustomFormat = "dd/MM/yyyy";
             this.dtpNgayThi.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtpNgayThi.Location = new System.Drawing.Point(244, 408);
@@ -108,6 +114,7 @@
             //
             // txtSoCauThi
             //
+            this.txtSoCauThi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtSoCauThi.Location = new System.Drawing.Point(690, 301);
             this.txtSoCauThi.Name = "txtSoCauThi";
             this.txtSoCauThi.Size = new System.Drawing.Size(100, 26);
@@ -115,6 +122,7 @@
             //
             // txtThoiGian
             //
+            this.txtThoiGian.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtThoiGian.Location = new System.Drawing.Point(690, 353);
             this.txtThoiGian.Name = "txtThoiGian";
             this.txtThoiGian.Size = new System.Drawing.Size(100, 26);
@@ -122,6 +130,7 @@
             //
             // txtMaGV
             //
+            this.txtMaGV.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.txtMaGV.Location = new System.Drawing.Point(690, 408);
             this.txtMaGV.Name = "txtMaGV";
             this.txtMaGV.ReadOnly = true;
@@ -148,6 +157,7 @@
             //
             // label3
             //
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(172, 304);
             this.label3.Name = "label3";
@@ -157,6 +167,7 @@
             //
             // label4
             //
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(172, 411);
             this.label4.Name = "label4";
@@ -166,6 +177,7 @@
             //
             // label5
             //
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(604, 304);
             this.label5.Name = "label5";
@@ -175,6 +187,7 @@
             //
             // label6
             //
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(564, 356);
             this.label6.Name = "label6";
@@ -184,6 +197,7 @@
             //
             // label7
             //
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(570, 411);
             this.label7.Name = "label7";
@@ -201,6 +215,7 @@
             //
             // label8
             //
+            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(181, 353);
             this.label8.Name = "label8";
@@ -210,6 +225,7 @@
             //
             // btnThem
             //
+            this.btnThem.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnThem.Location = new System.Drawing.Point(164, 480);
             this.btnThem.Name = "btnThem";
             this.btnThem.Size = new System.Drawing.Size(74, 37);
@@ -220,6 +236,7 @@
             //
             // btnSua
             //
+            this.btnSua.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnSua.Location = new System.Drawing.Point(270, 480);
             this.btnSua.Name = "btnSua";
             this.btnSua.Size = new System.Drawing.Size(75, 37);
@@ -230,6 +247,7 @@
             //
             // btnXoa
             //
+            this.btnXoa.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnXoa.Location = new System.Drawing.Point(381, 480);
             this.btnXoa.Name = "btnXoa";
             this.btnXoa.Size = new System.Drawing.Size(75, 37);
@@ -240,6 +258,7 @@
             //
             // btnGhi
             //
+            this.btnGhi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnGhi.Location = new System.Drawing.Point(546, 480);
             this.btnGhi.Name = "btnGhi";
             this.btnGhi.Size = new System.Drawing.Size(96, 37);
@@ -250,6 +269,7 @@
             //
             // btnPhucHoi
             //
+            this.btnPhucHoi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnPhucHoi.Location = new System.Drawing.Point(672, 480);
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(92, 37);
@@ -260,6 +280,7 @@
             //
             // btnThoat
             //
+            this.btnThoat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnThoat.Location = new System.Drawing.Point(798, 480);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(75, 37);

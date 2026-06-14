@@ -6,20 +6,11 @@ namespace QLThiTracNghiem
 {
     internal class DBHelper
     {
-        /// <summary>
-        /// Tạo kết nối SQL Server từ chuỗi kết nối đang lưu trong Program.connStr.
-        /// </summary>
         public static SqlConnection GetConnection()
         {
-            if (string.IsNullOrWhiteSpace(Program.connStr))
-                throw new Exception("Chưa có chuỗi kết nối đăng nhập.");
-
-            return new SqlConnection(Program.connStr);
+            return new SqlConnection(Program.GetActiveConnectionString());
         }
 
-        /// <summary>
-        /// Mở thử kết nối để biết tài khoản hiện tại có vào được database hay không.
-        /// </summary>
         public static bool TestConnection(out string message)
         {
             try
@@ -27,20 +18,17 @@ namespace QLThiTracNghiem
                 using (SqlConnection conn = GetConnection())
                 {
                     conn.Open();
-                    message = "Kết nối thành công tới SQL Server!";
+                    message = $"Ket noi thanh cong toi {Program.serverName} / {Program.dbName}.";
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                message = "Kết nối thất bại: " + ex.Message;
+                message = "Ket noi that bai: " + ex.Message;
                 return false;
             }
         }
 
-        /// <summary>
-        /// Chạy một câu SELECT/EXEC đơn giản và trả kết quả về DataTable.
-        /// </summary>
         public static DataTable GetDataTable(string sql)
         {
             using (SqlConnection conn = GetConnection())
@@ -52,9 +40,6 @@ namespace QLThiTracNghiem
             }
         }
 
-        /// <summary>
-        /// Gọi stored procedure dạng INSERT/UPDATE/DELETE và trả về số dòng bị ảnh hưởng.
-        /// </summary>
         public static int ExecuteNonQuery(string procedureName, params SqlParameter[] parameters)
         {
             try
@@ -77,13 +62,10 @@ namespace QLThiTracNghiem
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi thực thi: " + procedureName + "\nChi tiết: " + ex.Message);
+                throw new Exception("Loi thuc thi: " + procedureName + "\nChi tiet: " + ex.Message);
             }
         }
 
-        /// <summary>
-        /// Gọi stored procedure có RETURN code để form biết thành công hay lỗi nghiệp vụ.
-        /// </summary>
         public static int ExecuteNonQueryWithReturn(string procedureName, params SqlParameter[] parameters)
         {
             try
@@ -100,25 +82,26 @@ namespace QLThiTracNghiem
                             cmd.Parameters.AddRange(parameters);
                         }
 
-                        // Thêm tham số đặc biệt để nhận RETURN code từ stored procedure.
-                        SqlParameter returnValue = new SqlParameter();
-                        returnValue.Direction = ParameterDirection.ReturnValue;
+                        SqlParameter returnValue = new SqlParameter
+                        {
+                            Direction = ParameterDirection.ReturnValue
+                        };
                         cmd.Parameters.Add(returnValue);
 
                         cmd.ExecuteNonQuery();
 
-                        // Nếu SP có trả mã thì đổi về int, còn không thì xem như thành công.
                         if (returnValue.Value != null && returnValue.Value != DBNull.Value)
                         {
                             return Convert.ToInt32(returnValue.Value);
                         }
+
                         return 0;
                     }
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi thực thi: " + procedureName + "\nChi tiết: " + ex.Message);
+                throw new Exception("Loi thuc thi: " + procedureName + "\nChi tiet: " + ex.Message);
             }
         }
 
@@ -183,46 +166,38 @@ namespace QLThiTracNghiem
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi truy vấn: " + procedureName + "\nChi tiết: " + ex.Message);
+                throw new Exception("Loi truy van: " + procedureName + "\nChi tiet: " + ex.Message);
             }
         }
 
-        /// <summary>
-        /// Gọi stored procedure có trả bảng dữ liệu.
-        /// </summary>
         public static DataTable ExecuteDataTable(string procedureName, params SqlParameter[] parameters)
         {
             try
             {
                 using (SqlConnection conn = GetConnection())
+                using (SqlCommand cmd = new SqlCommand(procedureName, conn))
                 {
-                    using (SqlCommand cmd = new SqlCommand(procedureName, conn))
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    if (parameters != null && parameters.Length > 0)
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddRange(parameters);
+                    }
 
-                        if (parameters != null && parameters.Length > 0)
-                        {
-                            cmd.Parameters.AddRange(parameters);
-                        }
-
-                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
-                        {
-                            DataTable dt = new DataTable();
-                            da.Fill(dt);
-                            return dt;
-                        }
+                    using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                    {
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        return dt;
                     }
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi lấy dữ liệu: " + procedureName + "\nChi tiết: " + ex.Message);
+                throw new Exception("Loi lay du lieu: " + procedureName + "\nChi tiet: " + ex.Message);
             }
         }
 
-        /// <summary>
-        /// Chạy trực tiếp một câu SQL dạng INSERT/UPDATE/DELETE khi phần đó không dùng SP.
-        /// </summary>
         public static int ExecuteNonQueryDirect(string sql)
         {
             try
@@ -239,7 +214,7 @@ namespace QLThiTracNghiem
             }
             catch (Exception ex)
             {
-                throw new Exception("Lỗi thực thi SQL:\n" + sql + "\nChi tiết: " + ex.Message);
+                throw new Exception("Loi thuc thi SQL:\n" + sql + "\nChi tiet: " + ex.Message);
             }
         }
     }

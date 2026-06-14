@@ -1,0 +1,116 @@
+USE [THITRACNGHIEM]
+GO
+
+-- Lay danh sach lop de hien tren ComboBox.
+CREATE OR ALTER PROCEDURE [dbo].[SP_GET_LOP]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT MALOP, TENLOP
+    FROM LOP
+    ORDER BY TENLOP;
+END
+GO
+
+-- Lay sinh vien cua lop dang chon tren form.
+CREATE OR ALTER PROCEDURE [dbo].[SP_GET_SINHVIEN_THEO_LOP]
+    @MALOP NCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT MASV, HO, TEN, NGAYSINH, DIACHI, MALOP
+    FROM SINHVIEN
+    WHERE MALOP = @MALOP
+    ORDER BY TEN, HO, MASV;
+END
+GO
+
+-- Them sinh vien moi, can kiem tra trung ma va lop co ton tai.
+CREATE OR ALTER PROCEDURE [dbo].[SP_THEM_SINHVIEN]
+    @MASV NCHAR(8),
+    @HO NVARCHAR(40),
+    @TEN NVARCHAR(10),
+    @NGAYSINH DATE,
+    @DIACHI NVARCHAR(100),
+    @MALOP NCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Cat khoang trang thua de tranh loi khi so sanh ma va ten.
+    SET @MASV = LTRIM(RTRIM(@MASV));
+    SET @HO = LTRIM(RTRIM(@HO));
+    SET @TEN = LTRIM(RTRIM(@TEN));
+    SET @DIACHI = LTRIM(RTRIM(@DIACHI));
+
+    IF EXISTS (SELECT 1 FROM SINHVIEN WHERE MASV = @MASV)
+        RETURN 1;
+
+    IF NOT EXISTS (SELECT 1 FROM LOP WHERE MALOP = @MALOP)
+        RETURN 2;
+
+    INSERT INTO SINHVIEN (MASV, HO, TEN, NGAYSINH, DIACHI, MALOP)
+    VALUES (@MASV, @HO, @TEN, @NGAYSINH, @DIACHI, @MALOP);
+
+    RETURN 0;
+END
+GO
+
+-- Sua thong tin sinh vien theo MASV.
+CREATE OR ALTER PROCEDURE [dbo].[SP_SUA_SINHVIEN]
+    @MASV NCHAR(8),
+    @HO NVARCHAR(40),
+    @TEN NVARCHAR(10),
+    @NGAYSINH DATE,
+    @DIACHI NVARCHAR(100),
+    @MALOP NCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @MASV = LTRIM(RTRIM(@MASV));
+    SET @HO = LTRIM(RTRIM(@HO));
+    SET @TEN = LTRIM(RTRIM(@TEN));
+    SET @DIACHI = LTRIM(RTRIM(@DIACHI));
+
+    IF NOT EXISTS (SELECT 1 FROM SINHVIEN WHERE MASV = @MASV)
+        RETURN 2;
+
+    IF NOT EXISTS (SELECT 1 FROM LOP WHERE MALOP = @MALOP)
+        RETURN 2;
+
+    UPDATE SINHVIEN
+    SET HO = @HO,
+        TEN = @TEN,
+        NGAYSINH = @NGAYSINH,
+        DIACHI = @DIACHI,
+        MALOP = @MALOP
+    WHERE MASV = @MASV;
+
+    RETURN 0;
+END
+GO
+
+-- Sinh vien da co diem thi khong xoa de giu lich su ket qua.
+CREATE OR ALTER PROCEDURE [dbo].[SP_XOA_SINHVIEN]
+    @MASV NCHAR(8)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @MASV = LTRIM(RTRIM(@MASV));
+
+    IF EXISTS (SELECT 1 FROM BANGDIEM WHERE MASV = @MASV)
+        RETURN 1;
+
+    DELETE FROM SINHVIEN
+    WHERE MASV = @MASV;
+
+    IF @@ROWCOUNT = 0
+        RETURN 2;
+
+    RETURN 0;
+END
+GO

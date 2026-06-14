@@ -52,12 +52,12 @@ namespace QLThiTracNghiem
             this.cmbKyThi.FormattingEnabled = true;
             this.cmbKyThi.Location = new System.Drawing.Point(107, 17);
             this.cmbKyThi.Name = "cmbKyThi";
-            this.cmbKyThi.Size = new System.Drawing.Size(223, 24);
+            this.cmbKyThi.Size = new System.Drawing.Size(300, 24);
             this.cmbKyThi.TabIndex = 1;
             // 
             // btnXem
             // 
-            this.btnXem.Location = new System.Drawing.Point(356, 17);
+            this.btnXem.Location = new System.Drawing.Point(426, 17);
             this.btnXem.Name = "btnXem";
             this.btnXem.Size = new System.Drawing.Size(89, 30);
             this.btnXem.TabIndex = 2;
@@ -167,7 +167,7 @@ namespace QLThiTracNghiem
             // lblLanThiValue
             // 
             this.lblLanThiValue.AutoSize = true;
-            this.lblLanThiValue.Location = new System.Drawing.Point(391, 136);
+            this.lblLanThiValue.Location = new System.Drawing.Point(391, 120);
             this.lblLanThiValue.Name = "lblLanThiValue";
             this.lblLanThiValue.Size = new System.Drawing.Size(19, 16);
             this.lblLanThiValue.TabIndex = 14;
@@ -193,17 +193,22 @@ namespace QLThiTracNghiem
             // 
             // dgvKetQua
             // 
+            this.dgvKetQua.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvKetQua.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvKetQua.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvKetQua.Location = new System.Drawing.Point(18, 180);
             this.dgvKetQua.Name = "dgvKetQua";
             this.dgvKetQua.ReadOnly = true;
             this.dgvKetQua.RowHeadersWidth = 62;
-            this.dgvKetQua.Size = new System.Drawing.Size(480, 240);
+            this.dgvKetQua.Size = new System.Drawing.Size(772, 340);
             this.dgvKetQua.TabIndex = 17;
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(431, 430);
+            this.btnThoat.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnThoat.Location = new System.Drawing.Point(723, 530);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(67, 30);
             this.btnThoat.TabIndex = 18;
@@ -216,6 +221,7 @@ namespace QLThiTracNghiem
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(808, 574);
+            this.MinimumSize = new System.Drawing.Size(824, 613);
             this.Controls.Add(this.btnThoat);
             this.Controls.Add(this.dgvKetQua);
             this.Controls.Add(this.lblTrinhDoValue);

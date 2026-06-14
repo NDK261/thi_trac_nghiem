@@ -24,6 +24,7 @@ namespace QLThiTracNghiem
             this.cmbLanThi = new System.Windows.Forms.ComboBox();
             this.dgvBangDiem = new System.Windows.Forms.DataGridView();
             this.btnXem = new System.Windows.Forms.Button();
+            this.btnXemBaiThi = new System.Windows.Forms.Button();
             this.btnIn = new System.Windows.Forms.Button();
             this.btnThoat = new System.Windows.Forms.Button();
             this.lblThongTin = new System.Windows.Forms.Label();
@@ -90,9 +91,13 @@ namespace QLThiTracNghiem
             this.cmbLanThi.Name = "cmbLanThi";
             this.cmbLanThi.Size = new System.Drawing.Size(300, 24);
             this.cmbLanThi.TabIndex = 6;
-            // 
+            //
             // dgvBangDiem
-            // 
+            //
+            this.dgvBangDiem.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvBangDiem.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvBangDiem.Location = new System.Drawing.Point(12, 175);
             this.dgvBangDiem.Name = "dgvBangDiem";
             this.dgvBangDiem.RowHeadersWidth = 51;
@@ -108,10 +113,20 @@ namespace QLThiTracNghiem
             this.btnXem.Text = "Xem";
             this.btnXem.UseVisualStyleBackColor = true;
             this.btnXem.Click += new System.EventHandler(this.btnXem_Click);
-            // 
+            //
+            // btnXemBaiThi
+            //
+            this.btnXemBaiThi.Location = new System.Drawing.Point(576, 70);
+            this.btnXemBaiThi.Name = "btnXemBaiThi";
+            this.btnXemBaiThi.Size = new System.Drawing.Size(120, 40);
+            this.btnXemBaiThi.TabIndex = 12;
+            this.btnXemBaiThi.Text = "Xem bài thi";
+            this.btnXemBaiThi.UseVisualStyleBackColor = true;
+            this.btnXemBaiThi.Click += new System.EventHandler(this.btnXemBaiThi_Click);
+            //
             // btnIn
-            // 
-            this.btnIn.Location = new System.Drawing.Point(576, 70);
+            //
+            this.btnIn.Location = new System.Drawing.Point(704, 70);
             this.btnIn.Name = "btnIn";
             this.btnIn.Size = new System.Drawing.Size(100, 40);
             this.btnIn.TabIndex = 9;
@@ -121,7 +136,7 @@ namespace QLThiTracNghiem
             // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(682, 70);
+            this.btnThoat.Location = new System.Drawing.Point(810, 70);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(100, 40);
             this.btnThoat.TabIndex = 10;
@@ -131,6 +146,7 @@ namespace QLThiTracNghiem
             // 
             // lblThongTin
             // 
+            this.lblThongTin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblThongTin.AutoSize = true;
             this.lblThongTin.Location = new System.Drawing.Point(12, 538);
             this.lblThongTin.Name = "lblThongTin";
@@ -145,6 +161,7 @@ namespace QLThiTracNghiem
             this.Controls.Add(this.lblThongTin);
             this.Controls.Add(this.btnThoat);
             this.Controls.Add(this.btnIn);
+            this.Controls.Add(this.btnXemBaiThi);
             this.Controls.Add(this.btnXem);
             this.Controls.Add(this.dgvBangDiem);
             this.Controls.Add(this.cmbLanThi);
@@ -171,6 +188,7 @@ namespace QLThiTracNghiem
         private System.Windows.Forms.ComboBox cmbLanThi;
         private System.Windows.Forms.DataGridView dgvBangDiem;
         private System.Windows.Forms.Button btnXem;
+        private System.Windows.Forms.Button btnXemBaiThi;
         private System.Windows.Forms.Button btnIn;
         private System.Windows.Forms.Button btnThoat;
         private System.Windows.Forms.Label lblThongTin;

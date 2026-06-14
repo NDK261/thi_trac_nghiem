@@ -1,0 +1,99 @@
+USE [THITRACNGHIEM];
+GO
+
+IF OBJECT_ID(N'dbo.FN_DIEM_CHU', N'FN') IS NOT NULL
+    DROP FUNCTION dbo.FN_DIEM_CHU;
+GO
+
+CREATE FUNCTION dbo.FN_DIEM_CHU
+(
+    @DIEM FLOAT
+)
+RETURNS NVARCHAR(10)
+AS
+BEGIN
+    DECLARE @KQ NVARCHAR(10);
+
+    SET @KQ =
+        CASE
+            WHEN @DIEM IS NULL THEN N''
+            WHEN @DIEM < 0 OR @DIEM > 10 THEN N''
+            WHEN @DIEM >= 8.5 THEN N'A'
+            WHEN @DIEM >= 8.0 THEN N'B+'
+            WHEN @DIEM >= 7.0 THEN N'B'
+            WHEN @DIEM >= 6.5 THEN N'C+'
+            WHEN @DIEM >= 5.5 THEN N'C'
+            WHEN @DIEM >= 5.0 THEN N'D+'
+            WHEN @DIEM >= 4.0 THEN N'D'
+            ELSE N'F'
+        END;
+
+    RETURN @KQ;
+END
+GO
+
+IF OBJECT_ID(N'dbo.SP_GET_BANGDIEM', N'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_GET_BANGDIEM;
+GO
+
+CREATE PROCEDURE dbo.SP_GET_BANGDIEM
+    @MALOP NVARCHAR(50),
+    @MAMH NVARCHAR(50),
+    @LAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @MALOP_CHUAN NCHAR(15), @MAMH_CHUAN NCHAR(5);
+    SET @MALOP_CHUAN = UPPER(LEFT(LTRIM(RTRIM(ISNULL(@MALOP, N''))) + REPLICATE(N' ', 15), 15));
+    SET @MAMH_CHUAN = UPPER(LEFT(LTRIM(RTRIM(ISNULL(@MAMH, N''))) + REPLICATE(N' ', 5), 5));
+
+    IF @LAN NOT IN (1, 2)
+    BEGIN
+        SELECT TOP 0
+            STT = CAST(0 AS INT),
+            MASV = CAST(N'' AS NVARCHAR(8)),
+            HO = CAST(N'' AS NVARCHAR(40)),
+            TEN = CAST(N'' AS NVARCHAR(10)),
+            HOTEN = CAST(N'' AS NVARCHAR(60)),
+            DIEM = CAST(NULL AS DECIMAL(4,2)),
+            DIEMCHU = CAST(N'' AS NVARCHAR(10));
+        RETURN;
+    END
+
+    SELECT
+        STT = ROW_NUMBER() OVER (ORDER BY sv.TEN, sv.HO, sv.MASV),
+        MASV = RTRIM(sv.MASV),
+        HO = LTRIM(RTRIM(ISNULL(sv.HO, N''))),
+        TEN = LTRIM(RTRIM(ISNULL(sv.TEN, N''))),
+        HOTEN = LTRIM(RTRIM(ISNULL(sv.HO, N''))) + N' ' + LTRIM(RTRIM(ISNULL(sv.TEN, N''))),
+        DIEM = CAST(ROUND(bd.DIEM, 2) AS DECIMAL(4,2)),
+        DIEMCHU = dbo.FN_DIEM_CHU(bd.DIEM)
+    FROM dbo.SINHVIEN AS sv
+    LEFT JOIN dbo.BANGDIEM AS bd
+        ON bd.MASV = sv.MASV
+       AND bd.MAMH = @MAMH_CHUAN
+       AND bd.LAN = @LAN
+    WHERE RTRIM(sv.MALOP) = RTRIM(@MALOP_CHUAN)
+    ORDER BY sv.TEN, sv.HO, sv.MASV;
+END
+GO
+
+IF OBJECT_ID(N'dbo.SP_IN_BANGDIEM', N'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_IN_BANGDIEM;
+GO
+
+CREATE PROCEDURE dbo.SP_IN_BANGDIEM
+    @MALOP NVARCHAR(50),
+    @MAMH NVARCHAR(50),
+    @LAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    EXEC dbo.SP_GET_BANGDIEM
+        @MALOP = @MALOP,
+        @MAMH = @MAMH,
+        @LAN = @LAN;
+END
+GO

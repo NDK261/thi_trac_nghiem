@@ -1,0 +1,191 @@
+USE [THITRACNGHIEM]
+GO
+
+-- Cap nhat lai rang buoc thoi gian thi cho dung khoang 5 den 60 phut.
+IF OBJECT_ID(N'dbo.CK_THOIGIAN', N'C') IS NOT NULL
+    ALTER TABLE dbo.GIAOVIEN_DANGKY DROP CONSTRAINT CK_THOIGIAN;
+GO
+
+ALTER TABLE dbo.GIAOVIEN_DANGKY
+ADD CONSTRAINT CK_THOIGIAN CHECK (THOIGIAN >= 5 AND THOIGIAN <= 60);
+GO
+
+-- Lay danh sach lich thi de hien tren form Dang Ky Thi.
+CREATE OR ALTER PROCEDURE [dbo].[SP_GET_DANGKYTHI]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT MAGV, MAMH, MALOP, TRINHDO, NGAYTHI, LAN, SOCAUTHI, THOIGIAN
+    FROM GIAOVIEN_DANGKY
+    ORDER BY NGAYTHI DESC, MAMH, MALOP, LAN;
+END
+GO
+
+-- Kiem tra mot lich thi da co sinh vien cua lop do nop bai hay chua.
+-- Form Dang Ky Thi dung SP nay de khoa sua/xoa truoc khi goi SP cap nhat.
+CREATE OR ALTER PROCEDURE [dbo].[SP_KIEMTRA_DANGKY_DA_CO_SV_THI]
+    @MAMH NCHAR(5),
+    @MALOP NCHAR(15),
+    @LAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1
+        FROM BANGDIEM BD
+        INNER JOIN SINHVIEN SV ON BD.MASV = SV.MASV
+        WHERE BD.MAMH = @MAMH
+          AND SV.MALOP = @MALOP
+          AND BD.LAN = @LAN
+    )
+        SELECT 1 AS DaCoSinhVienThi;
+    ELSE
+        SELECT 0 AS DaCoSinhVienThi;
+END
+GO
+
+-- Them lich thi moi: kiem tra ngay thi, trung lich va kho cau hoi.
+CREATE OR ALTER PROCEDURE [dbo].[SP_THEM_DANGKYTHI]
+    @MAGV NCHAR(8),
+    @MAMH NCHAR(5),
+    @MALOP NCHAR(15),
+    @TRINHDO NCHAR(1),
+    @NGAYTHI DATETIME,
+    @LAN SMALLINT,
+    @SOCAUTHI SMALLINT,
+    @THOIGIAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @TRINHDO = UPPER(LTRIM(RTRIM(@TRINHDO)));
+
+    -- Ngay thi phai tu ngay mai tro di, lan thi chi nhan 1 hoac 2.
+    IF @TRINHDO NOT IN (N'A', N'B', N'C')
+       OR @LAN NOT IN (1, 2)
+       OR @SOCAUTHI < 10 OR @SOCAUTHI > 100
+       OR @THOIGIAN < 5 OR @THOIGIAN > 60
+       OR @NGAYTHI IS NULL
+       OR CAST(@NGAYTHI AS DATE) <= CAST(GETDATE() AS DATE)
+        RETURN 4;
+
+    IF EXISTS (
+        SELECT 1
+        FROM GIAOVIEN_DANGKY
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN
+    )
+        RETURN 1;
+
+    DECLARE @SoCauChinhCanCo INT = CEILING(@SOCAUTHI * 0.7);
+
+    DECLARE @SoCauA INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'A');
+    DECLARE @SoCauB INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'B');
+    DECLARE @SoCauC INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'C');
+
+    -- Dang ky thi chi duoc tao khi kho cau hoi du theo luat 70/30.
+    IF @TRINHDO = N'A' AND (@SoCauA < @SoCauChinhCanCo OR @SoCauA + @SoCauB < @SOCAUTHI)
+        RETURN 2;
+
+    IF @TRINHDO = N'B' AND (@SoCauB < @SoCauChinhCanCo OR @SoCauB + @SoCauC < @SOCAUTHI)
+        RETURN 2;
+
+    IF @TRINHDO = N'C' AND @SoCauC < @SOCAUTHI
+        RETURN 2;
+
+    INSERT INTO GIAOVIEN_DANGKY (MAGV, MAMH, MALOP, TRINHDO, NGAYTHI, LAN, SOCAUTHI, THOIGIAN)
+    VALUES (@MAGV, @MAMH, @MALOP, @TRINHDO, @NGAYTHI, @LAN, @SOCAUTHI, @THOIGIAN);
+
+    RETURN 0;
+END
+GO
+
+-- Sua lich thi neu ca thi chua co sinh vien nop bai.
+CREATE OR ALTER PROCEDURE [dbo].[SP_SUA_DANGKYTHI]
+    @MAGV NCHAR(8),
+    @MAMH NCHAR(5),
+    @MALOP NCHAR(15),
+    @TRINHDO NCHAR(1),
+    @NGAYTHI DATETIME,
+    @LAN SMALLINT,
+    @SOCAUTHI SMALLINT,
+    @THOIGIAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET @TRINHDO = UPPER(LTRIM(RTRIM(@TRINHDO)));
+
+    -- Da co diem nghia la ca thi da duoc su dung, khong cho sua lai lich.
+    IF EXISTS (
+        SELECT 1
+        FROM BANGDIEM BD
+        INNER JOIN SINHVIEN SV ON BD.MASV = SV.MASV
+        WHERE BD.MAMH = @MAMH
+          AND BD.LAN = @LAN
+          AND SV.MALOP = @MALOP
+    )
+        RETURN 3;
+
+    IF @TRINHDO NOT IN (N'A', N'B', N'C')
+       OR @LAN NOT IN (1, 2)
+       OR @SOCAUTHI < 10 OR @SOCAUTHI > 100
+       OR @THOIGIAN < 5 OR @THOIGIAN > 60
+       OR @NGAYTHI IS NULL
+       OR CAST(@NGAYTHI AS DATE) <= CAST(GETDATE() AS DATE)
+        RETURN 4;
+
+    DECLARE @SoCauChinhCanCo INT = CEILING(@SOCAUTHI * 0.7);
+    DECLARE @SoCauA INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'A');
+    DECLARE @SoCauB INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'B');
+    DECLARE @SoCauC INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'C');
+
+    -- Sua lich cung phai kiem tra lai kho cau hoi, phong truong hop bo de da thay doi.
+    IF @TRINHDO = N'A' AND (@SoCauA < @SoCauChinhCanCo OR @SoCauA + @SoCauB < @SOCAUTHI)
+        RETURN 2;
+
+    IF @TRINHDO = N'B' AND (@SoCauB < @SoCauChinhCanCo OR @SoCauB + @SoCauC < @SOCAUTHI)
+        RETURN 2;
+
+    IF @TRINHDO = N'C' AND @SoCauC < @SOCAUTHI
+        RETURN 2;
+
+    UPDATE GIAOVIEN_DANGKY
+    SET MAGV = @MAGV,
+        TRINHDO = @TRINHDO,
+        NGAYTHI = @NGAYTHI,
+        SOCAUTHI = @SOCAUTHI,
+        THOIGIAN = @THOIGIAN
+    WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN;
+
+    RETURN 0;
+END
+GO
+
+-- Xoa lich thi neu chua co diem cua sinh vien trong lop do.
+CREATE OR ALTER PROCEDURE [dbo].[SP_XOA_DANGKYTHI]
+    @MAMH NCHAR(5),
+    @MALOP NCHAR(15),
+    @LAN SMALLINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Da co diem thi khong xoa lich, vi lich nay la thong tin goc cua bai thi.
+    IF EXISTS (
+        SELECT 1
+        FROM BANGDIEM BD
+        INNER JOIN SINHVIEN SV ON BD.MASV = SV.MASV
+        WHERE BD.MAMH = @MAMH
+          AND BD.LAN = @LAN
+          AND SV.MALOP = @MALOP
+    )
+        RETURN 1;
+
+    DELETE FROM GIAOVIEN_DANGKY
+    WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN;
+
+    RETURN 0;
+END
+GO

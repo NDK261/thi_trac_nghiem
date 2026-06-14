@@ -45,6 +45,7 @@ namespace QLThiTracNghiem
         bool dangNopBai = false;
         int demGiayLuuTam = 0;
         bool dangLamBaiHienThi = false;
+        bool laThiThuGiaoVien = false;
 
         public formThi()
         {
@@ -479,6 +480,7 @@ namespace QLThiTracNghiem
 
         private void LuuTrangThaiBaiThiTam(bool hienThongBaoLoi)
         {
+            if (laThiThuGiaoVien) return;
             if (danhSachCauHoi.Count == 0 || string.IsNullOrWhiteSpace(maMon)) return;
 
             try
@@ -500,6 +502,7 @@ namespace QLThiTracNghiem
 
         private void LuuDapAnTam(int index)
         {
+            if (laThiThuGiaoVien) return;
             if (index < 0 || index >= danhSachCauHoi.Count || string.IsNullOrWhiteSpace(maMon)) return;
 
             try
@@ -524,6 +527,7 @@ namespace QLThiTracNghiem
 
         private void XoaBaiThiTam()
         {
+            if (laThiThuGiaoVien) return;
             if (string.IsNullOrWhiteSpace(maMon)) return;
 
             DBHelper.ExecuteNonQueryWithReturn(
@@ -700,8 +704,130 @@ namespace QLThiTracNghiem
             btnBatDau.Enabled = true;
         }
 
+        private bool LaGiaoVien()
+        {
+            return string.Equals((Program.mGroup ?? "").Trim(), "GIANGVIEN", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void LoadThiThuGiaoVien()
+        {
+            laThiThuGiaoVien = true;
+            tongSoCau = 10;
+
+            lblHoTen.Text = "Giáo viên: " + Program.mHoTen;
+            lblTenLop.Text = "Chế độ: Thi thử";
+            lblMaLop.Text = "Không ghi điểm";
+            lblLanThi.Text = "Trình độ:";
+            lblNgayThi.Visible = false;
+            dtpNgayThi.Visible = false;
+
+            cmbMonThi.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbLanThi.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            DataTable dtMon = DBHelper.GetDataTable("EXEC dbo.SP_GET_MONHOC");
+            cmbMonThi.DataSource = dtMon;
+            cmbMonThi.DisplayMember = "TENMH";
+            cmbMonThi.ValueMember = "MAMH";
+
+            cmbLanThi.Items.Clear();
+            cmbLanThi.Items.AddRange(new object[] { "A", "B", "C" });
+
+            bool coMonHoc = dtMon.Rows.Count > 0;
+            cmbMonThi.Enabled = coMonHoc;
+            cmbLanThi.Enabled = coMonHoc;
+            btnBatDau.Enabled = coMonHoc;
+
+            if (coMonHoc)
+            {
+                cmbMonThi.SelectedIndex = 0;
+                cmbLanThi.SelectedIndex = 0;
+            }
+            else
+            {
+                lblThongTinLichThi.Text = "Chưa có môn học để thi thử.";
+            }
+
+            btnCauTruoc.Enabled = false;
+            btnCauSau.Enabled = false;
+            btnNopBai.Enabled = false;
+            groupBox1.Enabled = false;
+
+            CapNhatThongTinThiThu();
+        }
+
+        private void CapNhatThongTinThiThu()
+        {
+            if (!laThiThuGiaoVien) return;
+
+            bool hopLe = cmbMonThi.SelectedValue != null && !string.IsNullOrWhiteSpace(cmbLanThi.Text);
+            btnBatDau.Enabled = hopLe;
+
+            if (!hopLe)
+            {
+                lblThongTinLichThi.Text = "Chọn môn học và trình độ để thi thử.";
+                return;
+            }
+
+            lblThongTinLichThi.Text = $"Thi thử không ghi điểm | Trình độ: {cmbLanThi.Text} | Số câu: 10 | Thời gian: 15 phút";
+        }
+
+        private void BatDauThiThuGiaoVien()
+        {
+            if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
+            {
+                MessageBox.Show("Vui lòng chọn môn học và trình độ để thi thử.", "Thông báo");
+                return;
+            }
+
+            maMon = cmbMonThi.SelectedValue.ToString().Trim();
+            trinhDo = cmbLanThi.Text.Trim().ToUpper();
+
+            if (trinhDo != "A" && trinhDo != "B" && trinhDo != "C")
+            {
+                MessageBox.Show("Trình độ thi thử chỉ được chọn A, B hoặc C.", "Báo lỗi");
+                return;
+            }
+
+            tongSoCau = 10;
+            thoiGianConLai = 15 * 60;
+            lblThoiGian.ForeColor = SystemColors.ControlText;
+            lblThoiGian.Text = "15:00";
+
+            DataTable dtDeThi = LayDeThi(maMon, trinhDo, tongSoCau);
+
+            if (dtDeThi.Rows.Count < tongSoCau)
+            {
+                MessageBox.Show("Kho đề không đủ 10 câu hỏi theo trình độ đã chọn để thi thử.", "Báo lỗi");
+                return;
+            }
+
+            danhSachCauHoi.Clear();
+            foreach (DataRow row in dtDeThi.Rows)
+            {
+                CauHoiThi ch = new CauHoiThi();
+                ch.MaCauHoi = Convert.ToInt32(row["CAUHOI"]);
+                ch.NoiDung = row["NOIDUNG"].ToString();
+                ch.A = row["A"].ToString();
+                ch.B = row["B"].ToString();
+                ch.C = row["C"].ToString();
+                ch.D = row["D"].ToString();
+                ch.DapAnDung = row["DAP_AN"].ToString().Trim().ToUpper();
+                ch.DapAnDaChon = "";
+                danhSachCauHoi.Add(ch);
+            }
+
+            cauHienTai = 0;
+            BatDauLamBai();
+        }
+
         private void formThi_Load(object sender, EventArgs e)
         {
+            if (LaGiaoVien())
+            {
+                LoadThiThuGiaoVien();
+                return;
+            }
+
             // Hiển thị sinh viên đang đăng nhập.
             lblHoTen.Text = "Họ Tên SV: " + Program.mHoTen;
 
@@ -757,17 +883,32 @@ namespace QLThiTracNghiem
 
         private void cmbMonThi_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (laThiThuGiaoVien)
+            {
+                CapNhatThongTinThiThu();
+                return;
+            }
+
             if (!string.IsNullOrWhiteSpace(maLop))
                 LoadLanThiChuaThi();
         }
 
         private void cmbLanThi_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (laThiThuGiaoVien)
+            {
+                CapNhatThongTinThiThu();
+                return;
+            }
+
             CapNhatThongTinLichThi();
         }
 
         private void dtpNgayThi_ValueChanged(object sender, EventArgs e)
         {
+            if (laThiThuGiaoVien)
+                return;
+
             if (!string.IsNullOrWhiteSpace(maLop))
                 LoadMonThiTheoNgayDaChon();
         }
@@ -878,6 +1019,16 @@ namespace QLThiTracNghiem
             // Quy điểm về thang 10.
             double diem = Math.Round((double)soCauDung * 10 / tongSoCau, 2);
 
+            if (laThiThuGiaoVien)
+            {
+                MessageBox.Show(
+                    $"Kết quả thi thử:\n- Số câu đúng: {soCauDung}/{tongSoCau}\n- Điểm tạm tính: {diem}\n\nKết quả thi thử không được ghi vào bảng điểm.",
+                    "Kết quả thi thử");
+
+                this.Close();
+                return;
+            }
+
             // Báo điểm ngay sau khi nộp.
             MessageBox.Show($"Kết quả bài thi của bạn:\n- Số câu đúng: {soCauDung}/{tongSoCau}\n- Điểm: {diem}", "Kết quả");
 
@@ -977,6 +1128,22 @@ namespace QLThiTracNghiem
         {
             if (timer1.Enabled)
             {
+                if (laThiThuGiaoVien)
+                {
+                    DialogResult dr = MessageBox.Show(
+                        "Bạn đang trong thời gian thi thử. Nếu thoát bây giờ, hệ thống sẽ nộp bài và tính điểm tạm. Kết quả này không ghi vào bảng điểm. Bạn có chắc chắn muốn thoát?",
+                        "Cảnh báo",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+
+                    if (dr == DialogResult.Yes)
+                    {
+                        btnNopBai.PerformClick();
+                    }
+
+                    return;
+                }
+
                 MessageBox.Show(
                     "Bạn đang trong thời gian làm bài.\n\nKhông thể thoát khi chưa nộp bài. Vui lòng nộp bài trước khi rời khỏi màn hình thi.",
                     "Không thể thoát",
@@ -1005,6 +1172,12 @@ namespace QLThiTracNghiem
         {
             try
             {
+                if (laThiThuGiaoVien)
+                {
+                    BatDauThiThuGiaoVien();
+                    return;
+                }
+
                 if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
                 {
                     MessageBox.Show("Ngày đang chọn không có ca thi nào chưa thi.", "Thông báo");

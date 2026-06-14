@@ -257,16 +257,13 @@ namespace QLThiTracNghiem
             {
                 DataTable dtBoDe = DBHelper.ExecuteDataTable(
                     "SP_GET_BODE_THEO_MONHOC",
-                    new SqlParameter("@MAMH", maMH));
+                    new SqlParameter("@MAMH", maMH),
+                    new SqlParameter("@MAGV", Program.mUserName ?? string.Empty),
+                    new SqlParameter("@NHOM", Program.mGroup ?? string.Empty));
                 dtBoDeGoc = dtBoDe;
                 dgvBoDe.DataSource = dtBoDeGoc;
+                ApplyGridFormat();
                 txtTimKiem.Clear();
-
-                dgvBoDe.ReadOnly = true;
-                dgvBoDe.AllowUserToAddRows = false;
-                dgvBoDe.AllowUserToDeleteRows = false;
-                dgvBoDe.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                dgvBoDe.MultiSelect = false;
 
                 LoadCurrentRowToInput();
                 SetNormalState();
@@ -312,6 +309,7 @@ namespace QLThiTracNghiem
             if (keyword == "")
             {
                 dgvBoDe.DataSource = dtBoDeGoc;
+                ApplyGridFormat();
                 LoadCurrentRowToInput();
                 SetNormalState();
                 return;
@@ -360,8 +358,71 @@ namespace QLThiTracNghiem
             }
 
             dgvBoDe.DataSource = dtLoc;
+            ApplyGridFormat();
             LoadCurrentRowToInput();
             SetNormalState();
+        }
+
+        private void ApplyGridFormat()
+        {
+            dgvBoDe.ReadOnly = true;
+            dgvBoDe.AllowUserToAddRows = false;
+            dgvBoDe.AllowUserToDeleteRows = false;
+            dgvBoDe.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvBoDe.MultiSelect = false;
+            dgvBoDe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvBoDe.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells;
+            dgvBoDe.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvBoDe.DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopLeft;
+            dgvBoDe.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvBoDe.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvBoDe.RowTemplate.Height = 46;
+            dgvBoDe.BackgroundColor = Color.White;
+
+            DatHeader("CAUHOI", "Mã câu");
+            DatHeader("TRINHDO", "Trình độ");
+            DatHeader("NOIDUNG", "Nội dung câu hỏi");
+            DatHeader("DAP_AN", "Đáp án");
+            DatHeader("MAGV", "Mã GV");
+
+            if (dgvBoDe.Columns.Contains("MAMH"))
+                dgvBoDe.Columns["MAMH"].Visible = false;
+
+            DatTyLeCot("CAUHOI", 60, 58);
+            DatTyLeCot("TRINHDO", 60, 58);
+            DatTyLeCot("NOIDUNG", 300, 230);
+            DatTyLeCot("A", 145, 110);
+            DatTyLeCot("B", 145, 110);
+            DatTyLeCot("C", 145, 110);
+            DatTyLeCot("D", 145, 110);
+            DatTyLeCot("DAP_AN", 62, 62);
+            DatTyLeCot("MAGV", 82, 78);
+
+            CanGiuaCot("CAUHOI");
+            CanGiuaCot("TRINHDO");
+            CanGiuaCot("DAP_AN");
+            CanGiuaCot("MAGV");
+        }
+
+        private void DatHeader(string columnName, string header)
+        {
+            if (dgvBoDe.Columns.Contains(columnName))
+                dgvBoDe.Columns[columnName].HeaderText = header;
+        }
+
+        private void DatTyLeCot(string columnName, float fillWeight, int minimumWidth)
+        {
+            if (!dgvBoDe.Columns.Contains(columnName)) return;
+
+            DataGridViewColumn column = dgvBoDe.Columns[columnName];
+            column.FillWeight = fillWeight;
+            column.MinimumWidth = minimumWidth;
+        }
+
+        private void CanGiuaCot(string columnName)
+        {
+            if (dgvBoDe.Columns.Contains(columnName))
+                dgvBoDe.Columns[columnName].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
         }
 
         private void txtTimKiem_TextChanged(object sender, EventArgs e)

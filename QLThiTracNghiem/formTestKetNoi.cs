@@ -15,6 +15,12 @@ namespace QLThiTracNghiem
         public formTestKetNoi()
         {
             InitializeComponent();
+            if (string.IsNullOrWhiteSpace(Program.connStr))
+            {
+                Program.connStr = Program.GetDefaultConnectionString();
+            }
+
+            Text = $"Test kết nối - {Program.serverName} / {Program.dbName}";
         }
 
 
@@ -29,7 +35,7 @@ namespace QLThiTracNghiem
         {
             try
             {
-                dgvData.DataSource = DBHelper.GetDataTable("SELECT * FROM MONHOC");
+                dgvData.DataSource = DBHelper.GetDataTable("SELECT MAMH, TENMH FROM dbo.MONHOC ORDER BY MAMH");
             }
             catch (Exception ex)
             {

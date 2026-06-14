@@ -36,6 +36,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.cmbGiaoVien = new System.Windows.Forms.ComboBox();
             this.cmbNhomQuyen = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
@@ -108,7 +110,25 @@
             this.label3.Size = new System.Drawing.Size(77, 20);
             this.label3.TabIndex = 9;
             this.label3.Text = "Mật Khẩu";
-            // 
+            //
+            // label4
+            //
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(164, 55);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(211, 20);
+            this.label4.TabIndex = 12;
+            this.label4.Text = "Giáo viên chưa có tài khoản";
+            //
+            // label5
+            //
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(441, 55);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(96, 20);
+            this.label5.TabIndex = 13;
+            this.label5.Text = "Nhóm quyền";
+            //
             // cmbGiaoVien
             // 
             this.cmbGiaoVien.FormattingEnabled = true;
@@ -131,6 +151,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbNhomQuyen);
             this.Controls.Add(this.cmbGiaoVien);
             this.Controls.Add(this.label3);
@@ -158,6 +180,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox cmbGiaoVien;
         private System.Windows.Forms.ComboBox cmbNhomQuyen;
     }

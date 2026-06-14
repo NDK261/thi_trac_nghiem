@@ -1,6 +1,7 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace QLThiTracNghiem
@@ -8,16 +9,38 @@ namespace QLThiTracNghiem
     public partial class formXemKetQua : Form
     {
         private DataTable dtKyThi;
+        private readonly string maSvDuocChon;
+        private readonly string maMhDuocChon;
+        private readonly int? lanDuocChon;
 
         public formXemKetQua()
         {
             InitializeComponent();
         }
 
+        public formXemKetQua(string masv, string mamh, int lan) : this()
+        {
+            maSvDuocChon = (masv ?? "").Trim();
+            maMhDuocChon = (mamh ?? "").Trim();
+            lanDuocChon = lan;
+        }
+
         private void formXemKetQua_Load(object sender, EventArgs e)
         {
             CaiDatGrid();
             LoadDanhSachKyThi();
+
+            if (!string.IsNullOrWhiteSpace(maSvDuocChon) &&
+                !string.IsNullOrWhiteSpace(maMhDuocChon) &&
+                lanDuocChon.HasValue &&
+                dtKyThi != null &&
+                dtKyThi.Rows.Count > 0)
+            {
+                if (ChonKyThiDuocMo())
+                    btnXem_Click(this, EventArgs.Empty);
+                else
+                    MessageBox.Show("Không tìm thấy kỳ thi tương ứng của sinh viên này.", "Thông báo");
+            }
         }
 
         private void CaiDatGrid()
@@ -28,6 +51,14 @@ namespace QLThiTracNghiem
             dgvKetQua.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvKetQua.MultiSelect = false;
             dgvKetQua.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvKetQua.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCells;
+            dgvKetQua.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvKetQua.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvKetQua.DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopLeft;
+            dgvKetQua.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgvKetQua.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dgvKetQua.RowTemplate.Height = 46;
+            dgvKetQua.BackgroundColor = Color.White;
         }
 
         private void LoadDanhSachKyThi()
@@ -41,7 +72,8 @@ namespace QLThiTracNghiem
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     // Giả sử Program.mUserName đang lưu MASV sau khi sinh viên đăng nhập
-                    cmd.Parameters.AddWithValue("@MASV", Program.mUserName);
+                    string masv = string.IsNullOrWhiteSpace(maSvDuocChon) ? Program.mUserName : maSvDuocChon;
+                    cmd.Parameters.AddWithValue("@MASV", masv);
 
                     dtKyThi = new DataTable();
                     da.Fill(dtKyThi);
@@ -78,6 +110,29 @@ namespace QLThiTracNghiem
             {
                 MessageBox.Show("Lỗi tải danh sách kỳ thi: " + ex.Message, "Báo lỗi");
             }
+        }
+
+        private bool ChonKyThiDuocMo()
+        {
+            if (dtKyThi == null || dtKyThi.Rows.Count == 0) return false;
+
+            foreach (object item in cmbKyThi.Items)
+            {
+                DataRowView row = item as DataRowView;
+                if (row == null) continue;
+
+                string mamh = row["MAMH"].ToString().Trim();
+                int lan = Convert.ToInt32(row["LAN"]);
+
+                if (mamh == maMhDuocChon && lanDuocChon.HasValue && lan == lanDuocChon.Value)
+                {
+                    cmbKyThi.SelectedItem = row;
+                    return true;
+                }
+            }
+
+            cmbKyThi.SelectedIndex = -1;
+            return false;
         }
 
         private void btnXem_Click(object sender, EventArgs e)
@@ -151,6 +206,7 @@ namespace QLThiTracNghiem
                     DatHeader("D", "D");
                     DatHeader("TRALOI_SV", "Trả lời của SV");
                     DatHeader("DAP_AN", "Đáp án");
+                    DinhDangCotKetQua();
                 }
             }
             catch (Exception ex)
@@ -169,6 +225,41 @@ namespace QLThiTracNghiem
         {
             if (dgvKetQua.Columns.Contains(columnName))
                 dgvKetQua.Columns[columnName].Visible = false;
+        }
+
+        private void DinhDangCotKetQua()
+        {
+            dgvKetQua.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            DatTyLeCot("STT_HIENTHI", 42, 42);
+            DatTyLeCot("CAUSO", 58, 58);
+            DatTyLeCot("NOIDUNG", 260, 170);
+            DatTyLeCot("A", 150, 110);
+            DatTyLeCot("B", 150, 110);
+            DatTyLeCot("C", 150, 110);
+            DatTyLeCot("D", 150, 110);
+            DatTyLeCot("TRALOI_SV", 70, 70);
+            DatTyLeCot("DAP_AN", 62, 62);
+
+            CanGiuaCot("STT_HIENTHI");
+            CanGiuaCot("CAUSO");
+            CanGiuaCot("TRALOI_SV");
+            CanGiuaCot("DAP_AN");
+        }
+
+        private void DatTyLeCot(string columnName, float fillWeight, int minimumWidth)
+        {
+            if (!dgvKetQua.Columns.Contains(columnName)) return;
+
+            DataGridViewColumn column = dgvKetQua.Columns[columnName];
+            column.FillWeight = fillWeight;
+            column.MinimumWidth = minimumWidth;
+        }
+
+        private void CanGiuaCot(string columnName)
+        {
+            if (dgvKetQua.Columns.Contains(columnName))
+                dgvKetQua.Columns[columnName].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
         }
 
         private void XoaThongTinHeader()

@@ -85,8 +85,29 @@ namespace QLThiTracNghiem
             cmbLanThi.Items.Clear();
             cmbLanThi.Items.Add("Lần 1");
             cmbLanThi.Items.Add("Lần 2");
-            cmbLanThi.Items.Add("Lần 3");
             cmbLanThi.SelectedIndex = -1;
+        }
+
+        private bool TryGetLanThi(out int lan)
+        {
+            lan = 0;
+
+            if (cmbLanThi.SelectedIndex == -1)
+            {
+                return false;
+            }
+
+            switch (cmbLanThi.SelectedIndex)
+            {
+                case 0:
+                    lan = 1;
+                    return true;
+                case 1:
+                    lan = 2;
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private void btnXem_Click(object sender, EventArgs e)
@@ -109,11 +130,16 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            if (!TryGetLanThi(out int lan))
+            {
+                MessageBox.Show("Lần thi chỉ được chọn lần 1 hoặc lần 2!", "Thông báo");
+                return;
+            }
+
             try
             {
                 string malop = cmbLop.SelectedValue.ToString();
                 string mamh = cmbMonHoc.SelectedValue.ToString();
-                int lan = cmbLanThi.SelectedIndex + 1;
 
                 using (SqlConnection conn = DBHelper.GetConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.SP_GET_BANGDIEM", conn))
@@ -171,6 +197,56 @@ namespace QLThiTracNghiem
 
             // TODO: Implement printing functionality
             MessageBox.Show("Chức năng in đang được phát triển.", "Thông báo");
+        }
+
+        private void btnXemBaiThi_Click(object sender, EventArgs e)
+        {
+            if (dgvBangDiem.CurrentRow == null || dgvBangDiem.CurrentRow.IsNewRow)
+            {
+                MessageBox.Show("Vui lòng chọn sinh viên cần xem bài thi.", "Thông báo");
+                return;
+            }
+
+            if (cmbMonHoc.SelectedIndex == -1)
+            {
+                MessageBox.Show("Vui lòng chọn môn học.", "Thông báo");
+                return;
+            }
+
+            if (!TryGetLanThi(out int lan))
+            {
+                MessageBox.Show("Vui lòng chọn lần thi.", "Thông báo");
+                return;
+            }
+
+            if (!dgvBangDiem.Columns.Contains("MASV"))
+            {
+                MessageBox.Show("Bảng điểm chưa có cột mã sinh viên.", "Báo lỗi");
+                return;
+            }
+
+            string masv = dgvBangDiem.CurrentRow.Cells["MASV"].Value?.ToString().Trim();
+            if (string.IsNullOrWhiteSpace(masv))
+            {
+                MessageBox.Show("Không đọc được mã sinh viên từ dòng đang chọn.", "Báo lỗi");
+                return;
+            }
+
+            if (dgvBangDiem.Columns.Contains("DIEM"))
+            {
+                object diem = dgvBangDiem.CurrentRow.Cells["DIEM"].Value;
+                if (diem == null || diem == DBNull.Value || string.IsNullOrWhiteSpace(diem.ToString()))
+                {
+                    MessageBox.Show("Sinh viên này chưa có điểm/bài thi để xem chi tiết.", "Thông báo");
+                    return;
+                }
+            }
+
+            string mamh = cmbMonHoc.SelectedValue.ToString();
+            using (formXemKetQua f = new formXemKetQua(masv, mamh, lan))
+            {
+                f.ShowDialog();
+            }
         }
 
         private void btnThoat_Click(object sender, EventArgs e)

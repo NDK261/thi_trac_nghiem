@@ -48,6 +48,7 @@
             // 
             // btnTestConnection
             // 
+            this.btnTestConnection.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnTestConnection.Location = new System.Drawing.Point(60, 336);
             this.btnTestConnection.Name = "btnTestConnection";
             this.btnTestConnection.Size = new System.Drawing.Size(100, 23);
@@ -58,6 +59,7 @@
             // 
             // btnLoadMonHoc
             // 
+            this.btnLoadMonHoc.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnLoadMonHoc.Location = new System.Drawing.Point(344, 336);
             this.btnLoadMonHoc.Name = "btnLoadMonHoc";
             this.btnLoadMonHoc.Size = new System.Drawing.Size(110, 23);
