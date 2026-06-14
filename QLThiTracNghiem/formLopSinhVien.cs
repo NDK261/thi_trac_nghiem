@@ -616,11 +616,19 @@ namespace QLThiTracNghiem
                 {
                     MessageBox.Show("Không tìm thấy sinh viên cần sửa hoặc lớp không tồn tại!", "Báo lỗi");
                 }
-                else
+                else if (result == 3)
+                {
+                    MessageBox.Show("Dữ liệu sinh viên không hợp lệ. Vui lòng kiểm tra mã SV, họ tên, ngày sinh và độ dài địa chỉ!", "Báo lỗi");
+                }
+                else if (result == 0)
                 {
                     MessageBox.Show("Cập nhật dữ liệu thành công!", "Thông báo");
                     LoadSinhVien(cmbLop.SelectedValue.ToString()); // Lưu xong thì tải lại lưới.
                     SetNormalState(); // Quay về trạng thái xem.
+                }
+                else
+                {
+                    MessageBox.Show("Không lưu được sinh viên. Mã lỗi SP: " + result, "Báo lỗi");
                 }
             }
             catch (Exception ex)
