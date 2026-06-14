@@ -244,21 +244,29 @@ namespace QLThiTracNghiem
         {
             if (txtSoCauThi.Text == "") return;
 
-            if (dgvDangKy.CurrentRow != null)
+            try
             {
-                string maMH = dgvDangKy.CurrentRow.Cells["MAMH"].Value.ToString();
-                string maLop = dgvDangKy.CurrentRow.Cells["MALOP"].Value.ToString();
-                int lan = int.Parse(dgvDangKy.CurrentRow.Cells["LAN"].Value.ToString());
-
-                if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
+                if (dgvDangKy.CurrentRow != null)
                 {
-                    MessageBox.Show(
-                        "Không thể sửa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
-                        "Không cho sửa",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
+                    string maMH = dgvDangKy.CurrentRow.Cells["MAMH"].Value.ToString();
+                    string maLop = dgvDangKy.CurrentRow.Cells["MALOP"].Value.ToString();
+                    int lan = int.Parse(dgvDangKy.CurrentRow.Cells["LAN"].Value.ToString());
+
+                    if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
+                    {
+                        MessageBox.Show(
+                            "Không thể sửa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
+                            "Không cho sửa",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                        return;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi kiểm tra đăng ký thi: " + ex.Message, "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
 
             SetEditingState(false);
@@ -536,7 +544,18 @@ namespace QLThiTracNghiem
             string maMHThongBao = maMH.Trim();
             string maLopThongBao = maLop.Trim();
 
-            if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
+            bool daCoSinhVienThi;
+            try
+            {
+                daCoSinhVienThi = DangKyDaCoSinhVienThi(maMH, maLop, lan);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi kiểm tra đăng ký thi: " + ex.Message, "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (daCoSinhVienThi)
             {
                 MessageBox.Show(
                     "Không thể xóa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",

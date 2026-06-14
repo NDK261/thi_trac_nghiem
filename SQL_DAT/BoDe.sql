@@ -66,34 +66,9 @@ BEGIN
     IF @A = @B OR @A = @C OR @A = @D OR @B = @C OR @B = @D OR @C = @D
         RETURN 4;
 
-    BEGIN TRY
-        IF COLUMNPROPERTY(OBJECT_ID(N'dbo.BODE'), N'CAUHOI', 'IsIdentity') = 1
-        BEGIN
-            INSERT INTO BODE (MAMH, TRINHDO, NOIDUNG, A, B, C, D, DAP_AN, MAGV)
-            VALUES (@MAMH, @TRINHDO, @NOIDUNG, @A, @B, @C, @D, @DAP_AN, @MAGV);
-        END
-        ELSE
-        BEGIN
-            DECLARE @CAUHOI INT;
-
-            BEGIN TRANSACTION;
-
-            -- Neu CAUHOI khong phai IDENTITY thi khoa bang luc tinh ma moi de tranh trung ma.
-            SELECT @CAUHOI = ISNULL(MAX(CAUHOI), 0) + 1
-            FROM BODE WITH (UPDLOCK, HOLDLOCK);
-
-            INSERT INTO BODE (CAUHOI, MAMH, TRINHDO, NOIDUNG, A, B, C, D, DAP_AN, MAGV)
-            VALUES (@CAUHOI, @MAMH, @TRINHDO, @NOIDUNG, @A, @B, @C, @D, @DAP_AN, @MAGV);
-
-            COMMIT TRANSACTION;
-        END
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-
-        THROW;
-    END CATCH
+    -- CAUHOI la cot IDENTITY nen khong truyen gia tri vao khi them moi.
+    INSERT INTO BODE (MAMH, TRINHDO, NOIDUNG, A, B, C, D, DAP_AN, MAGV)
+    VALUES (@MAMH, @TRINHDO, @NOIDUNG, @A, @B, @C, @D, @DAP_AN, @MAGV);
 
     RETURN 0;
 END

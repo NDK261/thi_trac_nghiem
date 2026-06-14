@@ -174,6 +174,10 @@ namespace QLThiTracNghiem
                                 MessageBox.Show("Nhóm quyền PGV/GIANGVIEN chưa tồn tại trong database. Hãy chạy lại script phân quyền trước!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 break;
 
+                            case 9:
+                                MessageBox.Show("Tài khoản PGV hiện tại chưa có quyền tạo SQL Login. Hãy chạy SQL_Khanh\\09_PhanQuyen.sql bằng tài khoản sa hoặc sysadmin, sau đó đăng nhập lại PGV.", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+
                             case 99:
                                 MessageBox.Show("SQL Server không tạo được Login/User. Thường là do tài khoản PGV chưa đủ quyền tạo Login hoặc gán Role.", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 break;

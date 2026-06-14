@@ -62,6 +62,11 @@ BEGIN
     )
         RETURN 8;
 
+    IF IS_SRVROLEMEMBER(N'sysadmin') <> 1
+       AND IS_SRVROLEMEMBER(N'securityadmin') <> 1
+       AND HAS_PERMS_BY_NAME(NULL, NULL, N'ALTER ANY LOGIN') <> 1
+        RETURN 9;
+
     BEGIN TRY
         SET @SQL = N'CREATE LOGIN ' + QUOTENAME(@LGNAME_CHUAN)
                  + N' WITH PASSWORD = ' + QUOTENAME(@PASS_CHUAN, '''')

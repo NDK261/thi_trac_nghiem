@@ -41,6 +41,7 @@ namespace QLThiTracNghiem
         Label lblTrangThaiTraLoi;
         FlowLayoutPanel pnlDanhSachCauHoi;
         List<Button> nutCauHoi = new List<Button>();
+        RadioButton rdoChuaChon;
         bool dangHienThiCauHoi = false;
         bool dangNopBai = false;
         int demGiayLuuTam = 0;
@@ -95,6 +96,11 @@ namespace QLThiTracNghiem
             rdoD.CheckedChanged += DapAn_CheckedChanged;
             this.FormClosing += formThi_FormClosing;
             this.Resize += formThi_Resize;
+
+            rdoChuaChon = new RadioButton();
+            rdoChuaChon.Visible = false;
+            rdoChuaChon.TabStop = false;
+            groupBox1.Controls.Add(rdoChuaChon);
 
             CaiThienGiaoDienFormThi();
             DatTrangThaiHienThiBaiThi(false);
@@ -399,7 +405,11 @@ namespace QLThiTracNghiem
             RadioButton radio = sender as RadioButton;
             if (radio == null || !radio.Checked) return;
 
-            LuuDapAn();
+            if (radio == rdoA) danhSachCauHoi[cauHienTai].DapAnDaChon = "A";
+            else if (radio == rdoB) danhSachCauHoi[cauHienTai].DapAnDaChon = "B";
+            else if (radio == rdoC) danhSachCauHoi[cauHienTai].DapAnDaChon = "C";
+            else if (radio == rdoD) danhSachCauHoi[cauHienTai].DapAnDaChon = "D";
+
             CapNhatTrangThaiCauHoi();
             LuuDapAnTam(cauHienTai);
         }
@@ -1274,11 +1284,12 @@ namespace QLThiTracNghiem
 
             dangHienThiCauHoi = true;
 
-            // Xóa lựa chọn cũ trước khi tick lại đáp án đã chọn.
+            // Câu chưa trả lời sẽ tick radio ẩn để WinForms không tự chọn phương án đầu.
             rdoA.Checked = false;
             rdoB.Checked = false;
             rdoC.Checked = false;
             rdoD.Checked = false;
+            rdoChuaChon.Checked = true;
 
             // Quay lại câu cũ thì tick lại đáp án đã chọn.
             if (ch.DapAnDaChon == "A") rdoA.Checked = true;
@@ -1298,6 +1309,11 @@ namespace QLThiTracNghiem
         private void LuuDapAn()
         {
             if (danhSachCauHoi.Count == 0) return;
+
+            // Chỉ đồng bộ lại khi câu đã có đáp án do người dùng chọn.
+            // Nếu câu đang bỏ trống, không đọc radio để tránh lưu nhầm phương án đầu.
+            if (string.IsNullOrWhiteSpace(danhSachCauHoi[cauHienTai].DapAnDaChon))
+                return;
 
             if (rdoA.Checked) danhSachCauHoi[cauHienTai].DapAnDaChon = "A";
             else if (rdoB.Checked) danhSachCauHoi[cauHienTai].DapAnDaChon = "B";

@@ -51,6 +51,36 @@ GRANT ALTER ANY USER TO [PGV];
 GRANT ALTER ANY ROLE TO [PGV];
 GO
 
+-- PGV tao tai khoan giao vien qua SP_TAOLOGIN, trong SP co lenh CREATE LOGIN.
+-- CREATE LOGIN la quyen cap SQL Server, khong phai chi quyen trong database.
+-- Do do khi chay file nay bang sa/sysadmin, cap them ALTER ANY LOGIN cho cac login dang thuoc role PGV.
+DECLARE @GrantAlterLoginSql NVARCHAR(MAX);
+SET @GrantAlterLoginSql = N'';
+
+SELECT @GrantAlterLoginSql = @GrantAlterLoginSql + N'
+IF SUSER_ID(N''' + REPLACE(sp.name, '''', '''''') + N''') IS NOT NULL
+    GRANT ALTER ANY LOGIN TO ' + QUOTENAME(sp.name) + N';'
+FROM sys.database_role_members drm
+INNER JOIN sys.database_principals r
+    ON r.principal_id = drm.role_principal_id
+INNER JOIN sys.database_principals m
+    ON m.principal_id = drm.member_principal_id
+INNER JOIN sys.server_principals sp
+    ON sp.sid = m.sid
+WHERE r.name = N'PGV'
+  AND sp.type IN (N'S', N'U', N'G');
+
+IF @GrantAlterLoginSql <> N''
+BEGIN
+    BEGIN TRY
+        EXEC master.sys.sp_executesql @GrantAlterLoginSql;
+    END TRY
+    BEGIN CATCH
+        PRINT N'Khong cap duoc ALTER ANY LOGIN cho PGV. Hay chay file phan quyen bang sa/sysadmin.';
+    END CATCH
+END
+GO
+
 IF OBJECT_ID(N'dbo.LOP', N'U') IS NOT NULL
 BEGIN
     GRANT SELECT ON dbo.LOP TO [GIANGVIEN];
@@ -148,6 +178,7 @@ INSERT INTO @GrantList(ProcName, RoleName) VALUES
     (N'SP_XOA_BODE', N'GIANGVIEN'),
 
     (N'SP_GET_DANGKYTHI', N'GIANGVIEN'),
+    (N'SP_KIEMTRA_DANGKY_DA_CO_SV_THI', N'GIANGVIEN'),
     (N'SP_THEM_DANGKYTHI', N'GIANGVIEN'),
     (N'SP_SUA_DANGKYTHI', N'GIANGVIEN'),
     (N'SP_XOA_DANGKYTHI', N'GIANGVIEN'),
