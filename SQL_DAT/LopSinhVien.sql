@@ -2,24 +2,12 @@ USE [THITRACNGHIEM];
 GO
 
 /*
-    Script phuc vu form Sinh vien.
-
-    Y tuong xu ly:
-    - Sinh vien binh thuong co TRANGTHAI = 1.
-    - Sinh vien bi ngung hoat dong co TRANGTHAI = 0.
-    - Neu sinh vien chua co du lieu thi/diem thi thi co the xoa han khoi bang SINHVIEN.
-    - Neu sinh vien da co diem hoac dang co bai thi tam thi khong xoa han,
-      chi doi TRANGTHAI = 0 de giu lai lich su bai thi.
-
-    Cac ma RETURN hay dung:
-    - 0: thao tac thanh cong.
-    - 1: du lieu khong hop le, khong tim thay sinh vien, hoac khong the xoa han.
-    - 2: voi them/sua la loi lop hoac sinh vien khong ton tai;
-         voi xoa la da chuyen sang xoa mem.
-    - 3: du lieu nhap khong hop le khi them/sua sinh vien.
+    Script cho form Lop - Sinh vien.
+    TRANGTHAI = 1 la dang hoc, TRANGTHAI = 0 la da xoa mem.
+    RETURN: 0 thanh cong, 1 that bai, 2 truong hop dac biet, 3 du lieu nhap sai.
 */
 
--- Database cu co the chua co cot TRANGTHAI, nen bo sung neu thieu.
+-- Them cot TRANGTHAI neu database chua co.
 IF COL_LENGTH(N'dbo.SINHVIEN', N'TRANGTHAI') IS NULL
 BEGIN
     ALTER TABLE dbo.SINHVIEN
@@ -28,18 +16,18 @@ BEGIN
 END
 GO
 
--- Neu du lieu cu dang vuot 40 ky tu thi dung script lai de tranh cat mat ho ten.
+-- Chan ALTER neu du lieu cu dang dai hon gioi han trong de tai.
 IF EXISTS (SELECT 1 FROM dbo.SINHVIEN WHERE LEN(LTRIM(RTRIM(ISNULL(HO, N'')))) > 40)
 BEGIN
     RAISERROR(N'Du lieu SINHVIEN.HO dang vuot 40 ky tu. Hay rut gon du lieu truoc khi chay script.', 16, 1);
 END
 GO
 
--- Dong bo lai kich thuoc cot HO theo schema trong de tai.
+-- Dong bo cot HO theo schema de tai.
 ALTER TABLE dbo.SINHVIEN ALTER COLUMN HO NVARCHAR(40) NULL;
 GO
 
--- Tao lai SP lay danh sach sinh vien dang hoat dong theo lop.
+-- Lay sinh vien dang hoat dong theo lop.
 IF OBJECT_ID(N'dbo.SP_GET_SINHVIEN_THEO_LOP', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_GET_SINHVIEN_THEO_LOP;
 GO
@@ -50,7 +38,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- RTRIM/LTRIM giup du lieu NCHAR hien thi sach hon tren DataGridView.
+    -- Trim de du lieu NCHAR hien thi gon hon tren form.
     SELECT
         MASV = RTRIM(MASV),
         HO = LTRIM(RTRIM(ISNULL(HO, N''))),
@@ -60,12 +48,12 @@ BEGIN
         MALOP = RTRIM(MALOP)
     FROM dbo.SINHVIEN
     WHERE RTRIM(MALOP) = RTRIM(@MALOP)
-      AND TRANGTHAI = 1 -- Chi hien sinh vien dang hoat dong.
+      AND TRANGTHAI = 1 -- Chi hien sinh vien dang hoc.
     ORDER BY TEN, HO, MASV;
 END
 GO
 
--- SP nay dung cho che do xem/khoi phuc sinh vien da ngung hoat dong.
+-- Lay sinh vien da xoa mem de co the khoi phuc.
 IF OBJECT_ID(N'dbo.SP_GET_SINHVIEN_NGUNG_HOATDONG_THEO_LOP', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_GET_SINHVIEN_NGUNG_HOATDONG_THEO_LOP;
 GO
@@ -85,12 +73,12 @@ BEGIN
         MALOP = RTRIM(MALOP)
     FROM dbo.SINHVIEN
     WHERE RTRIM(MALOP) = RTRIM(@MALOP)
-      AND TRANGTHAI = 0 -- Chi lay cac sinh vien da bi ngung hoat dong.
+      AND TRANGTHAI = 0 -- Chi lay sinh vien da xoa mem.
     ORDER BY TEN, HO, MASV;
 END
 GO
 
--- Tao lai SP them sinh vien.
+-- Them sinh vien moi.
 IF OBJECT_ID(N'dbo.SP_THEM_SINHVIEN', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_THEM_SINHVIEN;
 GO
@@ -109,14 +97,14 @@ BEGIN
     DECLARE @MASV_CHUAN NVARCHAR(8);
     DECLARE @MALOP_CHUAN NVARCHAR(15);
 
-    -- Chuan hoa ma de tranh loi do nhap du khoang trang hoac sai chu hoa/thuong.
+    -- Chuan hoa ma va chuoi nhap vao.
     SET @MASV_CHUAN = UPPER(LTRIM(RTRIM(ISNULL(@MASV, N''))));
     SET @MALOP_CHUAN = UPPER(LTRIM(RTRIM(ISNULL(@MALOP, N''))));
     SET @HO = LTRIM(RTRIM(@HO));
     SET @TEN = LTRIM(RTRIM(@TEN));
     SET @DIACHI = LTRIM(RTRIM(@DIACHI));
 
-    -- Kiem tra du lieu dau vao truoc khi INSERT vao SINHVIEN.
+    -- Kiem tra du lieu truoc khi ghi xuong bang.
     IF @MASV_CHUAN = N'' OR @HO = N'' OR @TEN = N''
        OR LEN(@MASV_CHUAN) > 8 OR LEN(@HO) > 40 OR LEN(@TEN) > 10 OR LEN(@DIACHI) > 100
        OR @NGAYSINH > CAST(GETDATE() AS DATE)
@@ -128,15 +116,15 @@ BEGIN
        OR @TEN LIKE N'%[[]%' OR @TEN LIKE N'%]%'
         RETURN 3;
 
-    -- Khong duoc them trung ma sinh vien.
+    -- Khong them trung MASV.
     IF EXISTS (SELECT 1 FROM dbo.SINHVIEN WHERE RTRIM(MASV) = @MASV_CHUAN)
         RETURN 1;
 
-    -- Lop phai ton tai truoc khi gan sinh vien vao lop do.
+    -- MALOP phai co trong bang LOP.
     IF NOT EXISTS (SELECT 1 FROM dbo.LOP WHERE RTRIM(MALOP) = @MALOP_CHUAN)
         RETURN 2;
 
-    -- Dia chi rong thi luu NULL, con sinh vien moi mac dinh dang hoat dong.
+    -- Sinh vien moi mac dinh dang hoc.
     INSERT INTO dbo.SINHVIEN (MASV, HO, TEN, NGAYSINH, DIACHI, MALOP, TRANGTHAI)
     VALUES (@MASV_CHUAN, @HO, @TEN, @NGAYSINH, NULLIF(@DIACHI, N''), @MALOP_CHUAN, 1);
 
@@ -144,7 +132,7 @@ BEGIN
 END
 GO
 
--- Tao lai SP sua thong tin sinh vien.
+-- Sua thong tin sinh vien.
 IF OBJECT_ID(N'dbo.SP_SUA_SINHVIEN', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_SUA_SINHVIEN;
 GO
@@ -163,14 +151,14 @@ BEGIN
     DECLARE @MASV_CHUAN NVARCHAR(8);
     DECLARE @MALOP_CHUAN NVARCHAR(15);
 
-    -- Chuan hoa du lieu truoc khi so sanh va cap nhat.
+    -- Chuan hoa truoc khi so sanh va cap nhat.
     SET @MASV_CHUAN = UPPER(LTRIM(RTRIM(ISNULL(@MASV, N''))));
     SET @MALOP_CHUAN = UPPER(LTRIM(RTRIM(ISNULL(@MALOP, N''))));
     SET @HO = LTRIM(RTRIM(@HO));
     SET @TEN = LTRIM(RTRIM(@TEN));
     SET @DIACHI = LTRIM(RTRIM(@DIACHI));
 
-    -- Neu du lieu nhap khong hop le thi tra 3 de form hien thong bao.
+    -- Tra 3 neu du lieu khong dat rang buoc.
     IF @MASV_CHUAN = N'' OR @HO = N'' OR @TEN = N''
        OR LEN(@MASV_CHUAN) > 8 OR LEN(@HO) > 40 OR LEN(@TEN) > 10 OR LEN(@DIACHI) > 100
        OR @NGAYSINH > CAST(GETDATE() AS DATE)
@@ -182,15 +170,15 @@ BEGIN
        OR @TEN LIKE N'%[[]%' OR @TEN LIKE N'%]%'
         RETURN 3;
 
-    -- Chi cho sua sinh vien dang hoat dong.
+    -- Chi sua sinh vien dang hoc.
     IF NOT EXISTS (SELECT 1 FROM dbo.SINHVIEN WHERE RTRIM(MASV) = @MASV_CHUAN AND TRANGTHAI = 1)
         RETURN 2;
 
-    -- Lop moi phai ton tai trong bang LOP.
+    -- MALOP moi phai ton tai.
     IF NOT EXISTS (SELECT 1 FROM dbo.LOP WHERE RTRIM(MALOP) = @MALOP_CHUAN)
         RETURN 2;
 
-    -- Cap nhat thong tin theo MASV, khong doi ma sinh vien.
+    -- Cap nhat thong tin, giu nguyen MASV.
     UPDATE dbo.SINHVIEN
     SET HO = @HO,
         TEN = @TEN,
@@ -204,7 +192,7 @@ BEGIN
 END
 GO
 
--- Tao lai SP xoa sinh vien.
+-- Xoa sinh vien.
 IF OBJECT_ID(N'dbo.SP_XOA_SINHVIEN', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_XOA_SINHVIEN;
 GO
@@ -215,17 +203,17 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Chuan hoa ma sinh vien truoc khi kiem tra.
+    -- Chuan hoa MASV.
     SET @MASV = UPPER(LTRIM(RTRIM(@MASV)));
 
     IF @MASV = N'' OR LEN(@MASV) > 8
         RETURN 1;
 
-    -- Khong tim thay sinh vien dang hoat dong thi khong xoa.
+    -- Khong co sinh vien dang hoc thi dung.
     IF NOT EXISTS (SELECT 1 FROM dbo.SINHVIEN WHERE RTRIM(MASV) = RTRIM(@MASV) AND TRANGTHAI = 1)
         RETURN 1;
 
-    -- Neu sinh vien da co du lieu thi/diem thi thi chi xoa mem de giu lich su.
+    -- Da co diem/bai thi thi xoa mem de giu lich su.
     IF EXISTS (SELECT 1 FROM dbo.BANGDIEM WHERE RTRIM(MASV) = RTRIM(@MASV))
        OR EXISTS (SELECT 1 FROM dbo.BAITHI_TAM WHERE RTRIM(MASV) = RTRIM(@MASV))
        OR EXISTS (SELECT 1 FROM dbo.CT_BAITHI WHERE RTRIM(MASV) = RTRIM(@MASV))
@@ -238,7 +226,7 @@ BEGIN
         RETURN 2;
     END;
 
-    -- Sinh vien chua co du lieu lien quan thi co the xoa han.
+    -- Chua co du lieu lien quan thi xoa han.
     DELETE FROM dbo.SINHVIEN
     WHERE RTRIM(MASV) = RTRIM(@MASV);
 
@@ -246,7 +234,7 @@ BEGIN
 END
 GO
 
--- Tao lai SP khoi phuc sinh vien da bi xoa mem.
+-- Khoi phuc sinh vien da xoa mem.
 IF OBJECT_ID(N'dbo.SP_KHOIPHUC_SINHVIEN', N'P') IS NOT NULL
     DROP PROCEDURE dbo.SP_KHOIPHUC_SINHVIEN;
 GO
@@ -257,17 +245,17 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Chuan hoa ma sinh vien can khoi phuc.
+    -- Chuan hoa MASV.
     SET @MASV = UPPER(LTRIM(RTRIM(@MASV)));
 
     IF @MASV = N'' OR LEN(@MASV) > 8
         RETURN 1;
 
-    -- Chi khoi phuc sinh vien dang o trang thai ngung hoat dong.
+    -- Chi khoi phuc ban ghi dang xoa mem.
     IF NOT EXISTS (SELECT 1 FROM dbo.SINHVIEN WHERE RTRIM(MASV) = RTRIM(@MASV) AND TRANGTHAI = 0)
         RETURN 1;
 
-    -- Doi lai trang thai de sinh vien hien trong danh sach dang hoat dong.
+    -- Doi ve trang thai dang hoc.
     UPDATE dbo.SINHVIEN
     SET TRANGTHAI = 1
     WHERE RTRIM(MASV) = RTRIM(@MASV);
