@@ -234,6 +234,13 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            if (!IsValidCode(maMH))
+            {
+                MessageBox.Show("Mã môn học chỉ được gồm chữ cái A-Z và chữ số 0-9!", "Báo lỗi");
+                txtMaMH.Focus();
+                return;
+            }
+
             if (tenMH.Length > 40)
             {
                 MessageBox.Show("Tên môn học tối đa 40 ký tự!", "Báo lỗi");
@@ -302,6 +309,12 @@ namespace QLThiTracNghiem
             }
 
             this.Close();
+        }
+
+        private bool IsValidCode(string value)
+        {
+            return !string.IsNullOrWhiteSpace(value)
+                && value.All(c => (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
         }
 
         // Chuyển tiếng Việt có dấu thành không dấu để ô tìm kiếm dễ dùng hơn.
