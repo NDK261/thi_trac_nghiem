@@ -41,31 +41,6 @@ namespace QLThiTracNghiem
             }
         }
 
-        public static int ExecuteNonQuery(string procedureName, params SqlParameter[] parameters)
-        {
-            try
-            {
-                using (SqlConnection conn = GetConnection())
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(procedureName, conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-
-                        if (parameters != null && parameters.Length > 0)
-                        {
-                            cmd.Parameters.AddRange(parameters);
-                        }
-
-                        return cmd.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Loi thuc thi: " + procedureName + "\nChi tiet: " + ex.Message);
-            }
-        }
 
         public static int ExecuteNonQueryWithReturn(string procedureName, params SqlParameter[] parameters)
         {
@@ -194,24 +169,5 @@ namespace QLThiTracNghiem
             }
         }
 
-        public static int ExecuteNonQueryDirect(string sql)
-        {
-            try
-            {
-                using (SqlConnection conn = GetConnection())
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        cmd.CommandType = CommandType.Text;
-                        return cmd.ExecuteNonQuery();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Loi thuc thi SQL:\n" + sql + "\nChi tiet: " + ex.Message);
-            }
-        }
     }
 }
