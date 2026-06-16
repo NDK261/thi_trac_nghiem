@@ -101,6 +101,7 @@ namespace QLThiTracNghiem
                 đăngKíThiToolStripMenuItem.Enabled = true;
                 xemKetQuaToolStripMenuItem.Enabled = true;
                 bảngĐiểmToolStripMenuItem.Enabled = true;
+                thiToolStripMenuItem.Enabled = true;
             }
             else if (nhom == "SINHVIEN")
             {

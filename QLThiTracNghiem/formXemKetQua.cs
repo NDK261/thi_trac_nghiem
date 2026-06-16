@@ -16,6 +16,44 @@ namespace QLThiTracNghiem
         public formXemKetQua()
         {
             InitializeComponent();
+            InitializeCustomControls();
+        }
+
+        private System.Windows.Forms.Button btnIn;
+        private void InitializeCustomControls()
+        {
+            this.btnIn = new System.Windows.Forms.Button();
+            this.btnIn.Location = new System.Drawing.Point(530, 17);
+            this.btnIn.Name = "btnIn";
+            this.btnIn.Size = new System.Drawing.Size(100, 30);
+            this.btnIn.Text = "In Báo Cáo";
+            this.btnIn.UseVisualStyleBackColor = true;
+            this.btnIn.Click += new System.EventHandler(this.btnIn_Click);
+            this.Controls.Add(this.btnIn);
+        }
+
+        private void btnIn_Click(object sender, EventArgs e)
+        {
+            if (dgvKetQua.DataSource == null || dgvKetQua.Rows.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu để in.", "Thông báo");
+                return;
+            }
+
+            DataTable dt = dgvKetQua.DataSource as DataTable;
+            if (dt == null) return;
+
+            var parameters = new System.Collections.Generic.List<Microsoft.Reporting.WinForms.ReportParameter>
+            {
+                new Microsoft.Reporting.WinForms.ReportParameter("pLop", lblLopValue.Text),
+                new Microsoft.Reporting.WinForms.ReportParameter("pHoTen", lblHoTenValue.Text),
+                new Microsoft.Reporting.WinForms.ReportParameter("pMonThi", lblMonThiValue.Text),
+                new Microsoft.Reporting.WinForms.ReportParameter("pNgayThi", lblNgayThiValue.Text),
+                new Microsoft.Reporting.WinForms.ReportParameter("pLanThi", lblLanThiValue.Text)
+            };
+
+            formReportViewer frm = new formReportViewer("QLThiTracNghiem.rptXemKetQua.rdlc", "dsXemKetQua", dt, parameters);
+            frm.ShowDialog();
         }
 
         public formXemKetQua(string masv, string mamh, int lan) : this()
@@ -71,7 +109,7 @@ namespace QLThiTracNghiem
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    // Sinh viên tự xem thì dùng MASV đang đăng nhập; giáo viên mở từ bảng điểm thì dùng MASV được truyền vào.
+                    // Giả sử Program.mUserName đang lưu MASV sau khi sinh viên đăng nhập
                     string masv = string.IsNullOrWhiteSpace(maSvDuocChon) ? Program.mUserName : maSvDuocChon;
                     cmd.Parameters.AddWithValue("@MASV", masv);
 
@@ -85,7 +123,7 @@ namespace QLThiTracNghiem
                         return;
                     }
 
-                    // Tạo cột phụ chỉ để ComboBox hiển thị kỳ thi dễ nhìn hơn.
+                    // Tạo cột hiển thị đẹp hơn cho ComboBox
                     if (!dtKyThi.Columns.Contains("HIENTHI"))
                         dtKyThi.Columns.Add("HIENTHI", typeof(string));
 
@@ -172,7 +210,7 @@ namespace QLThiTracNghiem
                         return;
                     }
 
-                    // Thông tin đầu form lấy từ dòng đầu vì các dòng chi tiết cùng một bài thi.
+                    // Đổ phần thông tin đầu form
                     lblMaSVValue.Text = dt.Rows[0]["MASV"].ToString().Trim();
                     lblHoTenValue.Text = dt.Rows[0]["HOTEN"].ToString().Trim();
                     lblLopValue.Text = dt.Rows[0]["LOP"].ToString().Trim();
@@ -187,7 +225,7 @@ namespace QLThiTracNghiem
 
                     dgvKetQua.DataSource = dt;
 
-                    // Các cột thông tin chung đã hiển thị ở đầu form nên ẩn khỏi lưới chi tiết.
+                    // Ẩn các cột header lặp lại
                     AnCotNeuCo("LOP");
                     AnCotNeuCo("HOTEN");
                     AnCotNeuCo("MASV");
@@ -196,7 +234,7 @@ namespace QLThiTracNghiem
                     AnCotNeuCo("LAN");
                     AnCotNeuCo("TRINHDO");
 
-                    // Đặt lại tiêu đề cột cho đúng ngôn ngữ người dùng.
+                    // Đặt tên cột
                     DatHeader("STT_HIENTHI", "STT");
                     DatHeader("CAUSO", "Câu số");
                     DatHeader("NOIDUNG", "Nội dung câu hỏi");

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema id="ReportDataSet"
+                  targetNamespace="http://tempuri.org/ReportDataSet.xsd"
+                  elementFormDefault="qualified"
+                  attributeFormDefault="qualified"
+                  xmlns="http://tempuri.org/ReportDataSet.xsd"
+                  xmlns:mstns="http://tempuri.org/ReportDataSet.xsd"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+  <xs:element name="ReportDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dtXemKetQua">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="STT" type="xs:int" minOccurs="0" />
+              <xs:element name="CAUSO" type="xs:int" minOccurs="0" />
+              <xs:element name="NOIDUNG" type="xs:string" minOccurs="0" />
+              <xs:element name="A" type="xs:string" minOccurs="0" />
+              <xs:element name="B" type="xs:string" minOccurs="0" />
+              <xs:element name="C" type="xs:string" minOccurs="0" />
+              <xs:element name="D" type="xs:string" minOccurs="0" />
+              <xs:element name="TRALOI" type="xs:string" minOccurs="0" />
+              <xs:element name="DAPAN" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="dtBangDiem">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="STT" type="xs:int" minOccurs="0" />
+              <xs:element name="MASV" type="xs:string" minOccurs="0" />
+              <xs:element name="HOTEN" type="xs:string" minOccurs="0" />
+              <xs:element name="DIEM" type="xs:double" minOccurs="0" />
+              <xs:element name="DIEMCHU" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
