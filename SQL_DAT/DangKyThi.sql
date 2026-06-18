@@ -22,7 +22,7 @@ BEGIN
 END
 GO
 
--- Kiem tra mot lich thi da co sinh vien cua lop do nop bai hay chua.
+-- Kiem tra lich thi da co diem hoac dang co bai thi tam hay chua.
 -- Form Dang Ky Thi dung SP nay de khoa sua/xoa truoc khi goi SP cap nhat.
 CREATE OR ALTER PROCEDURE [dbo].[SP_KIEMTRA_DANGKY_DA_CO_SV_THI]
     @MAMH NCHAR(5),
@@ -40,6 +40,15 @@ BEGIN
           AND SV.MALOP = @MALOP
           AND BD.LAN = @LAN
     )
+        SELECT 1 AS DaCoSinhVienThi;
+    ELSE IF OBJECT_ID(N'dbo.BAITHI_TAM', N'U') IS NOT NULL
+        AND EXISTS (
+            SELECT 1
+            FROM BAITHI_TAM BT
+            WHERE BT.MAMH = @MAMH
+              AND BT.MALOP = @MALOP
+              AND BT.LAN = @LAN
+        )
         SELECT 1 AS DaCoSinhVienThi;
     ELSE
         SELECT 0 AS DaCoSinhVienThi;
@@ -101,7 +110,7 @@ BEGIN
 END
 GO
 
--- Sua lich thi neu ca thi chua co sinh vien nop bai.
+-- Sua lich thi neu ca thi chua co diem hoac bai thi tam.
 CREATE OR ALTER PROCEDURE [dbo].[SP_SUA_DANGKYTHI]
     @MAGV NCHAR(8),
     @MAMH NCHAR(5),
@@ -117,7 +126,7 @@ BEGIN
 
     SET @TRINHDO = UPPER(LTRIM(RTRIM(@TRINHDO)));
 
-    -- Da co diem nghia la ca thi da duoc su dung, khong cho sua lai lich.
+    -- Da co diem hoac bai thi tam thi khong sua de tranh lech bai thi dang/da lam.
     IF EXISTS (
         SELECT 1
         FROM BANGDIEM BD
@@ -126,6 +135,16 @@ BEGIN
           AND BD.LAN = @LAN
           AND SV.MALOP = @MALOP
     )
+        RETURN 3;
+
+    IF OBJECT_ID(N'dbo.BAITHI_TAM', N'U') IS NOT NULL
+       AND EXISTS (
+           SELECT 1
+           FROM BAITHI_TAM BT
+           WHERE BT.MAMH = @MAMH
+             AND BT.MALOP = @MALOP
+             AND BT.LAN = @LAN
+       )
         RETURN 3;
 
     IF @TRINHDO NOT IN (N'A', N'B', N'C')
@@ -163,7 +182,7 @@ BEGIN
 END
 GO
 
--- Xoa lich thi neu chua co diem cua sinh vien trong lop do.
+-- Xoa lich thi neu chua co diem va chua co bai thi tam.
 CREATE OR ALTER PROCEDURE [dbo].[SP_XOA_DANGKYTHI]
     @MAMH NCHAR(5),
     @MALOP NCHAR(15),
@@ -172,7 +191,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Da co diem thi khong xoa lich, vi lich nay la thong tin goc cua bai thi.
+    -- Da co diem hoac bai thi tam thi khong xoa lich goc cua bai thi.
     IF EXISTS (
         SELECT 1
         FROM BANGDIEM BD
@@ -181,6 +200,16 @@ BEGIN
           AND BD.LAN = @LAN
           AND SV.MALOP = @MALOP
     )
+        RETURN 1;
+
+    IF OBJECT_ID(N'dbo.BAITHI_TAM', N'U') IS NOT NULL
+       AND EXISTS (
+           SELECT 1
+           FROM BAITHI_TAM BT
+           WHERE BT.MAMH = @MAMH
+             AND BT.MALOP = @MALOP
+             AND BT.LAN = @LAN
+       )
         RETURN 1;
 
     DELETE FROM GIAOVIEN_DANGKY
