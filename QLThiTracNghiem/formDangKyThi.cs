@@ -220,7 +220,7 @@ namespace QLThiTracNghiem
 
         private bool DangKyDaCoSinhVienThi(string maMH, string maLop, int lan)
         {
-            // Gọi SP để kiểm tra trong BANGDIEM: nếu đã có điểm thì ca thi đã được dùng.
+            // Có điểm hoặc bài thi tạm thì không được sửa/xóa lịch thi.
             object result = DBHelper.ExecuteScalar(
                 "SP_KIEMTRA_DANGKY_DA_CO_SV_THI",
                 new SqlParameter("@MAMH", maMH),
@@ -255,7 +255,7 @@ namespace QLThiTracNghiem
                     if (DangKyDaCoSinhVienThi(maMH, maLop, lan))
                     {
                         MessageBox.Show(
-                            "Không thể sửa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
+                            "Không thể sửa đăng ký thi này vì đã có sinh viên thi hoặc đang có bài thi tạm.",
                             "Không cho sửa",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Warning);
@@ -493,7 +493,7 @@ namespace QLThiTracNghiem
                 }
                 else if (result == 3)
                 {
-                    MessageBox.Show("Không thể sửa đăng ký thi này vì đã có sinh viên thi và có điểm.", "Báo lỗi");
+                    MessageBox.Show("Không thể sửa đăng ký thi này vì đã có sinh viên thi hoặc đang có bài thi tạm.", "Báo lỗi");
                 }
                 else if (result == 4)
                 {
@@ -558,7 +558,7 @@ namespace QLThiTracNghiem
             if (daCoSinhVienThi)
             {
                 MessageBox.Show(
-                    "Không thể xóa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.",
+                    "Không thể xóa đăng ký thi này vì đã có sinh viên thi hoặc đang có bài thi tạm.",
                     "Không cho xóa",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -584,7 +584,7 @@ namespace QLThiTracNghiem
 
                     if (result == 1)
                     {
-                        MessageBox.Show("Không thể xóa đăng ký thi này vì đã có sinh viên của lớp thi và có điểm.", "Báo lỗi");
+                        MessageBox.Show("Không thể xóa đăng ký thi này vì đã có sinh viên thi hoặc đang có bài thi tạm.", "Báo lỗi");
                     }
                     else
                     {
