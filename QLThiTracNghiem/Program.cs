@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
@@ -17,7 +17,7 @@ namespace QLThiTracNghiem
         public static string mLogin = "";  // Tên đăng nhập
 
         // Cấu hình SQL Server đang dùng trong SSMS.
-        public static string serverName = @".\SQLEXPRESS";
+        public static string serverName = @".";
         public static string dbName = "THITRACNGHIEM";
         public static string adminLogin = "sa";
         public static string adminPassword = "123";
