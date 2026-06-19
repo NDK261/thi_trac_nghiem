@@ -244,6 +244,17 @@ namespace QLThiTracNghiem
         {
             if (txtSoCauThi.Text == "") return;
 
+            // Kiểm tra quyền sở hữu ca thi trước khi sửa
+            if (dgvDangKy.CurrentRow != null)
+            {
+                string maGV = dgvDangKy.CurrentRow.Cells["MAGV"].Value.ToString().Trim();
+                if (Program.mGroup.Trim().ToUpper() != "PGV" && maGV != Program.mUserName.Trim())
+                {
+                    MessageBox.Show("Bạn không có quyền sửa lịch đăng ký thi của giảng viên khác!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
             try
             {
                 if (dgvDangKy.CurrentRow != null)
@@ -499,6 +510,14 @@ namespace QLThiTracNghiem
                 {
                     MessageBox.Show("Thông tin đăng ký thi không hợp lệ. Vui lòng kiểm tra ngày thi, số câu, thời gian, lần thi và trình độ.", "Báo lỗi");
                 }
+                else if (result == 5)
+                {
+                    MessageBox.Show("Lỗi: Thứ tự ngày thi không hợp lệ (Ngày thi lần 2 phải sau hoặc cùng ngày với lần 1)!", "Báo lỗi");
+                }
+                else if (result == 6)
+                {
+                    MessageBox.Show("Lỗi: Bạn không có quyền chỉnh sửa lịch đăng ký thi của giảng viên khác!", "Báo lỗi");
+                }
                 else
                 {
                     MessageBox.Show("Đăng ký thi thành công!", "Thông báo");
@@ -535,6 +554,17 @@ namespace QLThiTracNghiem
             {
                 MessageBox.Show("Vui lòng chọn dòng cần xóa trên lưới!", "Thông báo");
                 return;
+            }
+
+            // Kiểm tra quyền sở hữu ca thi của giảng viên trước khi hỏi xác nhận xóa
+            if (dgvDangKy.CurrentRow != null)
+            {
+                string maGV = dgvDangKy.CurrentRow.Cells["MAGV"].Value.ToString().Trim();
+                if (Program.mGroup.Trim().ToUpper() != "PGV" && maGV != Program.mUserName.Trim())
+                {
+                    MessageBox.Show("Bạn không có quyền xóa lịch đăng ký thi của giảng viên khác!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
             }
 
             // Lấy khóa chính của lịch đang chọn để xóa đúng dòng.
@@ -585,6 +615,10 @@ namespace QLThiTracNghiem
                     if (result == 1)
                     {
                         MessageBox.Show("Không thể xóa đăng ký thi này vì đã có sinh viên thi hoặc đang có bài thi tạm.", "Báo lỗi");
+                    }
+                    else if (result == 2)
+                    {
+                        MessageBox.Show("Lỗi: Bạn không có quyền xóa lịch đăng ký thi của giảng viên khác!", "Báo lỗi");
                     }
                     else
                     {

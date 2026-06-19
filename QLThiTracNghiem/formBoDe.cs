@@ -473,7 +473,7 @@ namespace QLThiTracNghiem
                 return;
             }
 
-            if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
+            if (Program.mGroup.Trim().ToUpper() != "PGV" && txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
                 MessageBox.Show("Bạn không có quyền xóa câu hỏi của người khác!", "Cảnh báo");
                 return;
@@ -522,7 +522,7 @@ namespace QLThiTracNghiem
             }
 
             // Form kiểm tra trước, SP vẫn kiểm tra lại ở database.
-            if (txtMaGV.Text.Trim() != Program.mUserName.Trim())
+            if (Program.mGroup.Trim().ToUpper() != "PGV" && txtMaGV.Text.Trim() != Program.mUserName.Trim())
             {
                 MessageBox.Show("Bạn không có quyền sửa câu hỏi của người khác!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;

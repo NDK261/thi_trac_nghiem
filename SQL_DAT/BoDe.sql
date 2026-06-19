@@ -99,8 +99,13 @@ BEGIN
     SET @C = LTRIM(RTRIM(@C));
     SET @D = LTRIM(RTRIM(@D));
 
-    IF NOT EXISTS (SELECT 1 FROM BODE WHERE CAUHOI = @CAUHOI AND MAGV = @MAGV)
-        RETURN 2;
+    -- NÂNG CẤP BẢO MẬT: Chỉ chặn nếu KHÔNG PHẢI PGV và KHÔNG PHẢI người soạn câu hỏi
+    IF IS_MEMBER(N'PGV') = 0 
+       AND IS_SRVROLEMEMBER(N'sysadmin') = 0
+       AND NOT EXISTS (SELECT 1 FROM BODE WHERE CAUHOI = @CAUHOI AND MAGV = @MAGV)
+    BEGIN
+        RETURN 2; -- Không có quyền
+    END
 
     -- Cau da nam trong bai thi that thi giu nguyen de khong lam sai lich su bai lam.
     IF OBJECT_ID(N'dbo.CT_BAITHI', N'U') IS NOT NULL
@@ -168,8 +173,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT 1 FROM BODE WHERE CAUHOI = @CAUHOI AND MAGV = @MAGV)
-        RETURN 2;
+    -- NÂNG CẤP BẢO MẬT: Chỉ chặn nếu KHÔNG PHẢI PGV và KHÔNG PHẢI người soạn câu hỏi
+    IF IS_MEMBER(N'PGV') = 0 
+       AND IS_SRVROLEMEMBER(N'sysadmin') = 0
+       AND NOT EXISTS (SELECT 1 FROM BODE WHERE CAUHOI = @CAUHOI AND MAGV = @MAGV)
+    BEGIN
+        RETURN 2; -- Không có quyền
+    END
 
     -- Cau da nam trong bai thi that thi giu nguyen de khong lam sai lich su bai lam.
     IF OBJECT_ID(N'dbo.CT_BAITHI', N'U') IS NOT NULL

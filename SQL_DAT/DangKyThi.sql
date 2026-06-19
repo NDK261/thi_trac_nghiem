@@ -87,6 +87,30 @@ BEGIN
     )
         RETURN 1;
 
+    -- Kiểm tra ràng buộc ngày thi lần 1 và lần 2
+    IF @LAN = 2
+    BEGIN
+        DECLARE @NgayThiLan1 DATETIME;
+        SELECT @NgayThiLan1 = NGAYTHI 
+        FROM GIAOVIEN_DANGKY 
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = 1;
+
+        IF @NgayThiLan1 IS NULL
+            RETURN 5; -- Lần 1 chưa đăng ký
+        IF CAST(@NGAYTHI AS DATE) < CAST(@NgayThiLan1 AS DATE)
+            RETURN 5; -- Ngày thi lần 2 phải sau hoặc cùng ngày với lần 1
+    END
+    ELSE IF @LAN = 1
+    BEGIN
+        DECLARE @NgayThiLan2 DATETIME;
+        SELECT @NgayThiLan2 = NGAYTHI 
+        FROM GIAOVIEN_DANGKY 
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = 2;
+
+        IF @NgayThiLan2 IS NOT NULL AND CAST(@NGAYTHI AS DATE) > CAST(@NgayThiLan2 AS DATE)
+            RETURN 5; -- Ngày thi lần 1 phải trước hoặc cùng ngày với lần 2
+    END
+
     DECLARE @SoCauChinhCanCo INT = CEILING(@SOCAUTHI * 0.7);
 
     DECLARE @SoCauA INT = (SELECT COUNT(*) FROM BODE WHERE MAMH = @MAMH AND TRINHDO = N'A');
@@ -125,6 +149,45 @@ BEGIN
     SET NOCOUNT ON;
 
     SET @TRINHDO = UPPER(LTRIM(RTRIM(@TRINHDO)));
+
+    -- NÂNG CẤP BẢO MẬT: Chỉ PGV hoặc chính giảng viên đã đăng ký ca thi này mới được sửa
+    DECLARE @MAGV_CURRENT NCHAR(8);
+    SET @MAGV_CURRENT = LEFT(USER_NAME() + REPLICATE(N' ', 8), 8);
+
+    IF IS_MEMBER(N'PGV') = 0 
+       AND IS_SRVROLEMEMBER(N'sysadmin') = 0
+       AND NOT EXISTS (
+           SELECT 1 
+           FROM GIAOVIEN_DANGKY 
+           WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN AND RTRIM(MAGV) = RTRIM(@MAGV_CURRENT)
+       )
+    BEGIN
+        RETURN 6; -- Không có quyền sửa
+    END
+
+    -- Kiểm tra ràng buộc ngày thi lần 1 và lần 2
+    IF @LAN = 2
+    BEGIN
+        DECLARE @NgayThiLan1 DATETIME;
+        SELECT @NgayThiLan1 = NGAYTHI 
+        FROM GIAOVIEN_DANGKY 
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = 1;
+
+        IF @NgayThiLan1 IS NULL
+            RETURN 5; -- Lần 1 chưa đăng ký
+        IF CAST(@NGAYTHI AS DATE) < CAST(@NgayThiLan1 AS DATE)
+            RETURN 5; -- Ngày thi lần 2 phải sau hoặc cùng ngày với lần 1
+    END
+    ELSE IF @LAN = 1
+    BEGIN
+        DECLARE @NgayThiLan2 DATETIME;
+        SELECT @NgayThiLan2 = NGAYTHI 
+        FROM GIAOVIEN_DANGKY 
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = 2;
+
+        IF @NgayThiLan2 IS NOT NULL AND CAST(@NGAYTHI AS DATE) > CAST(@NgayThiLan2 AS DATE)
+            RETURN 5; -- Ngày thi lần 1 phải trước hoặc cùng ngày với lần 2
+    END
 
     -- Da co diem hoac bai thi tam thi khong sua de tranh lech bai thi dang/da lam.
     IF EXISTS (
@@ -190,6 +253,21 @@ CREATE OR ALTER PROCEDURE [dbo].[SP_XOA_DANGKYTHI]
 AS
 BEGIN
     SET NOCOUNT ON;
+
+    -- NÂNG CẤP BẢO MẬT: Chỉ PGV hoặc chính giảng viên đã đăng ký ca thi này mới được xóa
+    DECLARE @MAGV_CURRENT NCHAR(8);
+    SET @MAGV_CURRENT = LEFT(USER_NAME() + REPLICATE(N' ', 8), 8);
+
+    IF IS_MEMBER(N'PGV') = 0 
+       AND IS_SRVROLEMEMBER(N'sysadmin') = 0
+       AND NOT EXISTS (
+           SELECT 1 
+           FROM GIAOVIEN_DANGKY 
+           WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN AND RTRIM(MAGV) = RTRIM(@MAGV_CURRENT)
+       )
+    BEGIN
+        RETURN 2; -- Không có quyền xóa
+    END
 
     -- Da co diem hoac bai thi tam thi khong xoa lich goc cua bai thi.
     IF EXISTS (
