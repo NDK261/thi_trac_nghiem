@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -490,7 +490,7 @@ namespace QLThiTracNghiem
 
         private void LuuTrangThaiBaiThiTam(bool hienThongBaoLoi)
         {
-            if (laThiThuGiaoVien) return;
+            
             if (danhSachCauHoi.Count == 0 || string.IsNullOrWhiteSpace(maMon)) return;
 
             try
@@ -512,7 +512,7 @@ namespace QLThiTracNghiem
 
         private void LuuDapAnTam(int index)
         {
-            if (laThiThuGiaoVien) return;
+            
             if (index < 0 || index >= danhSachCauHoi.Count || string.IsNullOrWhiteSpace(maMon)) return;
 
             try
@@ -537,7 +537,7 @@ namespace QLThiTracNghiem
 
         private void XoaBaiThiTam()
         {
-            if (laThiThuGiaoVien) return;
+            
             if (string.IsNullOrWhiteSpace(maMon)) return;
 
             DBHelper.ExecuteNonQueryWithReturn(
@@ -719,67 +719,9 @@ namespace QLThiTracNghiem
             return string.Equals((Program.mGroup ?? "").Trim(), "GIANGVIEN", StringComparison.OrdinalIgnoreCase);
         }
 
-        private void LoadThiThuGiaoVien()
-        {
-            laThiThuGiaoVien = true;
-            tongSoCau = 10;
+        
 
-            lblHoTen.Text = "Giáo viên: " + Program.mHoTen;
-            lblTenLop.Text = "Chế độ: Thi thử";
-            lblMaLop.Text = "Không ghi điểm";
-            lblLanThi.Text = "Trình độ:";
-            lblNgayThi.Visible = false;
-            dtpNgayThi.Visible = false;
-
-            cmbMonThi.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbLanThi.DropDownStyle = ComboBoxStyle.DropDownList;
-
-            DataTable dtMon = DBHelper.GetDataTable("EXEC dbo.SP_GET_MONHOC");
-            cmbMonThi.DataSource = dtMon;
-            cmbMonThi.DisplayMember = "TENMH";
-            cmbMonThi.ValueMember = "MAMH";
-
-            cmbLanThi.Items.Clear();
-            cmbLanThi.Items.AddRange(new object[] { "A", "B", "C" });
-
-            bool coMonHoc = dtMon.Rows.Count > 0;
-            cmbMonThi.Enabled = coMonHoc;
-            cmbLanThi.Enabled = coMonHoc;
-            btnBatDau.Enabled = coMonHoc;
-
-            if (coMonHoc)
-            {
-                cmbMonThi.SelectedIndex = 0;
-                cmbLanThi.SelectedIndex = 0;
-            }
-            else
-            {
-                lblThongTinLichThi.Text = "Chưa có môn học để thi thử.";
-            }
-
-            btnCauTruoc.Enabled = false;
-            btnCauSau.Enabled = false;
-            btnNopBai.Enabled = false;
-            groupBox1.Enabled = false;
-
-            CapNhatThongTinThiThu();
-        }
-
-        private void CapNhatThongTinThiThu()
-        {
-            if (!laThiThuGiaoVien) return;
-
-            bool hopLe = cmbMonThi.SelectedValue != null && !string.IsNullOrWhiteSpace(cmbLanThi.Text);
-            btnBatDau.Enabled = hopLe;
-
-            if (!hopLe)
-            {
-                lblThongTinLichThi.Text = "Chọn môn học và trình độ để thi thử.";
-                return;
-            }
-
-            lblThongTinLichThi.Text = $"Thi thử không ghi điểm | Trình độ: {cmbLanThi.Text} | Số câu: 10 | Thời gian: 15 phút";
-        }
+        
 
         private void BatDauThiThuGiaoVien()
         {
@@ -832,58 +774,77 @@ namespace QLThiTracNghiem
 
         private void formThi_Load(object sender, EventArgs e)
         {
-            if (LaGiaoVien())
-            {
-                LoadThiThuGiaoVien();
-                return;
-            }
+            lblHoTen.Text = (LaGiaoVien() ? "Giáo viên: " : "Họ Tên SV: ") + Program.mHoTen;
 
-            // Hiển thị sinh viên đang đăng nhập.
-            lblHoTen.Text = "Họ Tên SV: " + Program.mHoTen;
-
-            // Mới mở form chỉ cho chọn ca thi.
             btnCauTruoc.Enabled = false;
             btnCauSau.Enabled = false;
             btnNopBai.Enabled = false;
             groupBox1.Enabled = false;
             DatTrangThaiHienThiBaiThi(false);
 
-            // Lấy lớp của sinh viên để lọc đúng lịch thi.
-            DataTable dtSV = DBHelper.ExecuteDataTable(
-                "SP_GET_LOP_CUA_SINHVIEN",
-                new SqlParameter("@MASV", Program.mUserName));
-
-            if (dtSV.Rows.Count > 0)
+            if (LaGiaoVien())
             {
-                maLop = dtSV.Rows[0]["MALOP"].ToString().Trim();
-                lblMaLop.Text = maLop;
-                lblTenLop.Text = "Tên Lớp: " + dtSV.Rows[0]["TENLOP"].ToString();
+                laThiThuGiaoVien = true;
+                
+                cmbLop = new ComboBox();
+                cmbLop.Location = new System.Drawing.Point(lblTenLop.Location.X + 60, lblTenLop.Location.Y - 2);
+                cmbLop.Size = new System.Drawing.Size(250, 25);
+                cmbLop.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbLop.SelectedIndexChanged += cmbLop_SelectedIndexChanged;
+                this.Controls.Add(cmbLop);
+                cmbLop.BringToFront();
+
+                lblTenLop.Text = "Chọn Lớp:";
+                lblMaLop.Visible = false;
+
+                DataTable dtLop = DBHelper.GetDataTable("SELECT MALOP, TENLOP FROM LOP");
+                cmbLop.DataSource = dtLop;
+                cmbLop.DisplayMember = "TENLOP";
+                cmbLop.ValueMember = "MALOP";
+
+                ApDungGioiHanNgayThi();
+                dtpNgayThi.Enabled = true;
+                lblNgayThi.Text = "Ngày thi:";
             }
             else
             {
-                MessageBox.Show("Không tìm thấy thông tin lớp của sinh viên đang đăng nhập!", "Báo lỗi");
-                btnBatDau.Enabled = false;
-                return;
+                DataTable dtSV = DBHelper.ExecuteDataTable(
+                    "SP_GET_LOP_CUA_SINHVIEN",
+                    new SqlParameter("@MASV", Program.mUserName));
+
+                if (dtSV.Rows.Count > 0)
+                {
+                    maLop = dtSV.Rows[0]["MALOP"].ToString().Trim();
+                    lblMaLop.Text = maLop;
+                    lblTenLop.Text = "Tên Lớp: " + dtSV.Rows[0]["TENLOP"].ToString();
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy thông tin lớp của sinh viên đang đăng nhập!", "Báo lỗi");
+                    btnBatDau.Enabled = false;
+                    return;
+                }
+
+                ApDungGioiHanNgayThi();
+                dtpNgayThi.Enabled = true;
+                lblNgayThi.Text = "Ngày thi:";
+
+                if (KiemTraVaKhoiPhucBaiThiTam())
+                {
+                    return;
+                }
+
+                LoadMonThiTheoNgayDaChon();
             }
+        }
 
-            // Sinh viên chọn ngày thi bằng DateTimePicker, chỉ chọn từ ngày mai trở đi.
-            ApDungGioiHanNgayThi();
-            dtpNgayThi.Enabled = true;
-            lblNgayThi.Text = "Ngày thi:";
-
-            if (KiemTraVaKhoiPhucBaiThiTam())
+        private void cmbLop_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbLop.SelectedValue != null)
             {
-                return;
+                maLop = cmbLop.SelectedValue.ToString().Trim();
+                LoadMonThiTheoNgayDaChon();
             }
-
-            LoadMonThiTheoNgayDaChon();
-
-            // Chưa có đề thì chưa mở phần làm bài.
-            btnCauTruoc.Enabled = false;
-            btnCauSau.Enabled = false;
-            btnNopBai.Enabled = false;
-            groupBox1.Enabled = false;
-            DatTrangThaiHienThiBaiThi(false);
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
@@ -893,11 +854,7 @@ namespace QLThiTracNghiem
 
         private void cmbMonThi_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (laThiThuGiaoVien)
-            {
-                CapNhatThongTinThiThu();
-                return;
-            }
+            
 
             if (!string.IsNullOrWhiteSpace(maLop))
                 LoadLanThiChuaThi();
@@ -905,19 +862,14 @@ namespace QLThiTracNghiem
 
         private void cmbLanThi_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (laThiThuGiaoVien)
-            {
-                CapNhatThongTinThiThu();
-                return;
-            }
+            
 
             CapNhatThongTinLichThi();
         }
 
         private void dtpNgayThi_ValueChanged(object sender, EventArgs e)
         {
-            if (laThiThuGiaoVien)
-                return;
+            
 
             if (!string.IsNullOrWhiteSpace(maLop))
                 LoadMonThiTheoNgayDaChon();
@@ -1182,11 +1134,7 @@ namespace QLThiTracNghiem
         {
             try
             {
-                if (laThiThuGiaoVien)
-                {
-                    BatDauThiThuGiaoVien();
-                    return;
-                }
+                
 
                 if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
                 {
