@@ -435,6 +435,7 @@ namespace QLThiTracNghiem
 
         private void TaoBaiThiTam()
         {
+            if (laThiThuGiaoVien) return;
             using (SqlConnection conn = DBHelper.GetConnection())
             {
                 conn.Open();
@@ -491,6 +492,7 @@ namespace QLThiTracNghiem
 
         private void LuuTrangThaiBaiThiTam(bool hienThongBaoLoi)
         {
+            if (laThiThuGiaoVien) return;
             
             if (danhSachCauHoi.Count == 0 || string.IsNullOrWhiteSpace(maMon)) return;
 
@@ -513,6 +515,7 @@ namespace QLThiTracNghiem
 
         private void LuuDapAnTam(int index)
         {
+            if (laThiThuGiaoVien) return;
             
             if (index < 0 || index >= danhSachCauHoi.Count || string.IsNullOrWhiteSpace(maMon)) return;
 
@@ -538,6 +541,7 @@ namespace QLThiTracNghiem
 
         private void XoaBaiThiTam()
         {
+            if (laThiThuGiaoVien) return;
             
             if (string.IsNullOrWhiteSpace(maMon)) return;
 
@@ -1151,7 +1155,7 @@ namespace QLThiTracNghiem
                 // Ghi điểm theo ngày đã chọn, không theo ngày hệ thống.
                 ngayThiDangThi = ngayThi;
 
-                if (DaThi(maMon, lanThi))
+                if (!laThiThuGiaoVien && DaThi(maMon, lanThi))
                 {
                     MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     LoadMonThiTheoNgayDaChon();
@@ -1159,7 +1163,7 @@ namespace QLThiTracNghiem
                 }
 
                 // Lần 2 chỉ được thi sau khi đã có điểm lần 1.
-                if (lanThi == 2 && !DaThi(maMon, 1))
+                if (!laThiThuGiaoVien && lanThi == 2 && !DaThi(maMon, 1))
                 {
                     MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
