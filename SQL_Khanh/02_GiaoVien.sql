@@ -92,6 +92,11 @@ CREATE PROCEDURE dbo.SP_THEM_GIAOVIEN
     @SODTLL NVARCHAR(50) = NULL,
     @DIACHI NVARCHAR(200) = NULL
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu đầu vào không hợp lệ (trống, chứa ký tự lạ, sai định dạng) hoặc Mã Giáo viên đã tồn tại
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -140,6 +145,12 @@ GO
 CREATE PROCEDURE dbo.SP_KHOIPHUC_GIAOVIEN
     @MAGV NVARCHAR(50)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu không hợp lệ, hoặc không tìm thấy Giáo viên đã nghỉ việc để khôi phục, hoặc lỗi hệ thống
+  2: Cảnh báo: Đã khôi phục trạng thái Giáo viên nhưng không tìm thấy tài khoản Login để mở khóa
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -201,6 +212,11 @@ CREATE PROCEDURE dbo.SP_SUA_GIAOVIEN
     @SODTLL NVARCHAR(50) = NULL,
     @DIACHI NVARCHAR(200) = NULL
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu đầu vào không hợp lệ, hoặc Không tìm thấy Giáo viên cần sửa
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -253,6 +269,13 @@ GO
 CREATE PROCEDURE dbo.SP_XOA_GIAOVIEN
     @MAGV NVARCHAR(50)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu không hợp lệ, Không tìm thấy Giáo viên cần xóa, hoặc Lỗi hệ thống
+  2: Cảnh báo (Xóa logic): Giáo viên đã có dữ liệu ràng buộc (Bộ đề/Đăng ký thi) nên chỉ khóa tài khoản và đổi trạng thái về 0
+  3: Lỗi bảo mật: Không được phép tự xóa tài khoản của chính mình đang đăng nhập
+  0: Thành công (Xóa vật lý)
+*/
 BEGIN
     SET NOCOUNT ON;
 

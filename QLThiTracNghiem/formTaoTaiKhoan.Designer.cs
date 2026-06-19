@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formTaoTaiKhoan
     {
@@ -40,6 +40,9 @@
             this.label5 = new System.Windows.Forms.Label();
             this.cmbGiaoVien = new System.Windows.Forms.ComboBox();
             this.cmbNhomQuyen = new System.Windows.Forms.ComboBox();
+            this.rdoTaoTaiKhoan = new System.Windows.Forms.RadioButton();
+            this.rdoXoaTaiKhoan = new System.Windows.Forms.RadioButton();
+            this.btnXoaTaiKhoan = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // txtMaGV
@@ -74,9 +77,21 @@
             this.btnTaoTaiKhoan.UseVisualStyleBackColor = true;
             this.btnTaoTaiKhoan.Click += new System.EventHandler(this.btnTaoTaiKhoan_Click);
             // 
+            // 
+            // btnXoaTaiKhoan
+            // 
+            this.btnXoaTaiKhoan.Location = new System.Drawing.Point(357, 314);
+            this.btnXoaTaiKhoan.Name = "btnXoaTaiKhoan";
+            this.btnXoaTaiKhoan.Size = new System.Drawing.Size(136, 39);
+            this.btnXoaTaiKhoan.TabIndex = 14;
+            this.btnXoaTaiKhoan.Text = "Xóa tài khoản";
+            this.btnXoaTaiKhoan.UseVisualStyleBackColor = true;
+            this.btnXoaTaiKhoan.Click += new System.EventHandler(this.btnXoaTaiKhoan_Click);
+            this.btnXoaTaiKhoan.Visible = false;
+            // 
             // btnThoat
             // 
-            this.btnThoat.Location = new System.Drawing.Point(459, 314);
+            this.btnThoat.Location = new System.Drawing.Point(499, 314);
             this.btnThoat.Name = "btnThoat";
             this.btnThoat.Size = new System.Drawing.Size(98, 39);
             this.btnThoat.TabIndex = 6;
@@ -146,11 +161,37 @@
             this.cmbNhomQuyen.Size = new System.Drawing.Size(176, 28);
             this.cmbNhomQuyen.TabIndex = 11;
             // 
+            // rdoTaoTaiKhoan
+            // 
+            this.rdoTaoTaiKhoan.AutoSize = true;
+            this.rdoTaoTaiKhoan.Checked = true;
+            this.rdoTaoTaiKhoan.Location = new System.Drawing.Point(234, 12);
+            this.rdoTaoTaiKhoan.Name = "rdoTaoTaiKhoan";
+            this.rdoTaoTaiKhoan.Size = new System.Drawing.Size(132, 24);
+            this.rdoTaoTaiKhoan.TabIndex = 15;
+            this.rdoTaoTaiKhoan.TabStop = true;
+            this.rdoTaoTaiKhoan.Text = "Tạo tài khoản";
+            this.rdoTaoTaiKhoan.UseVisualStyleBackColor = true;
+            this.rdoTaoTaiKhoan.CheckedChanged += new System.EventHandler(this.rdoChucNang_CheckedChanged);
+            // 
+            // rdoXoaTaiKhoan
+            // 
+            this.rdoXoaTaiKhoan.AutoSize = true;
+            this.rdoXoaTaiKhoan.Location = new System.Drawing.Point(423, 12);
+            this.rdoXoaTaiKhoan.Name = "rdoXoaTaiKhoan";
+            this.rdoXoaTaiKhoan.Size = new System.Drawing.Size(133, 24);
+            this.rdoXoaTaiKhoan.TabIndex = 16;
+            this.rdoXoaTaiKhoan.Text = "Xóa tài khoản";
+            this.rdoXoaTaiKhoan.UseVisualStyleBackColor = true;
+            this.rdoXoaTaiKhoan.CheckedChanged += new System.EventHandler(this.rdoChucNang_CheckedChanged);
+            // 
             // formTaoTaiKhoan
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.rdoXoaTaiKhoan);
+            this.Controls.Add(this.rdoTaoTaiKhoan);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.cmbNhomQuyen);
@@ -159,6 +200,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnThoat);
+            this.Controls.Add(this.btnXoaTaiKhoan);
             this.Controls.Add(this.btnTaoTaiKhoan);
             this.Controls.Add(this.txtMatKhau);
             this.Controls.Add(this.txtTaiKhoan);
@@ -184,5 +226,8 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox cmbGiaoVien;
         private System.Windows.Forms.ComboBox cmbNhomQuyen;
+        private System.Windows.Forms.RadioButton rdoTaoTaiKhoan;
+        private System.Windows.Forms.RadioButton rdoXoaTaiKhoan;
+        private System.Windows.Forms.Button btnXoaTaiKhoan;
     }
 }

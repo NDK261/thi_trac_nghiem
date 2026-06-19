@@ -57,6 +57,11 @@ CREATE PROCEDURE dbo.SP_THEM_LOP
     @MALOP NVARCHAR(50),
     @TENLOP NVARCHAR(100)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu không hợp lệ, Mã Lớp đã tồn tại, hoặc Tên Lớp đã tồn tại
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -96,6 +101,11 @@ CREATE PROCEDURE dbo.SP_SUA_LOP
     @MALOP NVARCHAR(50),
     @TENLOP NVARCHAR(100)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu không hợp lệ, Không tìm thấy Lớp cần sửa, hoặc Tên Lớp mới bị trùng với một Lớp khác
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -136,6 +146,11 @@ GO
 CREATE PROCEDURE dbo.SP_XOA_LOP
     @MALOP NVARCHAR(50)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Lỗi dữ liệu không hợp lệ, Không tìm thấy Lớp cần xóa, hoặc Không thể xóa vì Lớp đang chứa Sinh viên / Lịch thi
+  0: Thành công (Xóa vật lý)
+*/
 BEGIN
     SET NOCOUNT ON;
 

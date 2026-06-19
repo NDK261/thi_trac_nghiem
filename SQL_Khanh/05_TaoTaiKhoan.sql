@@ -11,6 +11,19 @@ CREATE PROCEDURE dbo.SP_TAOLOGIN
     @USERNAME NVARCHAR(50),
     @ROLE NVARCHAR(30)
 AS
+/*
+QUY ƯỚC MÃ LỖI (RETURN CODES):
+  1: Tên đăng nhập trống
+  2: Mật khẩu trống
+  3: Tên User (Mã GV) trống hoặc vượt quá 8 ký tự
+  4: Nhóm quyền (Role) truyền vào không hợp lệ
+  5: Không tìm thấy Giáo viên đang hoạt động
+  6: Tên Login đã tồn tại trên Server
+  7: Tên User đã tồn tại dưới Database
+  8: Nhóm quyền (Role) chưa được tạo trong hệ thống
+ 99: Lỗi Hệ thống: Tham số vượt quá chiều dài hoặc Giao dịch tạo tài khoản thất bại
+  0: Thành công
+*/
 BEGIN
     SET NOCOUNT ON;
 
@@ -118,5 +131,71 @@ BEGIN
     WHERE dp.name IS NULL
       AND gv.TRANGTHAI = 1
     ORDER BY gv.TEN, gv.HO, gv.MAGV;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SP_GET_GIAOVIEN_CO_TAIKHOAN
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        MAGV = RTRIM(gv.MAGV),
+        HOTEN = LTRIM(RTRIM(ISNULL(gv.HO, N''))) + N' ' + LTRIM(RTRIM(ISNULL(gv.TEN, N'')))
+    FROM dbo.GIAOVIEN AS gv
+    INNER JOIN sys.database_principals AS dp
+        ON dp.name = RTRIM(gv.MAGV)
+    WHERE gv.TRANGTHAI = 1
+    ORDER BY gv.TEN, gv.HO, gv.MAGV;
+END
+GO
+
+CREATE OR ALTER PROCEDURE dbo.SP_XOALOGIN
+    @USERNAME NVARCHAR(50)
+AS
+/*
+RETURN CODES:
+  1: Tên User truyền vào trống
+  2: Không tìm thấy User dưới Database
+  3: Không thể xóa chính mình đang đăng nhập
+ 99: Lỗi hệ thống
+  0: Thành công
+*/
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @USERNAME_CHUAN NCHAR(8);
+    DECLARE @LGNAME SYSNAME;
+    DECLARE @SQL NVARCHAR(MAX);
+
+    SET @USERNAME = LTRIM(RTRIM(ISNULL(@USERNAME, N'')));
+    IF @USERNAME = N'' RETURN 1;
+
+    SET @USERNAME_CHUAN = LEFT(@USERNAME + REPLICATE(N' ', 8), 8);
+
+    IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = RTRIM(@USERNAME_CHUAN))
+        RETURN 2;
+
+    -- Lấy Login name tương ứng với Database user
+    SELECT @LGNAME = suser_sname(sid)
+    FROM sys.database_principals
+    WHERE name = RTRIM(@USERNAME_CHUAN);
+
+    -- Không cho phép xóa chính mình
+    IF SUSER_SNAME() = @LGNAME
+        RETURN 3;
+
+    BEGIN TRY
+        SET @SQL = N'DROP USER ' + QUOTENAME(RTRIM(@USERNAME_CHUAN)) + N';';
+        EXEC (@SQL);
+
+        SET @SQL = N'DROP LOGIN ' + QUOTENAME(@LGNAME) + N';';
+        EXEC (@SQL);
+
+        RETURN 0;
+    END TRY
+    BEGIN CATCH
+        RETURN 99;
+    END CATCH
 END
 GO

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -46,6 +46,35 @@ namespace QLThiTracNghiem
             }
         }
 
+        private void LoadGiaoVienCoTaiKhoan()
+        {
+            try
+            {
+                System.Data.DataTable dtGV = DBHelper.GetDataTable("EXEC dbo.SP_GET_GIAOVIEN_CO_TAIKHOAN");
+                cmbGiaoVien.DataSource = dtGV;
+                cmbGiaoVien.DisplayMember = "HOTEN";
+                cmbGiaoVien.ValueMember = "MAGV";
+
+                if (dtGV.Rows.Count == 0)
+                {
+                    txtMaGV.Clear();
+                    cmbGiaoVien.Enabled = false;
+                    btnXoaTaiKhoan.Enabled = false;
+                    MessageBox.Show("Chưa có giáo viên nào được cấp tài khoản.", "Thông báo");
+                }
+                else
+                {
+                    cmbGiaoVien.Enabled = true;
+                    btnXoaTaiKhoan.Enabled = true;
+                    cmbGiaoVien.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải danh sách giáo viên đã có tài khoản: " + ex.Message);
+            }
+        }
+
         private void formTaoTaiKhoan_Load(object sender, EventArgs e)
         {
             try
@@ -54,7 +83,7 @@ namespace QLThiTracNghiem
                 cmbNhomQuyen.Items.Add("GIANGVIEN");
                 cmbNhomQuyen.SelectedIndex = 1;
 
-                LoadGiaoVienChuaCoTaiKhoan();
+                rdoChucNang_CheckedChanged(null, null);
             }
             catch (Exception ex)
             {
@@ -198,6 +227,99 @@ namespace QLThiTracNghiem
         private void btnThoat_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void rdoChucNang_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdoTaoTaiKhoan.Checked)
+            {
+                label4.Text = "Giáo viên chưa có tài khoản";
+                btnTaoTaiKhoan.Visible = true;
+                btnXoaTaiKhoan.Visible = false;
+                txtTaiKhoan.Enabled = true;
+                txtMatKhau.Enabled = true;
+                cmbNhomQuyen.Enabled = true;
+                
+                txtTaiKhoan.Text = "";
+                txtMatKhau.Text = "";
+                
+                LoadGiaoVienChuaCoTaiKhoan();
+            }
+            else if (rdoXoaTaiKhoan.Checked)
+            {
+                label4.Text = "Giáo viên đã có tài khoản";
+                btnTaoTaiKhoan.Visible = false;
+                btnXoaTaiKhoan.Visible = true;
+                txtTaiKhoan.Enabled = false;
+                txtMatKhau.Enabled = false;
+                cmbNhomQuyen.Enabled = false;
+                
+                txtTaiKhoan.Text = "(Tài khoản sẽ bị xóa)";
+                txtMatKhau.Text = "(Mật khẩu sẽ bị xóa)";
+                
+                LoadGiaoVienCoTaiKhoan();
+            }
+        }
+
+        private void btnXoaTaiKhoan_Click(object sender, EventArgs e)
+        {
+            if (txtMaGV.Text.Trim() == "")
+            {
+                MessageBox.Show("Vui lòng chọn Giảng viên cần xóa tài khoản!", "Báo lỗi");
+                return;
+            }
+
+            string userName = txtMaGV.Text.Trim(); // Mã GV
+
+            DialogResult dr = MessageBox.Show($"Bạn có chắc chắn muốn xóa tài khoản của Giảng viên có mã {userName} không?", 
+                "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (dr != DialogResult.Yes) return;
+
+            try
+            {
+                using (System.Data.SqlClient.SqlConnection conn = DBHelper.GetConnection())
+                {
+                    conn.Open();
+                    using (System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand("SP_XOALOGIN", conn))
+                    {
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@USERNAME", userName);
+
+                        System.Data.SqlClient.SqlParameter returnValue = new System.Data.SqlClient.SqlParameter();
+                        returnValue.Direction = System.Data.ParameterDirection.ReturnValue;
+                        cmd.Parameters.Add(returnValue);
+
+                        cmd.ExecuteNonQuery();
+
+                        int result = (int)returnValue.Value;
+
+                        switch (result)
+                        {
+                            case 0:
+                                MessageBox.Show("Xóa tài khoản thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                LoadGiaoVienCoTaiKhoan();
+                                break;
+                            case 1:
+                                MessageBox.Show("Tên User truyền vào trống!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case 2:
+                                MessageBox.Show("Không tìm thấy User dưới Database!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case 3:
+                                MessageBox.Show("Không thể xóa chính tài khoản đang đăng nhập!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            default:
+                                MessageBox.Show("Xóa tài khoản thất bại. Mã lỗi từ SQL Server: " + result, "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi trong quá trình xóa tài khoản:\n" + ex.Message, "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
