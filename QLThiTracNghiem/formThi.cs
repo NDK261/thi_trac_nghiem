@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -47,6 +47,7 @@ namespace QLThiTracNghiem
         int demGiayLuuTam = 0;
         bool dangLamBaiHienThi = false;
         bool laThiThuGiaoVien = false;
+        private ComboBox cmbLop;
 
         public formThi()
         {
