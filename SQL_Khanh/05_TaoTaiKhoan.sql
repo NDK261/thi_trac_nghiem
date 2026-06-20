@@ -141,10 +141,16 @@ BEGIN
 
     SELECT
         MAGV = RTRIM(gv.MAGV),
-        HOTEN = LTRIM(RTRIM(ISNULL(gv.HO, N''))) + N' ' + LTRIM(RTRIM(ISNULL(gv.TEN, N'')))
+        HOTEN = LTRIM(RTRIM(ISNULL(gv.HO, N''))) + N' ' + LTRIM(RTRIM(ISNULL(gv.TEN, N''))),
+        LOGINNAME = SUSER_SNAME(dp.sid),
+        ROLENAME = ISNULL(rp.name, '')
     FROM dbo.GIAOVIEN AS gv
     INNER JOIN sys.database_principals AS dp
         ON dp.name = RTRIM(gv.MAGV)
+    LEFT JOIN sys.database_role_members AS drm
+        ON dp.principal_id = drm.member_principal_id
+    LEFT JOIN sys.database_principals AS rp
+        ON drm.role_principal_id = rp.principal_id
     WHERE gv.TRANGTHAI = 1
     ORDER BY gv.TEN, gv.HO, gv.MAGV;
 END

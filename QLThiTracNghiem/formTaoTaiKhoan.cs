@@ -96,6 +96,21 @@ namespace QLThiTracNghiem
             if (cmbGiaoVien.SelectedValue != null && cmbGiaoVien.SelectedValue is string)
             {
                 txtMaGV.Text = cmbGiaoVien.SelectedValue.ToString();
+
+                // Nếu đang ở chế độ Xóa tài khoản, tự động điền Tên đăng nhập và Nhóm quyền
+                if (rdoXoaTaiKhoan.Checked && cmbGiaoVien.SelectedItem is System.Data.DataRowView)
+                {
+                    System.Data.DataRowView rowView = (System.Data.DataRowView)cmbGiaoVien.SelectedItem;
+                    if (rowView.Row.Table.Columns.Contains("LOGINNAME"))
+                    {
+                        txtTaiKhoan.Text = rowView["LOGINNAME"].ToString();
+                    }
+                    if (rowView.Row.Table.Columns.Contains("ROLENAME"))
+                    {
+                        string roleName = rowView["ROLENAME"].ToString();
+                        if (roleName != "") cmbNhomQuyen.Text = roleName;
+                    }
+                }
             }
         }
 
