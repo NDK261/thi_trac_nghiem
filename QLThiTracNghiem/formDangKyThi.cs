@@ -595,6 +595,31 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            // Nếu xóa Lần 1, kiểm tra xem có lịch thi Lần 2 hay không
+            if (lan == 1)
+            {
+                try
+                {
+                    string sql = $"SELECT COUNT(*) FROM dbo.GIAOVIEN_DANGKY WHERE MAMH = '{maMH.Trim()}' AND MALOP = '{maLop.Trim()}' AND LAN = 2";
+                    DataTable dtCount = DBHelper.GetDataTable(sql);
+
+                    if (dtCount.Rows.Count > 0 && Convert.ToInt32(dtCount.Rows[0][0]) > 0)
+                    {
+                        MessageBox.Show(
+                            "Không thể xóa đăng ký thi Lần 1 vì lịch đăng ký thi Lần 2 của môn học và lớp này vẫn đang tồn tại. Vui lòng xóa Lần 2 trước!",
+                            "Không cho xóa",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi kiểm tra lịch thi Lần 2: " + ex.Message, "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+
             string thongBaoXoa =
                 "Bạn có chắc muốn xóa đăng ký thi này?\n\n" +
                 $"Môn: {maMHThongBao}\n" +
@@ -619,6 +644,10 @@ namespace QLThiTracNghiem
                     else if (result == 2)
                     {
                         MessageBox.Show("Lỗi: Bạn không có quyền xóa lịch đăng ký thi của giảng viên khác!", "Báo lỗi");
+                    }
+                    else if (result == 3)
+                    {
+                        MessageBox.Show("Không thể xóa đăng ký thi Lần 1 vì lịch đăng ký thi Lần 2 của lớp và môn học này vẫn đang tồn tại. Vui lòng xóa Lần 2 trước!", "Báo lỗi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                     else
                     {

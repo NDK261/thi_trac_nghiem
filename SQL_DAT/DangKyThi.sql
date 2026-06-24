@@ -290,6 +290,16 @@ BEGIN
        )
         RETURN 1;
 
+    -- Thêm kiểm tra: Nếu xóa Lần 1 mà Lần 2 vẫn đang tồn tại thì chặn lại
+    IF @LAN = 1 AND EXISTS (
+        SELECT 1 
+        FROM GIAOVIEN_DANGKY 
+        WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = 2
+    )
+    BEGIN
+        RETURN 3;
+    END
+
     DELETE FROM GIAOVIEN_DANGKY
     WHERE MAMH = @MAMH AND MALOP = @MALOP AND LAN = @LAN;
 
