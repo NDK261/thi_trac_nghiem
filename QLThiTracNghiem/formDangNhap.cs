@@ -125,10 +125,23 @@ namespace QLThiTracNghiem
             btnThoat.TabIndex = 6;
 
             txtTenDangNhap.KeyDown += (s, ev) => {
-                if (ev.KeyCode == Keys.Enter) {
+                if (ev.KeyCode == Keys.Enter || ev.KeyCode == Keys.Down) {
                     ev.Handled = true;
                     ev.SuppressKeyPress = true;
                     txtMatKhau.Focus();
+                }
+            };
+
+            txtMatKhau.KeyDown += (s, ev) => {
+                if (ev.KeyCode == Keys.Enter) {
+                    ev.Handled = true;
+                    ev.SuppressKeyPress = true;
+                    btnDangNhap.PerformClick();
+                }
+                else if (ev.KeyCode == Keys.Up) {
+                    ev.Handled = true;
+                    ev.SuppressKeyPress = true;
+                    txtTenDangNhap.Focus();
                 }
             };
         }
