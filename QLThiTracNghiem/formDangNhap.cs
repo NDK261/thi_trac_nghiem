@@ -155,18 +155,16 @@ namespace QLThiTracNghiem
                 return;
             }
 
+            if (txtMatKhau.Text.Trim() == "")
+            {
+                MessageBox.Show("Vui lòng nhập mật khẩu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMatKhau.Focus();
+                return;
+            }
+
             // 1. Dựng chuỗi kết nối
             if (rdoGiangVien.Checked)
             {
-                // GIẢNG VIÊN: Kiểm tra mật khẩu không rỗng
-                if (txtMatKhau.Text.Trim() == "")
-                {
-                    MessageBox.Show("Vui lòng nhập mật khẩu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    txtMatKhau.Focus();
-                    return;
-                }
-
-                // LẤY ĐÚNG TÊN TÀI KHOẢN TỪ Ô TEXTBOX
                 Program.mLogin = txtTenDangNhap.Text.Trim();
                 string pass = txtMatKhau.Text.Trim();
                 Program.connStr = Program.BuildConnectionString(Program.mLogin, pass);
@@ -174,7 +172,8 @@ namespace QLThiTracNghiem
             else // Sinh viên
             {
                 Program.mLogin = "sv";
-                Program.connStr = Program.BuildConnectionString("sv", "123");
+                string pass = txtMatKhau.Text.Trim();
+                Program.connStr = Program.BuildConnectionString("sv", pass);
             }
 
             // 2. Kết nối CSDL và gọi SP
@@ -238,23 +237,23 @@ namespace QLThiTracNghiem
         }
         private void rdoSinhVien_CheckedChanged(object sender, EventArgs e)
         {
-            if (rdoSinhVien.Checked) // Khi tích chọn Sinh Viên
+            if (rdoSinhVien.Checked)
             {
-                labelTenDangNhap.Text = "      Mã SV"; // Đổi label
-                txtMatKhau.Text = "123"; // Hiển thị mật khẩu cố định
-                txtMatKhau.ReadOnly = true; // Không cho phép chỉnh sửa, nhưng vẫn hiển thị ***
-                txtMatKhau.Enabled = true; // Để hiển thị được
+                labelTenDangNhap.Text = "Mã SV";
+                txtMatKhau.Clear();
+                txtMatKhau.ReadOnly = false;
+                txtMatKhau.Enabled = true;
             }
         }
 
         private void rdoGiangVien_CheckedChanged(object sender, EventArgs e)
         {
-            if (rdoGiangVien.Checked) // Khi tích chọn Giảng viên
+            if (rdoGiangVien.Checked)
             {
-                labelTenDangNhap.Text = "Tên Đăng Nhập"; // Đổi lại label
-                txtMatKhau.Clear(); // Xóa trắng mật khẩu
-                txtMatKhau.ReadOnly = false; // Cho phép chỉnh sửa
-                txtMatKhau.Enabled = true; // Mở lại ô nhập mật khẩu
+                labelTenDangNhap.Text = "Tên Đăng Nhập";
+                txtMatKhau.Clear();
+                txtMatKhau.ReadOnly = false;
+                txtMatKhau.Enabled = true;
             }
         }
     }
