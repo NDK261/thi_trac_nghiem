@@ -1006,7 +1006,7 @@ namespace QLThiTracNghiem
             {
                 laThiThuGiaoVien = true;
                 
-                lblTenLop.Text = "Lịch thi hệ thống:";
+                lblTenLop.Visible = false;
                 lblMaLop.Visible = false;
                 cmbMonThi.Visible = false;
                 cmbLanThi.Visible = false;
