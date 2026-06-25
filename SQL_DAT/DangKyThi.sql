@@ -306,3 +306,27 @@ BEGIN
     RETURN 0;
 END
 GO
+
+-- Hien thi toan bo lich thi cho Giao Vien de thi thu
+CREATE OR ALTER PROCEDURE [dbo].[SP_GET_LICH_THI_CUA_GIAOVIEN]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT DK.MAMH, 
+           MH.TENMH, 
+           DK.MALOP, 
+           L.TENLOP, 
+           DK.LAN, 
+           DK.TRINHDO, 
+           DK.SOCAUTHI, 
+           DK.THOIGIAN, 
+           DK.NGAYTHI 
+    FROM GIAOVIEN_DANGKY DK 
+    INNER JOIN MONHOC MH ON DK.MAMH = MH.MAMH 
+    INNER JOIN LOP L ON DK.MALOP = L.MALOP 
+    ORDER BY DK.NGAYTHI DESC, MH.TENMH ASC, L.TENLOP ASC, DK.LAN ASC;
+END
+GO
+
+GRANT EXECUTE ON [dbo].[SP_GET_LICH_THI_CUA_GIAOVIEN] TO giangvien;
+GO

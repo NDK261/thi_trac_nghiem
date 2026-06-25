@@ -267,68 +267,32 @@ namespace QLThiTracNghiem
             {
                 int yDau = Math.Max(30, Math.Min(90, (this.ClientSize.Height - 680) / 3 + 30));
                 // --- Giao diện chọn ca thi (Dashboard / Selection Screen) ---
-                if (LaGiaoVien())
+                // Layout dùng chung cho cả Sinh viên và Giáo viên (Danh sách DataGridView)
+                if (dgvLichThi != null && lblDanhSachLichThi != null)
                 {
-                    // Layout của Giáo viên (Thi thử)
                     lblHoTen.Location = new Point(xCotTrai, yDau);
-                    lblHoTen.MaximumSize = new Size(doRongCotTrai, 0);
-                    lblTenLop.Location = new Point(xCotTrai, yDau + 42);
-                    lblTenLop.MaximumSize = new Size(doRongCotTrai, 0);
+                    lblHoTen.MaximumSize = new Size(380, 0);
+                    lblTenLop.Location = new Point(xCotTrai + 400, yDau);
+                    lblTenLop.MaximumSize = new Size(380, 0);
 
-                    int xNhan = xCotTrai;
-                    int xNhap = xCotTrai + 95;
-                    int yNhap = yDau + 100;
-                    lblMonThi.Location = new Point(xNhan, yNhap);
-                    cmbMonThi.Location = new Point(xNhap, yNhap - 2);
-                    cmbMonThi.Size = new Size(205, 28);
+                    lblDanhSachLichThi.Location = new Point(xCotTrai, yDau + 55);
 
-                    lblLanThi.Location = new Point(xNhan, yNhap + 48);
-                    cmbLanThi.Location = new Point(xNhap, yNhap + 46);
-                    cmbLanThi.Size = new Size(150, 28);
+                    dgvLichThi.Location = new Point(xCotTrai, yDau + 90);
+                    dgvLichThi.Size = new Size(doRongToanKhoi - 40, 320);
 
-                    lblNgayThi.Location = new Point(xNhan, yNhap + 96);
-                    dtpNgayThi.Location = new Point(xNhap, yNhap + 94);
-                    dtpNgayThi.Size = new Size(205, 28);
+                    int yNut = dgvLichThi.Bottom + 20;
+                    int chieuRongBang = dgvLichThi.Width;
+                    int centerX = xCotTrai + (chieuRongBang - 264) / 2;
 
-                    btnBatDau.Location = new Point(xNhap, yNhap + 150);
+                    btnBatDau.Location = new Point(centerX, yNut);
                     btnBatDau.Size = new Size(128, 42);
 
-                    btnThoat.Location = new Point(xNhap + 145, yNhap + 150);
+                    btnThoat.Location = new Point(centerX + 152, yNut);
                     btnThoat.Size = new Size(112, 42);
 
-                    lblThongTinLichThi.Location = new Point(xNoiDung, yDau + 104);
-                    lblThongTinLichThi.Size = new Size(doRongNoiDung, 86);
-                    lblThongTinLichThi.TextAlign = ContentAlignment.TopLeft;
-                }
-                else
-                {
-                    // Layout của Sinh viên (Danh sách DataGridView)
-                    if (dgvLichThi != null && lblDanhSachLichThi != null)
-                    {
-                        lblHoTen.Location = new Point(xCotTrai, yDau);
-                        lblHoTen.MaximumSize = new Size(380, 0);
-                        lblTenLop.Location = new Point(xCotTrai + 400, yDau);
-                        lblTenLop.MaximumSize = new Size(380, 0);
-
-                        lblDanhSachLichThi.Location = new Point(xCotTrai, yDau + 55);
-
-                        dgvLichThi.Location = new Point(xCotTrai, yDau + 90);
-                        dgvLichThi.Size = new Size(doRongToanKhoi - 40, 320);
-
-                        int yNut = dgvLichThi.Bottom + 20;
-                        int chieuRongBang = dgvLichThi.Width;
-                        int centerX = xCotTrai + (chieuRongBang - 264) / 2;
-
-                        btnBatDau.Location = new Point(centerX, yNut);
-                        btnBatDau.Size = new Size(128, 42);
-
-                        btnThoat.Location = new Point(centerX + 152, yNut);
-                        btnThoat.Size = new Size(112, 42);
-
-                        lblThongTinLichThi.Location = new Point(xCotTrai, yNut + 60);
-                        lblThongTinLichThi.Size = new Size(chieuRongBang, 30);
-                        lblThongTinLichThi.TextAlign = ContentAlignment.MiddleCenter;
-                    }
+                    lblThongTinLichThi.Location = new Point(xCotTrai, yNut + 60);
+                    lblThongTinLichThi.Size = new Size(chieuRongBang, 30);
+                    lblThongTinLichThi.TextAlign = ContentAlignment.MiddleCenter;
                 }
             }
         }
@@ -811,6 +775,48 @@ namespace QLThiTracNghiem
             }
         }
 
+        private void LoadLichThiGiaoVien()
+        {
+            try
+            {
+                DataTable dtLich = DBHelper.ExecuteDataTable("SP_GET_LICH_THI_CUA_GIAOVIEN");
+
+                dgvLichThi.DataSource = dtLich;
+
+                if (dgvLichThi.Columns.Contains("MAMH")) dgvLichThi.Columns["MAMH"].Visible = false;
+                if (dgvLichThi.Columns.Contains("MALOP")) dgvLichThi.Columns["MALOP"].Visible = false;
+                if (dgvLichThi.Columns.Contains("TENMH")) dgvLichThi.Columns["TENMH"].HeaderText = "Môn Học";
+                if (dgvLichThi.Columns.Contains("TENLOP")) dgvLichThi.Columns["TENLOP"].HeaderText = "Lớp";
+                if (dgvLichThi.Columns.Contains("LAN")) dgvLichThi.Columns["LAN"].HeaderText = "Lần Thi";
+                if (dgvLichThi.Columns.Contains("TRINHDO")) dgvLichThi.Columns["TRINHDO"].HeaderText = "Trình Độ";
+                if (dgvLichThi.Columns.Contains("SOCAUTHI")) dgvLichThi.Columns["SOCAUTHI"].HeaderText = "Số Câu";
+                if (dgvLichThi.Columns.Contains("THOIGIAN")) dgvLichThi.Columns["THOIGIAN"].HeaderText = "Thời Gian (Phút)";
+                
+                if (dgvLichThi.Columns.Contains("NGAYTHI"))
+                {
+                    dgvLichThi.Columns["NGAYTHI"].HeaderText = "Ngày Thi";
+                    dgvLichThi.Columns["NGAYTHI"].DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+
+                if (dtLich.Rows.Count > 0)
+                {
+                    dgvLichThi.ClearSelection();
+                    dgvLichThi.Rows[0].Selected = true;
+                    CapNhatCaThiDangChon();
+                    btnBatDau.Enabled = true;
+                }
+                else
+                {
+                    btnBatDau.Enabled = false;
+                    lblThongTinLichThi.Text = "Hệ thống hiện không có ca thi nào.";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải lịch thi: " + ex.Message, "Lỗi");
+            }
+        }
+
         private void CapNhatCaThiDangChon()
         {
             if (dgvLichThi.SelectedRows.Count == 0) return;
@@ -1000,25 +1006,17 @@ namespace QLThiTracNghiem
             {
                 laThiThuGiaoVien = true;
                 
-                cmbLop = new ComboBox();
-                cmbLop.Location = new System.Drawing.Point(lblTenLop.Location.X + 60, lblTenLop.Location.Y - 2);
-                cmbLop.Size = new System.Drawing.Size(250, 25);
-                cmbLop.DropDownStyle = ComboBoxStyle.DropDownList;
-                cmbLop.SelectedIndexChanged += cmbLop_SelectedIndexChanged;
-                this.Controls.Add(cmbLop);
-                cmbLop.BringToFront();
-
-                lblTenLop.Text = "Chọn Lớp:";
+                lblTenLop.Text = "Lịch thi hệ thống:";
                 lblMaLop.Visible = false;
+                cmbMonThi.Visible = false;
+                cmbLanThi.Visible = false;
+                dtpNgayThi.Visible = false;
+                lblMonThi.Visible = false;
+                lblLanThi.Visible = false;
+                lblNgayThi.Visible = false;
 
-                DataTable dtLop = DBHelper.GetDataTable("SELECT MALOP, TENLOP FROM LOP");
-                cmbLop.DataSource = dtLop;
-                cmbLop.DisplayMember = "TENLOP";
-                cmbLop.ValueMember = "MALOP";
-
-                ApDungGioiHanNgayThi();
-                dtpNgayThi.Enabled = true;
-                lblNgayThi.Text = "Ngày thi:";
+                KhoiTaoGiaoDienSinhVien();
+                LoadLichThiGiaoVien();
             }
             else
             {
@@ -1347,64 +1345,25 @@ namespace QLThiTracNghiem
         {
             try
             {
-                if (LaGiaoVien())
+                if (dgvLichThi.SelectedRows.Count == 0)
                 {
-                    if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
-                    {
-                        MessageBox.Show("Ngày đang chọn không có ca thi nào chưa thi.", "Thông báo");
-                        return;
-                    }
-
-                    // Lưu lại môn/lần/ngày đang thi.
-                    maMon = cmbMonThi.SelectedValue.ToString().Trim();
-                    tenMonHoc = cmbMonThi.Text.Trim();
-                    lanThi = int.Parse(cmbLanThi.Text);
-                    DateTime ngayThi = dtpNgayThi.Value.Date;
-
-                    // Ghi điểm theo ngày đã chọn, không theo ngày hệ thống.
-                    ngayThiDangThi = ngayThi;
-
-                    if (!laThiThuGiaoVien && DaThi(maMon, lanThi))
-                    {
-                        MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        LoadMonThiTheoNgayDaChon();
-                        return;
-                    }
-
-                    // Lần 2 chỉ được thi sau khi đã có điểm lần 1.
-                    if (!laThiThuGiaoVien && lanThi == 2 && !DaThi(maMon, 1))
-                    {
-                        MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
-
-                    // Tìm đúng lịch thi theo môn, lớp, lần và ngày.
-                    DataTable dtDangKy = LayThongTinDangKy(maMon, lanThi, ngayThi);
-
-                    if (dtDangKy.Rows.Count == 0)
-                    {
-                        MessageBox.Show("Không tìm thấy lịch thi nào khớp với Môn học, Lần thi và Ngày thi mà bạn vừa chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        return;
-                    }
-
-                    // Lấy số câu, thời gian và trình độ của ca thi.
-                    tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
-                    int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
-                    trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString().Trim();
-                    thoiGianConLai = soPhut * 60;
+                    MessageBox.Show("Vui lòng chọn ca thi hợp lệ để bắt đầu làm bài.", "Thông báo");
+                    return;
                 }
-                else
-                {
-                    if (dgvLichThi.SelectedRows.Count == 0)
-                    {
-                        MessageBox.Show("Vui lòng chọn ca thi hợp lệ để bắt đầu làm bài.", "Thông báo");
-                        return;
-                    }
 
+                if (!laThiThuGiaoVien)
+                {
                     if (DaThi(maMon, lanThi))
                     {
                         MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         LoadLichThiSinhVien();
+                        return;
+                    }
+
+                    // Lần 2 chỉ được thi sau khi đã có điểm lần 1.
+                    if (lanThi == 2 && !DaThi(maMon, 1))
+                    {
+                        MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
                 }
