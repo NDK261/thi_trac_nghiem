@@ -725,7 +725,7 @@ namespace QLThiTracNghiem
             if (lblDanhSachLichThi == null)
             {
                 lblDanhSachLichThi = new Label();
-                lblDanhSachLichThi.Text = "DANH SÁCH CÁC CA THI HỢP LỆ:";
+                lblDanhSachLichThi.Text = "DANH SÁCH CÁC CA THI:";
                 lblDanhSachLichThi.Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
                 lblDanhSachLichThi.ForeColor = Color.FromArgb(44, 62, 80);
                 lblDanhSachLichThi.AutoSize = true;
