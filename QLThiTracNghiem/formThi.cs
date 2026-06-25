@@ -37,6 +37,7 @@ namespace QLThiTracNghiem
         string trinhDo;
         int lanThi;
         DateTime ngayThiDangThi; // Giữ đúng ngày thi sinh viên đã chọn khi bắt đầu.
+        string tenMonHoc = "";
         Label lblThongTinLichThi;
         Label lblTrangThaiTraLoi;
         FlowLayoutPanel pnlDanhSachCauHoi;
@@ -48,6 +49,8 @@ namespace QLThiTracNghiem
         bool dangLamBaiHienThi = false;
         bool laThiThuGiaoVien = false;
         private ComboBox cmbLop;
+        private DataGridView dgvLichThi;
+        private Label lblDanhSachLichThi;
 
         public formThi()
         {
@@ -180,6 +183,9 @@ namespace QLThiTracNghiem
             btnThoat.Visible = !dangLamBai;
             this.ControlBox = !dangLamBai;
 
+            if (lblDanhSachLichThi != null) lblDanhSachLichThi.Visible = !dangLamBai && !LaGiaoVien();
+            if (dgvLichThi != null) dgvLichThi.Visible = !dangLamBai && !LaGiaoVien();
+
             SapXepBoCucFormThi();
         }
 
@@ -191,71 +197,140 @@ namespace QLThiTracNghiem
             int doRongToanKhoi = doRongCotTrai + 40 + doRongNoiDung;
             int xCotTrai = Math.Max(leNgoai, (this.ClientSize.Width - doRongToanKhoi) / 2);
             int xNoiDung = xCotTrai + doRongCotTrai + 40;
-            int yDau = Math.Max(30, Math.Min(90, (this.ClientSize.Height - 680) / 3 + 30));
 
-            lblHoTen.Location = new Point(xCotTrai, yDau);
-            lblHoTen.MaximumSize = new Size(doRongCotTrai, 0);
-            lblTenLop.Location = new Point(xCotTrai, yDau + 42);
-            lblTenLop.MaximumSize = new Size(doRongCotTrai, 0);
+            if (dangLamBaiHienThi)
+            {
+                // Tính chiều cao động của panel chọn nhanh câu hỏi theo số lượng câu (5 cột)
+                int soCauHoi = danhSachCauHoi != null ? danhSachCauHoi.Count : 0;
+                int soDong = soCauHoi > 0 ? (int)Math.Ceiling((double)soCauHoi / 5) : 1;
+                int chieuCaoPnl = soDong * 40 + 20; // 40px mỗi dòng (32px + 8px margin), cộng thêm 20px padding/margin
+                int maxChieuCaoPnl = Math.Max(150, this.ClientSize.Height - 300);
+                chieuCaoPnl = Math.Min(chieuCaoPnl, maxChieuCaoPnl);
 
-            int xNhan = xCotTrai;
-            int xNhap = xCotTrai + 95;
-            int yNhap = yDau + 100;
-            lblMonThi.Location = new Point(xNhan, yNhap);
-            cmbMonThi.Location = new Point(xNhap, yNhap - 2);
-            cmbMonThi.Size = new Size(205, 28);
+                int chieuCaoCotTrai = 215 + chieuCaoPnl;
+                int chieuCaoCotPhai = 487; // 130 (câu hỏi) + 20 (khoảng cách) + 270 (groupBox) + 25 (khoảng cách) + 42 (nút)
+                int chieuCaoKhung = Math.Max(chieuCaoCotTrai, chieuCaoCotPhai);
 
-            lblLanThi.Location = new Point(xNhan, yNhap + 48);
-            cmbLanThi.Location = new Point(xNhap, yNhap + 46);
-            cmbLanThi.Size = new Size(150, 28);
+                // Căn giữa toàn bộ giao diện theo chiều dọc của Form
+                int yDau = Math.Max(30, (this.ClientSize.Height - chieuCaoKhung) / 2);
 
-            lblNgayThi.Location = new Point(xNhan, yNhap + 96);
-            dtpNgayThi.Location = new Point(xNhap, yNhap + 94);
-            dtpNgayThi.Size = new Size(205, 28);
+                // --- Giao diện làm bài thi (Cấu trúc Cột bên - Sidebar Layout) ---
+                
+                // Cột bên trái (X = xCotTrai)
+                lblHoTen.Location = new Point(xCotTrai, yDau);
+                lblHoTen.MaximumSize = new Size(doRongCotTrai, 0);
+                lblTenLop.Location = new Point(xCotTrai, yDau + 32);
+                lblTenLop.MaximumSize = new Size(doRongCotTrai, 0);
 
-            btnBatDau.Location = new Point(xNhap, yNhap + 150);
-            btnBatDau.Size = new Size(128, 42);
+                lblThongTinLichThi.Location = new Point(xCotTrai, yDau + 70);
+                lblThongTinLichThi.Size = new Size(doRongCotTrai, 60);
+                lblThongTinLichThi.TextAlign = ContentAlignment.TopLeft;
 
-            label1.Location = new Point(xNoiDung + doRongNoiDung - 295, yDau);
-            lblThoiGian.Location = new Point(xNoiDung + doRongNoiDung - 88, yDau - 5);
-            lblTrangThaiTraLoi.Location = new Point(xNoiDung, yDau + 54);
-            lblTrangThaiTraLoi.Size = new Size(240, 28);
+                lblTrangThaiTraLoi.Location = new Point(xCotTrai, yDau + 140);
+                lblTrangThaiTraLoi.Size = new Size(doRongCotTrai, 25);
 
-            pnlDanhSachCauHoi.Location = new Point(xNoiDung, yDau + 88);
-            pnlDanhSachCauHoi.Size = new Size(doRongNoiDung, 92);
+                label1.Location = new Point(xCotTrai, yDau + 175);
+                lblThoiGian.Location = new Point(xCotTrai + 130, yDau + 168);
 
-            lblThongTinLichThi.Location = dangLamBaiHienThi
-                ? new Point(xNoiDung, yDau + 190)
-                : new Point(xNoiDung, yDau + 104);
-            lblThongTinLichThi.Size = new Size(doRongNoiDung, dangLamBaiHienThi ? 42 : 86);
+                pnlDanhSachCauHoi.Location = new Point(xCotTrai, yDau + 215);
+                pnlDanhSachCauHoi.Size = new Size(doRongCotTrai, chieuCaoPnl);
 
-            lblNoiDungCauHoi.Location = new Point(xNoiDung, yDau + 245);
-            lblNoiDungCauHoi.Size = new Size(doRongNoiDung, 82);
+                // Khung bên phải (X = xNoiDung)
+                lblNoiDungCauHoi.Location = new Point(xNoiDung, yDau);
+                lblNoiDungCauHoi.Size = new Size(doRongNoiDung, 130);
 
-            groupBox1.Location = new Point(xNoiDung, yDau + 345);
-            groupBox1.Size = new Size(doRongNoiDung, 250);
+                groupBox1.Location = new Point(xNoiDung, yDau + 150);
+                groupBox1.Size = new Size(doRongNoiDung, 270);
 
-            int doRongLuaChon = doRongNoiDung - 78;
-            rdoA.Location = new Point(38, 45);
-            rdoB.Location = new Point(38, 95);
-            rdoC.Location = new Point(38, 145);
-            rdoD.Location = new Point(38, 195);
-            rdoA.Size = new Size(doRongLuaChon, 38);
-            rdoB.Size = new Size(doRongLuaChon, 38);
-            rdoC.Size = new Size(doRongLuaChon, 38);
-            rdoD.Size = new Size(doRongLuaChon, 38);
+                int doRongLuaChon = doRongNoiDung - 78;
+                rdoA.Location = new Point(38, 45);
+                rdoB.Location = new Point(38, 95);
+                rdoC.Location = new Point(38, 145);
+                rdoD.Location = new Point(38, 195);
+                rdoA.Size = new Size(doRongLuaChon, 38);
+                rdoB.Size = new Size(doRongLuaChon, 38);
+                rdoC.Size = new Size(doRongLuaChon, 38);
+                rdoD.Size = new Size(doRongLuaChon, 38);
 
-            int yNutLamBai = groupBox1.Bottom + 24;
-            btnCauTruoc.Location = new Point(xNoiDung + 170, yNutLamBai);
-            btnCauTruoc.Size = new Size(120, 42);
-            btnCauSau.Location = new Point(xNoiDung + 310, yNutLamBai);
-            btnCauSau.Size = new Size(112, 42);
-            btnNopBai.Location = new Point(xNoiDung + doRongNoiDung - 260, yNutLamBai);
-            btnNopBai.Size = new Size(112, 42);
-            btnThoat.Location = dangLamBaiHienThi
-                ? new Point(xNoiDung + doRongNoiDung - 128, yNutLamBai)
-                : new Point(xNhap + 145, yNhap + 150);
-            btnThoat.Size = new Size(112, 42);
+                int yNutLamBai = groupBox1.Bottom + 25;
+                btnCauTruoc.Location = new Point(xNoiDung, yNutLamBai);
+                btnCauTruoc.Size = new Size(120, 42);
+                btnCauSau.Location = new Point(xNoiDung + 140, yNutLamBai);
+                btnCauSau.Size = new Size(112, 42);
+                btnNopBai.Location = new Point(xNoiDung + doRongNoiDung - 128, yNutLamBai);
+                btnNopBai.Size = new Size(112, 42);
+
+                btnThoat.Location = new Point(xNoiDung + doRongNoiDung - 128, yNutLamBai);
+                btnThoat.Size = new Size(112, 42);
+            }
+            else
+            {
+                int yDau = Math.Max(30, Math.Min(90, (this.ClientSize.Height - 680) / 3 + 30));
+                // --- Giao diện chọn ca thi (Dashboard / Selection Screen) ---
+                if (LaGiaoVien())
+                {
+                    // Layout của Giáo viên (Thi thử)
+                    lblHoTen.Location = new Point(xCotTrai, yDau);
+                    lblHoTen.MaximumSize = new Size(doRongCotTrai, 0);
+                    lblTenLop.Location = new Point(xCotTrai, yDau + 42);
+                    lblTenLop.MaximumSize = new Size(doRongCotTrai, 0);
+
+                    int xNhan = xCotTrai;
+                    int xNhap = xCotTrai + 95;
+                    int yNhap = yDau + 100;
+                    lblMonThi.Location = new Point(xNhan, yNhap);
+                    cmbMonThi.Location = new Point(xNhap, yNhap - 2);
+                    cmbMonThi.Size = new Size(205, 28);
+
+                    lblLanThi.Location = new Point(xNhan, yNhap + 48);
+                    cmbLanThi.Location = new Point(xNhap, yNhap + 46);
+                    cmbLanThi.Size = new Size(150, 28);
+
+                    lblNgayThi.Location = new Point(xNhan, yNhap + 96);
+                    dtpNgayThi.Location = new Point(xNhap, yNhap + 94);
+                    dtpNgayThi.Size = new Size(205, 28);
+
+                    btnBatDau.Location = new Point(xNhap, yNhap + 150);
+                    btnBatDau.Size = new Size(128, 42);
+
+                    btnThoat.Location = new Point(xNhap + 145, yNhap + 150);
+                    btnThoat.Size = new Size(112, 42);
+
+                    lblThongTinLichThi.Location = new Point(xNoiDung, yDau + 104);
+                    lblThongTinLichThi.Size = new Size(doRongNoiDung, 86);
+                    lblThongTinLichThi.TextAlign = ContentAlignment.TopLeft;
+                }
+                else
+                {
+                    // Layout của Sinh viên (Danh sách DataGridView)
+                    if (dgvLichThi != null && lblDanhSachLichThi != null)
+                    {
+                        lblHoTen.Location = new Point(xCotTrai, yDau);
+                        lblHoTen.MaximumSize = new Size(380, 0);
+                        lblTenLop.Location = new Point(xCotTrai + 400, yDau);
+                        lblTenLop.MaximumSize = new Size(380, 0);
+
+                        lblDanhSachLichThi.Location = new Point(xCotTrai, yDau + 55);
+
+                        dgvLichThi.Location = new Point(xCotTrai, yDau + 90);
+                        dgvLichThi.Size = new Size(doRongToanKhoi - 40, 320);
+
+                        int yNut = dgvLichThi.Bottom + 20;
+                        int chieuRongBang = dgvLichThi.Width;
+                        int centerX = xCotTrai + (chieuRongBang - 264) / 2;
+
+                        btnBatDau.Location = new Point(centerX, yNut);
+                        btnBatDau.Size = new Size(128, 42);
+
+                        btnThoat.Location = new Point(centerX + 152, yNut);
+                        btnThoat.Size = new Size(112, 42);
+
+                        lblThongTinLichThi.Location = new Point(xCotTrai, yNut + 60);
+                        lblThongTinLichThi.Size = new Size(chieuRongBang, 30);
+                        lblThongTinLichThi.TextAlign = ContentAlignment.MiddleCenter;
+                    }
+                }
+            }
         }
 
         private void formThi_Resize(object sender, EventArgs e)
@@ -421,16 +496,20 @@ namespace QLThiTracNghiem
             TaoNutCauHoi();
             HienThiCauHoi(cauHienTai);
 
+            lblThongTinLichThi.Text = $"Môn thi: {tenMonHoc}\nTrình độ: {trinhDo}  |  Lần thi: {lanThi}\nSố câu: {tongSoCau}  |  Thời gian: {thoiGianConLai / 60} phút";
+
             btnBatDau.Enabled = false;
             btnNopBai.Enabled = true;
             cmbMonThi.Enabled = false;
             cmbLanThi.Enabled = false;
             dtpNgayThi.Enabled = false;
+            if (dgvLichThi != null) dgvLichThi.Enabled = false;
             groupBox1.Enabled = true;
 
             demGiayLuuTam = 0;
             lblThoiGian.ForeColor = SystemColors.ControlText;
             timer1.Start();
+            SapXepBoCucFormThi();
         }
 
         private void TaoBaiThiTam()
@@ -587,6 +666,7 @@ namespace QLThiTracNghiem
         private bool KhoiPhucBaiThiTam(DataRow row)
         {
             maMon = row["MAMH"].ToString().Trim();
+            tenMonHoc = row["TENMH"].ToString().Trim();
             lanThi = Convert.ToInt32(row["LAN"]);
             ngayThiDangThi = Convert.ToDateTime(row["NGAYTHI"]).Date;
             trinhDo = row["TRINHDO"].ToString().Trim();
@@ -629,9 +709,138 @@ namespace QLThiTracNghiem
             lblThoiGian.Text = string.Format("{0:00}:{1:00}", thoiGianConLai / 60, thoiGianConLai % 60);
             lblNgayThi.Text = "Ngày thi:";
             HienThiNgayDangThi(ngayThiDangThi);
-
             BatDauLamBai();
             return true;
+        }
+
+        private void KhoiTaoGiaoDienSinhVien()
+        {
+            lblMonThi.Visible = false;
+            cmbMonThi.Visible = false;
+            lblLanThi.Visible = false;
+            cmbLanThi.Visible = false;
+            lblNgayThi.Visible = false;
+            dtpNgayThi.Visible = false;
+
+            if (lblDanhSachLichThi == null)
+            {
+                lblDanhSachLichThi = new Label();
+                lblDanhSachLichThi.Text = "DANH SÁCH CÁC CA THI HỢP LỆ:";
+                lblDanhSachLichThi.Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point, ((byte)(0)));
+                lblDanhSachLichThi.ForeColor = Color.FromArgb(44, 62, 80);
+                lblDanhSachLichThi.AutoSize = true;
+                this.Controls.Add(lblDanhSachLichThi);
+            }
+            lblDanhSachLichThi.Visible = true;
+            lblDanhSachLichThi.BringToFront();
+
+            if (dgvLichThi == null)
+            {
+                dgvLichThi = new DataGridView();
+                dgvLichThi.AllowUserToAddRows = false;
+                dgvLichThi.AllowUserToDeleteRows = false;
+                dgvLichThi.ReadOnly = true;
+                dgvLichThi.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dgvLichThi.MultiSelect = false;
+                dgvLichThi.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                dgvLichThi.BackgroundColor = Color.White;
+                dgvLichThi.RowHeadersVisible = false;
+                dgvLichThi.BorderStyle = BorderStyle.FixedSingle;
+                dgvLichThi.GridColor = Color.FromArgb(224, 224, 224);
+
+                dgvLichThi.EnableHeadersVisualStyles = false;
+                dgvLichThi.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(41, 128, 185);
+                dgvLichThi.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+                dgvLichThi.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                dgvLichThi.ColumnHeadersHeight = 32;
+                dgvLichThi.DefaultCellStyle.Font = new Font("Segoe UI", 9.5F);
+                dgvLichThi.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 249, 253);
+
+                dgvLichThi.SelectionChanged += dgvLichThi_SelectionChanged;
+                dgvLichThi.CellDoubleClick += dgvLichThi_CellDoubleClick;
+
+                this.Controls.Add(dgvLichThi);
+            }
+            dgvLichThi.Visible = true;
+            dgvLichThi.Enabled = true;
+            dgvLichThi.BringToFront();
+
+            SapXepBoCucFormThi();
+        }
+
+        private void LoadLichThiSinhVien()
+        {
+            try
+            {
+                DataTable dtLich = DBHelper.ExecuteDataTable(
+                    "SP_GET_LICH_THI_HOP_LE_CUA_SINHVIEN",
+                    new SqlParameter("@MASV", Program.mUserName),
+                    new SqlParameter("@MALOP", maLop));
+
+                dgvLichThi.DataSource = dtLich;
+
+                if (dgvLichThi.Columns.Contains("MAMH")) dgvLichThi.Columns["MAMH"].Visible = false;
+                if (dgvLichThi.Columns.Contains("TENMH")) dgvLichThi.Columns["TENMH"].HeaderText = "Môn Học";
+                if (dgvLichThi.Columns.Contains("LAN")) dgvLichThi.Columns["LAN"].HeaderText = "Lần Thi";
+                if (dgvLichThi.Columns.Contains("TRINHDO")) dgvLichThi.Columns["TRINHDO"].HeaderText = "Trình Độ";
+                if (dgvLichThi.Columns.Contains("SOCAUTHI")) dgvLichThi.Columns["SOCAUTHI"].HeaderText = "Số Câu";
+                if (dgvLichThi.Columns.Contains("THOIGIAN")) dgvLichThi.Columns["THOIGIAN"].HeaderText = "Thời Gian (Phút)";
+                
+                if (dgvLichThi.Columns.Contains("NGAYTHI"))
+                {
+                    dgvLichThi.Columns["NGAYTHI"].HeaderText = "Ngày Thi";
+                    dgvLichThi.Columns["NGAYTHI"].DefaultCellStyle.Format = "dd/MM/yyyy";
+                }
+
+                if (dtLich.Rows.Count > 0)
+                {
+                    dgvLichThi.ClearSelection();
+                    dgvLichThi.Rows[0].Selected = true;
+                    CapNhatCaThiDangChon();
+                    btnBatDau.Enabled = true;
+                }
+                else
+                {
+                    btnBatDau.Enabled = false;
+                    lblThongTinLichThi.Text = "Lớp của bạn hiện không có ca thi nào hợp lệ.";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải lịch thi: " + ex.Message, "Lỗi");
+            }
+        }
+
+        private void CapNhatCaThiDangChon()
+        {
+            if (dgvLichThi.SelectedRows.Count == 0) return;
+
+            DataGridViewRow selectedRow = dgvLichThi.SelectedRows[0];
+            DataRowView rowView = selectedRow.DataBoundItem as DataRowView;
+            if (rowView == null) return;
+            DataRow row = rowView.Row;
+
+            maMon = row["MAMH"].ToString().Trim();
+            tenMonHoc = row["TENMH"].ToString().Trim();
+            lanThi = Convert.ToInt32(row["LAN"]);
+            ngayThiDangThi = Convert.ToDateTime(row["NGAYTHI"]).Date;
+            trinhDo = row["TRINHDO"].ToString().Trim();
+            tongSoCau = Convert.ToInt32(row["SOCAUTHI"]);
+            thoiGianConLai = Convert.ToInt32(row["THOIGIAN"]) * 60;
+
+            lblThongTinLichThi.Text = $"Trình độ: {trinhDo} | Số câu: {tongSoCau} | Thời gian: {row["THOIGIAN"]} phút";
+            btnBatDau.Enabled = true;
+        }
+
+        private void dgvLichThi_SelectionChanged(object sender, EventArgs e)
+        {
+            CapNhatCaThiDangChon();
+        }
+
+        private void dgvLichThi_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            btnBatDau.PerformClick();
         }
 
         private void LoadMonThiTheoNgayDaChon()
@@ -830,16 +1039,14 @@ namespace QLThiTracNghiem
                     return;
                 }
 
-                ApDungGioiHanNgayThi();
-                dtpNgayThi.Enabled = true;
-                lblNgayThi.Text = "Ngày thi:";
+                KhoiTaoGiaoDienSinhVien();
 
                 if (KiemTraVaKhoiPhucBaiThiTam())
                 {
                     return;
                 }
 
-                LoadMonThiTheoNgayDaChon();
+                LoadLichThiSinhVien();
             }
         }
 
@@ -876,7 +1083,7 @@ namespace QLThiTracNghiem
         {
             
 
-            if (!string.IsNullOrWhiteSpace(maLop))
+            if (!string.IsNullOrWhiteSpace(maLop) && LaGiaoVien())
                 LoadMonThiTheoNgayDaChon();
         }
 
@@ -1028,7 +1235,8 @@ namespace QLThiTracNghiem
                                 dangNopBai = false;
                                 btnNopBai.Enabled = true;
                                 MessageBox.Show("Bài thi này đã có điểm trước đó, hệ thống không ghi đè điểm cũ.", "Không lưu lại");
-                                LoadMonThiTheoNgayDaChon();
+                                if (LaGiaoVien()) LoadMonThiTheoNgayDaChon();
+                                else LoadLichThiSinhVien();
                                 return;
                             }
 
@@ -1139,50 +1347,67 @@ namespace QLThiTracNghiem
         {
             try
             {
-                
-
-                if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
+                if (LaGiaoVien())
                 {
-                    MessageBox.Show("Ngày đang chọn không có ca thi nào chưa thi.", "Thông báo");
-                    return;
+                    if (cmbMonThi.SelectedValue == null || string.IsNullOrWhiteSpace(cmbLanThi.Text))
+                    {
+                        MessageBox.Show("Ngày đang chọn không có ca thi nào chưa thi.", "Thông báo");
+                        return;
+                    }
+
+                    // Lưu lại môn/lần/ngày đang thi.
+                    maMon = cmbMonThi.SelectedValue.ToString().Trim();
+                    tenMonHoc = cmbMonThi.Text.Trim();
+                    lanThi = int.Parse(cmbLanThi.Text);
+                    DateTime ngayThi = dtpNgayThi.Value.Date;
+
+                    // Ghi điểm theo ngày đã chọn, không theo ngày hệ thống.
+                    ngayThiDangThi = ngayThi;
+
+                    if (!laThiThuGiaoVien && DaThi(maMon, lanThi))
+                    {
+                        MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        LoadMonThiTheoNgayDaChon();
+                        return;
+                    }
+
+                    // Lần 2 chỉ được thi sau khi đã có điểm lần 1.
+                    if (!laThiThuGiaoVien && lanThi == 2 && !DaThi(maMon, 1))
+                    {
+                        MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    // Tìm đúng lịch thi theo môn, lớp, lần và ngày.
+                    DataTable dtDangKy = LayThongTinDangKy(maMon, lanThi, ngayThi);
+
+                    if (dtDangKy.Rows.Count == 0)
+                    {
+                        MessageBox.Show("Không tìm thấy lịch thi nào khớp với Môn học, Lần thi và Ngày thi mà bạn vừa chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+
+                    // Lấy số câu, thời gian và trình độ của ca thi.
+                    tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
+                    int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
+                    trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString().Trim();
+                    thoiGianConLai = soPhut * 60;
                 }
-
-                // Lưu lại môn/lần/ngày đang thi.
-                maMon = cmbMonThi.SelectedValue.ToString().Trim();
-                lanThi = int.Parse(cmbLanThi.Text);
-                DateTime ngayThi = dtpNgayThi.Value.Date;
-
-                // Ghi điểm theo ngày đã chọn, không theo ngày hệ thống.
-                ngayThiDangThi = ngayThi;
-
-                if (!laThiThuGiaoVien && DaThi(maMon, lanThi))
+                else
                 {
-                    MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    LoadMonThiTheoNgayDaChon();
-                    return;
+                    if (dgvLichThi.SelectedRows.Count == 0)
+                    {
+                        MessageBox.Show("Vui lòng chọn ca thi hợp lệ để bắt đầu làm bài.", "Thông báo");
+                        return;
+                    }
+
+                    if (DaThi(maMon, lanThi))
+                    {
+                        MessageBox.Show("Bạn đã thi môn này ở lần thi đang chọn rồi, không được thi lại!", "Không cho thi lại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        LoadLichThiSinhVien();
+                        return;
+                    }
                 }
-
-                // Lần 2 chỉ được thi sau khi đã có điểm lần 1.
-                if (!laThiThuGiaoVien && lanThi == 2 && !DaThi(maMon, 1))
-                {
-                    MessageBox.Show("Bạn phải thi lần 1 trước rồi mới được thi lần 2 của môn này!", "Sai thứ tự lần thi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // Tìm đúng lịch thi theo môn, lớp, lần và ngày.
-                DataTable dtDangKy = LayThongTinDangKy(maMon, lanThi, ngayThi);
-
-                if (dtDangKy.Rows.Count == 0)
-                {
-                    MessageBox.Show("Không tìm thấy lịch thi nào khớp với Môn học, Lần thi và Ngày thi mà bạn vừa chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                // Lấy số câu, thời gian và trình độ của ca thi.
-                tongSoCau = Convert.ToInt32(dtDangKy.Rows[0]["SOCAUTHI"]);
-                int soPhut = Convert.ToInt32(dtDangKy.Rows[0]["THOIGIAN"]);
-                trinhDo = dtDangKy.Rows[0]["TRINHDO"].ToString().Trim();
-                thoiGianConLai = soPhut * 60;
 
                 // Bốc đề ngẫu nhiên theo lịch thi.
                 DataTable dtDeThi = LayDeThi(maMon, trinhDo, tongSoCau);

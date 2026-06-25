@@ -38,71 +38,7 @@ BEGIN
 END
 GO
 
--- Lay cau hinh ca thi dung mon, lop, lan va ngay sinh vien da chon.
-CREATE OR ALTER PROCEDURE [dbo].[SP_GET_THONGTIN_DANGKY_THI]
-    @MAMH NCHAR(5),
-    @MALOP NCHAR(15),
-    @LAN SMALLINT,
-    @NGAYTHI DATE
-AS
-BEGIN
-    SET NOCOUNT ON;
 
-    SELECT SOCAUTHI, THOIGIAN, TRINHDO, NGAYTHI
-    FROM GIAOVIEN_DANGKY
-    WHERE MAMH = @MAMH
-      AND MALOP = @MALOP
-      AND LAN = @LAN
-      AND CAST(NGAYTHI AS DATE) = @NGAYTHI;
-END
-GO
-
--- Lay cac mon thi trong ngay da chon ma sinh vien chua thi.
-CREATE OR ALTER PROCEDURE [dbo].[SP_GET_MON_THI_CHUA_THI_THEO_NGAY]
-    @MASV NCHAR(8),
-    @MALOP NCHAR(15),
-    @NGAYTHI DATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT DISTINCT MH.MAMH, MH.TENMH
-    FROM GIAOVIEN_DANGKY DK
-    INNER JOIN MONHOC MH ON DK.MAMH = MH.MAMH
-    LEFT JOIN BANGDIEM BD
-        ON BD.MASV = @MASV
-       AND BD.MAMH = DK.MAMH
-       AND BD.LAN = DK.LAN
-    WHERE DK.MALOP = @MALOP
-      AND CAST(DK.NGAYTHI AS DATE) = @NGAYTHI
-      AND BD.MASV IS NULL
-    ORDER BY MH.TENMH;
-END
-GO
-
--- Lay cac lan thi cua mot mon trong ngay da chon ma sinh vien chua thi.
-CREATE OR ALTER PROCEDURE [dbo].[SP_GET_LAN_THI_CHUA_THI]
-    @MASV NCHAR(8),
-    @MALOP NCHAR(15),
-    @MAMH NCHAR(5),
-    @NGAYTHI DATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT DK.LAN, DK.NGAYTHI, DK.TRINHDO, DK.SOCAUTHI, DK.THOIGIAN
-    FROM GIAOVIEN_DANGKY DK
-    LEFT JOIN BANGDIEM BD
-        ON BD.MASV = @MASV
-       AND BD.MAMH = DK.MAMH
-       AND BD.LAN = DK.LAN
-    WHERE DK.MALOP = @MALOP
-      AND DK.MAMH = @MAMH
-      AND CAST(DK.NGAYTHI AS DATE) = @NGAYTHI
-      AND BD.MASV IS NULL
-    ORDER BY DK.LAN;
-END
-GO
 
 -- Boc de thi ngau nhien theo mon, trinh do va so cau da dang ky.
 CREATE OR ALTER PROCEDURE [dbo].[SP_LAY_DE_THI]
@@ -174,3 +110,53 @@ BEGIN
     ORDER BY NEWID();
 END
 GO
+
+-- Lay danh sach ca thi hop le cua lop sinh vien
+CREATE OR ALTER PROCEDURE [dbo].[SP_GET_LICH_THI_HOP_LE_CUA_SINHVIEN]
+    @MASV NCHAR(8),
+    @MALOP NCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT DK.MAMH, 
+           MH.TENMH, 
+           DK.LAN, 
+           DK.TRINHDO, 
+           DK.SOCAUTHI, 
+           DK.THOIGIAN, 
+           DK.NGAYTHI
+    FROM GIAOVIEN_DANGKY DK
+    INNER JOIN MONHOC MH ON DK.MAMH = MH.MAMH
+    LEFT JOIN BANGDIEM BD_CURRENT 
+        ON BD_CURRENT.MASV = @MASV 
+       AND BD_CURRENT.MAMH = DK.MAMH 
+       AND BD_CURRENT.LAN = DK.LAN
+    WHERE DK.MALOP = @MALOP
+      AND BD_CURRENT.MASV IS NULL -- Sinh vien chua thi lan nay
+      -- Quy tac Lần 1 / Lần 2:
+      -- Neu la Lần 2 thi chi hien khi Lần 1 chua tung duoc dang ky hoac Lần 1 da thi xong (co diem)
+      AND (
+          DK.LAN = 1 
+          OR (
+              DK.LAN = 2 
+              AND (
+                  NOT EXISTS (
+                      SELECT 1 FROM GIAOVIEN_DANGKY DK1 
+                      WHERE DK1.MALOP = DK.MALOP 
+                        AND DK1.MAMH = DK.MAMH 
+                        AND DK1.LAN = 1
+                  )
+                  OR EXISTS (
+                      SELECT 1 FROM BANGDIEM BD1 
+                      WHERE BD1.MASV = @MASV 
+                        AND BD1.MAMH = DK.MAMH 
+                        AND BD1.LAN = 1
+                  )
+              )
+          )
+      )
+    ORDER BY DK.NGAYTHI ASC, MH.TENMH ASC, DK.LAN ASC;
+END
+GO
+
