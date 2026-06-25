@@ -217,9 +217,9 @@ namespace QLThiTracNghiem
             {
                 // Đổ môn học vào ComboBox.
                 DataTable dtMonHoc = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
-                cmbMonHoc.DataSource = dtMonHoc;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
+                cmbMonHoc.DataSource = dtMonHoc;
 
                 // Giới hạn nhập theo cấu trúc bảng BODE để người dùng biết lỗi ngay trên form.
                 ThietLapGioiHanNhap();

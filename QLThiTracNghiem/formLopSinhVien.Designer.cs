@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formLopSinhVien
     {
@@ -176,7 +176,7 @@
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(88, 39);
             this.btnPhucHoi.TabIndex = 12;
-            this.btnPhucHoi.Text = "Phục hồi";
+            this.btnPhucHoi.Text = "Hoàn tác";
             this.btnPhucHoi.UseVisualStyleBackColor = true;
             this.btnPhucHoi.Click += new System.EventHandler(this.btnPhucHoi_Click);
             // 
@@ -321,8 +321,8 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(249)))), ((int)(((byte)(251)))));
-            this.ClientSize = new System.Drawing.Size(1285, 650);
+            this.BackColor = System.Drawing.Color.White;
+            this.ClientSize = new System.Drawing.Size(1067, 554);
             this.Controls.Add(this.btnKhoiPhucSinhVien);
             this.Controls.Add(this.chkHienThiNgungHoatDong);
             this.Controls.Add(this.cmbTimKiem);

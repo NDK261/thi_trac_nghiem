@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formMain
     {
@@ -131,6 +131,7 @@
             this.sinhViênToolStripMenuItem.Name = "sinhViênToolStripMenuItem";
             this.sinhViênToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.sinhViênToolStripMenuItem.Text = "sinh viên";
+            this.sinhViênToolStripMenuItem.Visible = false;
             this.sinhViênToolStripMenuItem.Click += new System.EventHandler(this.sinhViênToolStripMenuItem_Click);
             // 
             // menuNghiepVu
@@ -185,6 +186,7 @@
             this.xemKetQuaToolStripMenuItem.Name = "xemKetQuaToolStripMenuItem";
             this.xemKetQuaToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.xemKetQuaToolStripMenuItem.Text = "Xem kết quả";
+            this.xemKetQuaToolStripMenuItem.Visible = false;
             this.xemKetQuaToolStripMenuItem.Click += new System.EventHandler(this.xemKetQuaToolStripMenuItem_Click);
             // 
             // formMain

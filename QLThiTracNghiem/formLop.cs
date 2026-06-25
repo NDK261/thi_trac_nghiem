@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,52 +14,224 @@ namespace QLThiTracNghiem
         private bool isAdding = false;
         private DataTable lopData;
 
+        // ===== Subform: nhúng formLopSinhVien vào nửa dưới =====
+        private SplitContainer splitMain;
+        private Panel pnlSinhVien;
+        private formLopSinhVien currentSubForm;
+        private string lastLoadedMaLop = "";
+
+        private enum FocusContext { LOP, SINHVIEN }
+        private FocusContext currentContext = FocusContext.LOP;
+        private bool isUpdatingToolbar = false;
+
         public formLop()
         {
             InitializeComponent();
             dgvLop.SelectionChanged += dgvLop_SelectionChanged;
             textTimKiem.TextChanged += textTimKiem_TextChanged;
+            
+            WireUpFocusEvents();
         }
 
-        
-        private Panel pnlSinhVien;
-        private formLopSinhVien currentSubForm;
-        private void SetupSubformUI() {
-            this.Height = 700;
-            SplitContainer split = new SplitContainer();
-            split.Dock = DockStyle.Fill;
-            split.Orientation = Orientation.Horizontal;
-            split.SplitterDistance = 350;
+        private void WireUpFocusEvents()
+        {
+            dgvLop.Enter += (s, e) => SwitchContext(FocusContext.LOP);
+            txtMaLop.Enter += (s, e) => SwitchContext(FocusContext.LOP);
+            textTenLop.Enter += (s, e) => SwitchContext(FocusContext.LOP);
+            textTimKiem.Enter += (s, e) => SwitchContext(FocusContext.LOP);
+        }
+
+        private void SwitchContext(FocusContext newContext)
+        {
+            if (currentContext == newContext) return;
             
+            // Only allow switching if not currently editing something
+            if (isAdding || (currentSubForm != null && currentSubForm.IsEditing)) return;
+            
+            currentContext = newContext;
+            UpdateToolbarUI();
+        }
+
+        // ============================================================
+        //  SUBFORM SETUP
+        // ============================================================
+
+        /// <summary>
+        /// Tạo SplitContainer chia đôi form: nửa trên = quản lý lớp,
+        /// nửa dưới = danh sách sinh viên (nhúng formLopSinhVien).
+        /// </summary>
+        private void SetupSubformUI()
+        {
+            // Chỉ chạy một lần.
+            if (splitMain != null) return;
+
+            // PHẢI resize form TRƯỚC khi tạo SplitContainer,
+            // và gọi PerformLayout() để kích thước thực sự có hiệu lực.
+            this.ClientSize = new Size(
+                Math.Max(this.ClientSize.Width, 1100),
+                Math.Max(this.ClientSize.Height, 850));
+            this.MinimumSize = new Size(900, 500);
+            this.PerformLayout();
+
+            // Tạm gỡ anchor của dgvLop để tránh xung đột khi di chuyển.
+            dgvLop.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+
+            // Tính SplitterDistance an toàn dựa trên chiều cao thực.
+            int formH = this.ClientSize.Height;
+            int splitterW = 6;
+            int p1Min = 220;
+            int p2Min = 180;
+            // Cho Panel1 một độ cao cố định vừa đủ (ví dụ 300), còn lại nhường hết cho Sinh Viên
+            int safeDistance = Math.Max(p1Min, Math.Min(300, formH - p2Min - splitterW));
+
+            // Tạo SplitContainer — đặt MinSize = 0 trước, rồi set sau.
+            splitMain = new SplitContainer
+            {
+                Dock = DockStyle.Fill,
+                Orientation = Orientation.Horizontal,
+                FixedPanel = FixedPanel.Panel1,
+                SplitterWidth = 6,
+                Panel1MinSize = 0,
+                Panel2MinSize = 0,
+                BackColor = SystemColors.ControlLight // Màu viền ngăn cách
+            };
+
+            splitMain.Panel1.BackColor = Color.White;
+            splitMain.Panel2.BackColor = Color.White;
+
+            // 1. Sao chép danh sách control cũ (trước khi thêm splitMain)
             Control[] controls = new Control[this.Controls.Count];
             this.Controls.CopyTo(controls, 0);
-            foreach(Control c in controls) {
-                split.Panel1.Controls.Add(c);
+
+            // 2. Thêm SplitContainer vào Form trước để có kích thước thật
+            this.Controls.Add(splitMain);
+
+            // 3. Giờ mới đưa control cũ vào Panel1 để tránh lỗi lệch Anchor
+            foreach (Control c in controls)
+            {
+                splitMain.Panel1.Controls.Add(c);
             }
-            this.Controls.Add(split);
-            
-            pnlSinhVien = new Panel();
-            pnlSinhVien.Dock = DockStyle.Fill;
-            split.Panel2.Controls.Add(pnlSinhVien);
-            
+
+            // Giờ mới set min size và splitter distance (form đã đủ lớn).
+            splitMain.Panel1MinSize = p1Min;
+            splitMain.Panel2MinSize = p2Min;
+            splitMain.SplitterDistance = safeDistance;
+
+            // Đặt lại anchor cho dgvLop để nó giãn theo Panel1.
+            dgvLop.Anchor = AnchorStyles.Top | AnchorStyles.Bottom
+                          | AnchorStyles.Left | AnchorStyles.Right;
+
+            // Resize lần đầu cho dgvLop vừa khít Panel1.
+            splitMain.Panel1.Resize += SplitPanel1_Resize;
+            AdjustLopGrid();
+
+            // Ẩn nút "DS Sinh Viên" vì giờ đã có subform bên dưới.
             btnDSSinhVien.Visible = false;
+
+            // Tạo Panel chứa subform ở nửa dưới.
+            pnlSinhVien = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.White
+            };
+            splitMain.Panel2.Controls.Add(pnlSinhVien);
+
+            // Thêm nhãn gợi ý khi chưa chọn lớp nào.
+            ShowSinhVienPlaceholder();
         }
 
-        private void LoadSubForm(string maLop) {
-            if (currentSubForm != null) {
+        private void SplitPanel1_Resize(object sender, EventArgs e)
+        {
+            AdjustLopGrid();
+        }
+
+        /// <summary>
+        /// Điều chỉnh dgvLop lấp đầy khoảng trống trong Panel1.
+        /// </summary>
+        private void AdjustLopGrid()
+        {
+            if (splitMain == null) return;
+
+            int w = splitMain.Panel1.ClientSize.Width;
+            int h = splitMain.Panel1.ClientSize.Height;
+            int margin = 12;
+
+            // Chỉnh lại kích thước lưới.
+            dgvLop.Width = Math.Max(400, w - dgvLop.Left - margin);
+            dgvLop.Height = Math.Max(80, h - dgvLop.Top - margin);
+        }
+
+        /// <summary>
+        /// Hiển thị placeholder "Chọn lớp để xem sinh viên" khi chưa có subform.
+        /// </summary>
+        private void ShowSinhVienPlaceholder()
+        {
+            if (pnlSinhVien == null) return;
+            pnlSinhVien.Controls.Clear();
+
+            Label lbl = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "⬆  Chọn một lớp ở danh sách phía trên để xem danh sách sinh viên.",
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.FromArgb(120, 120, 120),
+                BackColor = Color.White,
+                Font = new Font(this.Font.FontFamily, 10f, FontStyle.Italic)
+            };
+            pnlSinhVien.Controls.Add(lbl);
+        }
+
+        /// <summary>
+        /// Nhúng formLopSinhVien vào Panel nửa dưới.
+        /// </summary>
+        private void LoadSubForm(string maLop)
+        {
+            if (pnlSinhVien == null) return;
+
+            maLop = (maLop ?? "").Trim();
+
+            // Không load lại nếu đang hiện cùng lớp.
+            if (maLop == lastLoadedMaLop && currentSubForm != null)
+                return;
+
+            // Đóng subform cũ.
+            if (currentSubForm != null)
+            {
                 currentSubForm.Close();
                 currentSubForm.Dispose();
+                currentSubForm = null;
             }
-            if (string.IsNullOrEmpty(maLop)) return;
-            
+            pnlSinhVien.Controls.Clear();
+
+            if (string.IsNullOrWhiteSpace(maLop))
+            {
+                lastLoadedMaLop = "";
+                ShowSinhVienPlaceholder();
+                return;
+            }
+
+            // Tạo và nhúng subform mới.
             currentSubForm = new formLopSinhVien(maLop);
             currentSubForm.TopLevel = false;
             currentSubForm.FormBorderStyle = FormBorderStyle.None;
+            currentSubForm.MinimumSize = Size.Empty;
             currentSubForm.Dock = DockStyle.Fill;
+            
+            // Lắng nghe các event từ subform
+            currentSubForm.SubformStateChanged += (s, e) => UpdateToolbarUI();
+            currentSubForm.SubformFocusEntered += (s, e) => SwitchContext(FocusContext.SINHVIEN);
+
             pnlSinhVien.Controls.Add(currentSubForm);
             currentSubForm.Show();
+
+            lastLoadedMaLop = maLop;
         }
-private void formLop_Load(object sender, EventArgs e)
+
+        // ============================================================
+        //  FORM LOAD & STATE
+        // ============================================================
+
+        private void formLop_Load(object sender, EventArgs e)
         {
             SetupSubformUI();
             LoadData();
@@ -67,23 +240,84 @@ private void formLop_Load(object sender, EventArgs e)
 
         private void SetEditingState(bool editing)
         {
-            bool hasCurrentClass = dgvLop.CurrentRow != null && txtMaLop.Text.Trim() != "";
-
-            btnGhi.Enabled = editing;
-            btnThem.Enabled = !editing;
-            btnSua.Enabled = !editing;
-            btnXoa.Enabled = !editing;
-            btnTim.Enabled = !editing;
-            btnPhucHoi.Enabled = editing;
-            btnDSSinhVien.Enabled = !editing && hasCurrentClass;
-            btnThoat.Enabled = true;
-
-            txtMaLop.Enabled = editing && isAdding;
-            textTenLop.Enabled = editing;
+            txtMaLop.Enabled = editing && isAdding && currentContext == FocusContext.LOP;
+            textTenLop.Enabled = editing && currentContext == FocusContext.LOP;
 
             dgvLop.Enabled = !editing;
             textTimKiem.Enabled = !editing;
+
+            // Khi đang thêm/sửa lớp, tạm ẩn subform để tránh thao tác nhầm.
+            if (pnlSinhVien != null)
+                pnlSinhVien.Enabled = !(editing && currentContext == FocusContext.LOP);
+                
+            UpdateToolbarUI();
         }
+
+        private void UpdateToolbarUI()
+        {
+            if (isUpdatingToolbar) return;
+            isUpdatingToolbar = true;
+            
+            bool isLopContext = (currentContext == FocusContext.LOP);
+            
+            // Highlight panel border/background to indicate focus
+            dgvLop.BackgroundColor = isLopContext ? Color.White : SystemColors.Control;
+            if (currentSubForm != null && currentSubForm.Controls.ContainsKey("dgvSinhVien"))
+            {
+                var dgvSV = currentSubForm.Controls["dgvSinhVien"] as DataGridView;
+                if (dgvSV != null)
+                    dgvSV.BackgroundColor = !isLopContext ? Color.White : SystemColors.Control;
+            }
+
+            // Update texts
+            btnThem.Text = isLopContext ? "Thêm Lớp" : "Thêm SV";
+            btnXoa.Text = isLopContext ? "Xóa Lớp" : "Xóa SV";
+            btnSua.Text = isLopContext ? "Sửa Lớp" : "Sửa SV";
+
+            if (isLopContext)
+            {
+                bool hasCurrentClass = dgvLop.CurrentRow != null && txtMaLop.Text.Trim() != "";
+                bool editing = isAdding || btnGhi.Enabled; // Simplified check for Lop editing state
+                
+                // If it's a forced override from somewhere, we check txtMaLop.Enabled etc.
+                // Wait, we rely on the global 'isAdding' and btnGhi.Enabled
+                
+                btnGhi.Enabled = txtMaLop.Enabled || textTenLop.Enabled; // editing class
+                btnPhucHoi.Enabled = btnGhi.Enabled;
+                
+                btnThem.Enabled = !btnGhi.Enabled;
+                btnSua.Enabled = !btnGhi.Enabled && hasCurrentClass;
+                btnXoa.Enabled = !btnGhi.Enabled && hasCurrentClass;
+                
+                btnKhoiPhuc.Enabled = false;
+                btnKhoiPhuc.Visible = true;
+                btnKhoiPhuc.Text = "Khôi phục SV";
+            }
+            else
+            {
+                if (currentSubForm != null)
+                {
+                    bool svEditing = currentSubForm.IsEditing;
+                    
+                    btnGhi.Enabled = svEditing;
+                    btnPhucHoi.Enabled = svEditing;
+                    
+                    btnThem.Enabled = !svEditing && (dgvLop.CurrentRow != null);
+                    btnSua.Enabled = !svEditing && currentSubForm.HasCurrentRow && !currentSubForm.ViewingInactive;
+                    btnXoa.Enabled = !svEditing && currentSubForm.HasCurrentRow && !currentSubForm.ViewingInactive;
+                    
+                    btnKhoiPhuc.Visible = true;
+                    btnKhoiPhuc.Enabled = !svEditing && currentSubForm.HasCurrentRow && currentSubForm.ViewingInactive;
+                    btnKhoiPhuc.Text = "Khôi phục SV";
+                }
+            }
+
+            isUpdatingToolbar = false;
+        }
+
+        // ============================================================
+        //  CRUD LOGIC (giữ nguyên 100%)
+        // ============================================================
 
         private void ClearInput()
         {
@@ -254,6 +488,12 @@ private void formLop_Load(object sender, EventArgs e)
 
         private void btnThem_Click(object sender, EventArgs e)
         {
+            if (currentContext == FocusContext.LOP) ThemLop();
+            else currentSubForm?.RequestAdd();
+        }
+
+        private void ThemLop()
+        {
             isAdding = true;
             ClearInput();
             SetEditingState(true);
@@ -261,6 +501,12 @@ private void formLop_Load(object sender, EventArgs e)
         }
 
         private void btnSua_Click(object sender, EventArgs e)
+        {
+            if (currentContext == FocusContext.LOP) SuaLop();
+            else currentSubForm?.RequestEdit();
+        }
+
+        private void SuaLop()
         {
             if (txtMaLop.Text.Trim() == "")
             {
@@ -274,6 +520,12 @@ private void formLop_Load(object sender, EventArgs e)
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
+        {
+            if (currentContext == FocusContext.LOP) XoaLop();
+            else currentSubForm?.RequestDelete();
+        }
+
+        private void XoaLop()
         {
             if (txtMaLop.Text.Trim() == "") return;
 
@@ -324,6 +576,12 @@ private void formLop_Load(object sender, EventArgs e)
         }
 
         private void btnGhi_Click(object sender, EventArgs e)
+        {
+            if (currentContext == FocusContext.LOP) GhiLop();
+            else currentSubForm?.RequestSave();
+        }
+
+        private void GhiLop()
         {
             if (!ValidateInput()) return;
 
@@ -395,6 +653,17 @@ private void formLop_Load(object sender, EventArgs e)
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
+            if (currentContext == FocusContext.LOP) PhucHoiLop();
+            else currentSubForm?.RequestCancel();
+        }
+
+        private void btnKhoiPhuc_Click(object sender, EventArgs e)
+        {
+            if (currentContext == FocusContext.SINHVIEN) currentSubForm?.RequestRestoreSV();
+        }
+
+        private void PhucHoiLop()
+        {
             isAdding = false;
 
             if (dgvLop.CurrentRow != null)
@@ -405,14 +674,25 @@ private void formLop_Load(object sender, EventArgs e)
             SetEditingState(false);
         }
 
+        // ============================================================
+        //  EVENTS
+        // ============================================================
+
         private void dgvLop_SelectionChanged(object sender, EventArgs e)
         {
-
-            if (!isAdding && dgvLop.CurrentRow != null) { LoadSubForm(dgvLop.CurrentRow.Cells["MALOP"].Value.ToString()); }
             if (dgvLop.Enabled && dgvLop.CurrentRow != null)
             {
                 LoadCurrentRowToInput();
                 SetEditingState(false);
+            }
+
+            // Load subform sinh viên theo lớp đang chọn.
+            if (!isAdding &&
+                dgvLop.CurrentRow != null &&
+                dgvLop.Columns.Contains("MALOP"))
+            {
+                string maLop = dgvLop.CurrentRow.Cells["MALOP"].Value?.ToString().Trim();
+                LoadSubForm(maLop);
             }
         }
 

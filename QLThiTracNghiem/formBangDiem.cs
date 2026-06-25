@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Windows.Forms;
@@ -10,54 +10,19 @@ namespace QLThiTracNghiem
         public formBangDiem()
         {
             InitializeComponent();
-        
-            dgvBangDiem.SelectionChanged += dgvBangDiem_SelectionChanged;
         }
 
-        
-        private Panel pnlKetQua;
-        private formXemKetQua currentSubFormBD;
-        private void SetupSubformUI() {
-            this.Height = 700;
-            SplitContainer split = new SplitContainer();
-            split.Dock = DockStyle.Fill;
-            split.Orientation = Orientation.Horizontal;
-            split.SplitterDistance = 350;
-            
-            Control[] controls = new Control[this.Controls.Count];
-            this.Controls.CopyTo(controls, 0);
-            foreach(Control c in controls) {
-                split.Panel1.Controls.Add(c);
-            }
-            this.Controls.Add(split);
-            
-            pnlKetQua = new Panel();
-            pnlKetQua.Dock = DockStyle.Fill;
-            split.Panel2.Controls.Add(pnlKetQua);
-            
-            btnXemBaiThi.Visible = false;
-        }
-
-        private void LoadSubForm(string masv, string mamh, short lan) {
-            if (currentSubFormBD != null) {
-                currentSubFormBD.Close();
-                currentSubFormBD.Dispose();
-            }
-            
-            currentSubFormBD = new formXemKetQua(masv, mamh, lan);
-            currentSubFormBD.TopLevel = false;
-            currentSubFormBD.FormBorderStyle = FormBorderStyle.None;
-            currentSubFormBD.Dock = DockStyle.Fill;
-            pnlKetQua.Controls.Add(currentSubFormBD);
-            currentSubFormBD.Show();
-        }
-private void formBangDiem_Load(object sender, EventArgs e)
+        private void formBangDiem_Load(object sender, EventArgs e)
         {
-            SetupSubformUI();
             CaiDatGrid();
             LoadDanhSachLop();
             LoadDanhSachMonHoc();
             LoadDanhSachLanThi();
+
+            if (cmbLop.Items.Count > 0 && cmbMonHoc.Items.Count > 0 && cmbLanThi.Items.Count > 0)
+            {
+                btnXem_Click(null, null);
+            }
         }
 
         private void CaiDatGrid()
@@ -86,7 +51,7 @@ private void formBangDiem_Load(object sender, EventArgs e)
                     cmbLop.DataSource = dt;
                     cmbLop.DisplayMember = "TENLOP";
                     cmbLop.ValueMember = "MALOP";
-                    cmbLop.SelectedIndex = -1;
+                    if (cmbLop.Items.Count > 0) cmbLop.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -111,7 +76,7 @@ private void formBangDiem_Load(object sender, EventArgs e)
                     cmbMonHoc.DataSource = dt;
                     cmbMonHoc.DisplayMember = "TENMH";
                     cmbMonHoc.ValueMember = "MAMH";
-                    cmbMonHoc.SelectedIndex = -1;
+                    if (cmbMonHoc.Items.Count > 0) cmbMonHoc.SelectedIndex = 0;
                 }
             }
             catch (Exception ex)
@@ -125,7 +90,7 @@ private void formBangDiem_Load(object sender, EventArgs e)
             cmbLanThi.Items.Clear();
             cmbLanThi.Items.Add("Lần 1");
             cmbLanThi.Items.Add("Lần 2");
-            cmbLanThi.SelectedIndex = -1;
+            if (cmbLanThi.Items.Count > 0) cmbLanThi.SelectedIndex = 0;
         }
 
         private bool TryGetLanThi(out int lan)
@@ -296,15 +261,5 @@ private void formBangDiem_Load(object sender, EventArgs e)
         {
             this.Close();
         }
-    
-        private void dgvBangDiem_SelectionChanged(object sender, EventArgs e) {
-            if (dgvBangDiem.CurrentRow != null && cmbMonHoc.SelectedValue != null) {
-                if (!dgvBangDiem.Columns.Contains("MASV")) return;
-                string masv = dgvBangDiem.CurrentRow.Cells["MASV"].Value?.ToString().Trim();
-                if (!string.IsNullOrWhiteSpace(masv) && TryGetLanThi(out int lan)) {
-                    LoadSubForm(masv, cmbMonHoc.SelectedValue.ToString(), (short)lan);
-                }
-            }
-        }
-}
+    }
 }

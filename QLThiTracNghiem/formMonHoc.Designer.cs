@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formMonHoc
     {
@@ -175,7 +175,7 @@
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(96, 48);
             this.btnPhucHoi.TabIndex = 13;
-            this.btnPhucHoi.Text = "Phục Hồi";
+            this.btnPhucHoi.Text = "Hoàn tác";
             this.btnPhucHoi.UseVisualStyleBackColor = true;
             this.btnPhucHoi.Click += new System.EventHandler(this.btnPhucHoi_Click);
             //

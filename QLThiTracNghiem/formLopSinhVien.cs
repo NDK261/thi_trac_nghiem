@@ -16,10 +16,40 @@ namespace QLThiTracNghiem
         bool isAdding = false; // Cờ này cho biết nút Ghi đang thêm mới hay sửa sinh viên.
         DataTable dtSinhVienGoc; // Giữ danh sách sinh viên gốc để tìm kiếm ngay trên form.
         private readonly string maLopDuocTruyen;
+        private bool embeddedMode => !this.TopLevel;
 
         public formLopSinhVien()
         {
             InitializeComponent();
+            this.Resize += formLopSinhVien_Resize;
+            WireUpFocusEvents();
+        }
+
+        // --- PUBLIC STATE FOR PARENT CONTROL ---
+        public event EventHandler SubformStateChanged;
+        public event EventHandler SubformFocusEntered;
+
+        public bool IsAdding => isAdding;
+        public bool IsEditing => isAdding || btnGhi.Enabled;
+        public bool HasData => dgvSinhVien.Rows.Count > 0;
+        public bool ViewingInactive => chkHienThiNgungHoatDong.Checked;
+        public bool HasCurrentRow => dgvSinhVien.CurrentRow != null && !dgvSinhVien.CurrentRow.IsNewRow;
+
+        private void NotifyStateChanged()
+        {
+            SubformStateChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void WireUpFocusEvents()
+        {
+            // Báo cho form cha biết người dùng đang bấm vào các control của Sinh Viên
+            dgvSinhVien.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            txtMaSV.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            txtHo.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            txtTen.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            txtDiaChi.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            dtpNgaySinh.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
+            txtTimKiem.Enter += (s, e) => SubformFocusEntered?.Invoke(this, EventArgs.Empty);
         }
 
         public formLopSinhVien(string maLop) : this()
@@ -40,6 +70,19 @@ namespace QLThiTracNghiem
             cmbTimKiem.Items.Clear();
             cmbTimKiem.Items.AddRange(new string[] { "Tất cả", "Mã SV", "Họ tên", "Ngày sinh", "Địa chỉ" });
             cmbTimKiem.SelectedIndex = 0;
+            
+            if (embeddedMode)
+            {
+                label1.Visible = false;
+                cmbLop.Visible = false;
+                btnThoat.Visible = false;
+                btnThem.Visible = false;
+                btnXoa.Visible = false;
+                btnSua.Visible = false;
+                btnGhi.Visible = false;
+                btnPhucHoi.Visible = false;
+                btnKhoiPhucSinhVien.Visible = false;
+            }
         }
 
         // Đưa form về trạng thái xem, thêm mới hoặc sửa sinh viên.
@@ -65,7 +108,9 @@ namespace QLThiTracNghiem
             btnSua.Enabled = hasCurrentRow && !viewingInactive;
             btnXoa.Enabled = hasCurrentRow && !viewingInactive;
             btnKhoiPhucSinhVien.Enabled = hasCurrentRow && viewingInactive;
-            btnThoat.Enabled = true;
+            btnThoat.Enabled = !embeddedMode; // Khi nhúng thì ẩn/khóa Thoát.
+            
+            NotifyStateChanged();
         }
 
         private void SetEditingState(bool adding)
@@ -92,6 +137,8 @@ namespace QLThiTracNghiem
             btnXoa.Enabled = false;
             btnKhoiPhucSinhVien.Enabled = false;
             btnThoat.Enabled = true;
+
+            NotifyStateChanged();
         }
 
         private void SetInputState(bool enabled)
@@ -137,6 +184,11 @@ namespace QLThiTracNghiem
         }
 
         // Mở form thì tải danh sách lớp vào ComboBox.
+        private void formLopSinhVien_Resize(object sender, EventArgs e)
+        {
+            // Removed manual resize to let WinForms Anchor handle the input fields naturally
+        }
+
         private void formLopSinhVien_Load(object sender, EventArgs e)
         {
             try
@@ -144,9 +196,11 @@ namespace QLThiTracNghiem
                 ThietLapGioiHanNhap();
 
                 DataTable dtLop = DBHelper.ExecuteDataTable("SP_GET_LOP");
-                cmbLop.DataSource = dtLop;
+                cmbLop.SelectedIndexChanged -= cmbLop_SelectedIndexChanged;
+                
                 cmbLop.DisplayMember = "TENLOP"; // Hiển thị tên lớp.
                 cmbLop.ValueMember = "MALOP";    // Truy vấn bằng mã lớp.
+                cmbLop.DataSource = dtLop;
 
                 // Vừa mở form thì chỉ xem dữ liệu.
                 if (!string.IsNullOrWhiteSpace(maLopDuocTruyen))
@@ -154,8 +208,42 @@ namespace QLThiTracNghiem
                     cmbLop.SelectedValue = maLopDuocTruyen;
                     this.Text = "Sinh viên lớp " + maLopDuocTruyen;
                 }
+                
+                cmbLop.SelectedIndexChanged += cmbLop_SelectedIndexChanged;
+                
+                if (cmbLop.SelectedValue != null)
+                {
+                    LoadSinhVien(cmbLop.SelectedValue.ToString());
+                }
 
                 SetNormalState();
+                
+                if (embeddedMode)
+                {
+                    label1.Visible = false;
+                    cmbLop.Visible = false;
+                    btnThoat.Visible = false;
+                    btnThem.Visible = false;
+                    btnXoa.Visible = false;
+                    btnSua.Visible = false;
+                    btnGhi.Visible = false;
+                    btnPhucHoi.Visible = false;
+                    btnKhoiPhucSinhVien.Visible = false;
+
+                    // Thay đổi Anchor để có thể tự thay đổi kích thước lưới khi nhúng
+                    dgvSinhVien.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+                    
+                    Action resizeGrid = () => 
+                    {
+                        if (txtMaSV != null && dgvSinhVien != null)
+                        {
+                            dgvSinhVien.Height = Math.Max(0, txtMaSV.Top - dgvSinhVien.Top - 10);
+                        }
+                    };
+
+                    this.Resize += (s, ev) => resizeGrid();
+                    resizeGrid(); // Gọi ngay lần đầu
+                }
             }
             catch (Exception ex)
             {
@@ -406,6 +494,7 @@ namespace QLThiTracNghiem
         {
             if (cmbLop.SelectedValue != null)
                 LoadSinhVien(cmbLop.SelectedValue.ToString());
+            NotifyStateChanged();
         }
 
         private void dgvSinhVien_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -414,8 +503,17 @@ namespace QLThiTracNghiem
             {
                 LoadCurrentRowToInput();
                 SetNormalState();
+                NotifyStateChanged();
             }
         }
+        
+        // --- PUBLIC CRUD METHODS FOR PARENT FORM ---
+        public void RequestAdd() => btnThem_Click(null, EventArgs.Empty);
+        public void RequestEdit() => btnSua_Click(null, EventArgs.Empty);
+        public void RequestDelete() => btnXoa_Click(null, EventArgs.Empty);
+        public void RequestSave() => btnGhi_Click(null, EventArgs.Empty);
+        public void RequestCancel() => btnPhucHoi_Click(null, EventArgs.Empty);
+        public void RequestRestoreSV() => btnKhoiPhucSinhVien_Click(null, EventArgs.Empty);
 
         private void btnThem_Click(object sender, EventArgs e)
         {
@@ -639,9 +737,11 @@ namespace QLThiTracNghiem
 
         private void btnPhucHoi_Click(object sender, EventArgs e)
         {
-            // Phục hồi chỉ bỏ dữ liệu đang nhập dở và tải lại dữ liệu.
-            if (cmbLop.SelectedValue != null)
-                LoadSinhVien(cmbLop.SelectedValue.ToString());
+            isAdding = false;
+            if (dgvSinhVien.CurrentRow != null)
+                LoadCurrentRowToInput();
+            else
+                ClearInput();
 
             SetNormalState();
         }

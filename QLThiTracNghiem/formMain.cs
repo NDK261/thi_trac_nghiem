@@ -281,12 +281,12 @@ namespace QLThiTracNghiem
             shortcutItems.Add(new ShortcutItem("Môn học", mônHọcToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Giáo viên", giáoViênToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Lớp", lớpToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Sinh viên", sinhViênToolStripMenuItem));
+            //shortcutItems.Add(new ShortcutItem("Sinh viên", sinhViênToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Bộ đề", bộĐềToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Đăng ký thi", đăngKíThiToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Thi", thiToolStripMenuItem));
             shortcutItems.Add(new ShortcutItem("Bảng điểm", bảngĐiểmToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Xem kết quả", xemKetQuaToolStripMenuItem));
+            //shortcutItems.Add(new ShortcutItem("Xem kết quả", xemKetQuaToolStripMenuItem));
         }
 
         private void UpdateDashboard()

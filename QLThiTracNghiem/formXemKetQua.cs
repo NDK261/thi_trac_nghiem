@@ -19,17 +19,9 @@ namespace QLThiTracNghiem
             InitializeCustomControls();
         }
 
-        private System.Windows.Forms.Button btnIn;
+        // Đã chuyển btnIn sang Designer
         private void InitializeCustomControls()
         {
-            this.btnIn = new System.Windows.Forms.Button();
-            this.btnIn.Location = new System.Drawing.Point(530, 17);
-            this.btnIn.Name = "btnIn";
-            this.btnIn.Size = new System.Drawing.Size(100, 30);
-            this.btnIn.Text = "In Báo Cáo";
-            this.btnIn.UseVisualStyleBackColor = true;
-            this.btnIn.Click += new System.EventHandler(this.btnIn_Click);
-            this.Controls.Add(this.btnIn);
         }
 
         private void btnIn_Click(object sender, EventArgs e)

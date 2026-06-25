@@ -294,15 +294,15 @@ namespace QLThiTracNghiem
 
                 // Tải lớp cho ComboBox.
                 DataTable dtLop = DBHelper.ExecuteDataTable("SP_GET_LOP");
-                cmbLop.DataSource = dtLop;
                 cmbLop.DisplayMember = "TENLOP";
                 cmbLop.ValueMember = "MALOP";
+                cmbLop.DataSource = dtLop;
 
                 // Tải môn học cho ComboBox.
                 DataTable dtMon = DBHelper.ExecuteDataTable("SP_GET_MONHOC");
-                cmbMonHoc.DataSource = dtMon;
                 cmbMonHoc.DisplayMember = "TENMH";
                 cmbMonHoc.ValueMember = "MAMH";
+                cmbMonHoc.DataSource = dtMon;
 
                 // Giá trị cố định theo đề: trình độ A/B/C, lần thi 1/2.
                 cmbTrinhDo.Items.AddRange(new string[] { "A", "B", "C" });

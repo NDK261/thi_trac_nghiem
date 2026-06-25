@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formGiaoVien
     {
@@ -94,7 +94,7 @@
             this.btnPhucHoi.Name = "btnPhucHoi";
             this.btnPhucHoi.Size = new System.Drawing.Size(93, 46);
             this.btnPhucHoi.TabIndex = 30;
-            this.btnPhucHoi.Text = "Phục hồi";
+            this.btnPhucHoi.Text = "Hoàn tác";
             this.btnPhucHoi.UseVisualStyleBackColor = true;
             this.btnPhucHoi.Click += new System.EventHandler(this.btnPhucHoi_Click);
             //

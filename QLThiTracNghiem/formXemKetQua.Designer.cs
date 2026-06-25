@@ -18,6 +18,7 @@ namespace QLThiTracNghiem
             this.lblKyThi = new System.Windows.Forms.Label();
             this.cmbKyThi = new System.Windows.Forms.ComboBox();
             this.btnXem = new System.Windows.Forms.Button();
+            this.btnIn = new System.Windows.Forms.Button();
             this.lblMaSV = new System.Windows.Forms.Label();
             this.lblMaSVValue = new System.Windows.Forms.Label();
             this.lblHoTen = new System.Windows.Forms.Label();
@@ -57,13 +58,23 @@ namespace QLThiTracNghiem
             // 
             // btnXem
             // 
-            this.btnXem.Location = new System.Drawing.Point(426, 17);
+            this.btnXem.Location = new System.Drawing.Point(426, 15);
             this.btnXem.Name = "btnXem";
             this.btnXem.Size = new System.Drawing.Size(89, 30);
             this.btnXem.TabIndex = 2;
             this.btnXem.Text = "Xem";
             this.btnXem.UseVisualStyleBackColor = true;
             this.btnXem.Click += new System.EventHandler(this.btnXem_Click);
+            // 
+            // btnIn
+            // 
+            this.btnIn.Location = new System.Drawing.Point(525, 15);
+            this.btnIn.Name = "btnIn";
+            this.btnIn.Size = new System.Drawing.Size(100, 30);
+            this.btnIn.TabIndex = 20;
+            this.btnIn.Text = "In Báo Cáo";
+            this.btnIn.UseVisualStyleBackColor = true;
+            this.btnIn.Click += new System.EventHandler(this.btnIn_Click);
             // 
             // lblMaSV
             // 
@@ -238,6 +249,7 @@ namespace QLThiTracNghiem
             this.Controls.Add(this.lblHoTen);
             this.Controls.Add(this.lblMaSVValue);
             this.Controls.Add(this.lblMaSV);
+            this.Controls.Add(this.btnIn);
             this.Controls.Add(this.btnXem);
             this.Controls.Add(this.cmbKyThi);
             this.Controls.Add(this.lblKyThi);
@@ -255,6 +267,7 @@ namespace QLThiTracNghiem
         private System.Windows.Forms.Label lblKyThi;
         private System.Windows.Forms.ComboBox cmbKyThi;
         private System.Windows.Forms.Button btnXem;
+        private System.Windows.Forms.Button btnIn;
         private System.Windows.Forms.Label lblMaSV;
         private System.Windows.Forms.Label lblMaSVValue;
         private System.Windows.Forms.Label lblHoTen;

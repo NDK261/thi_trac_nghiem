@@ -1,4 +1,4 @@
-﻿namespace QLThiTracNghiem
+namespace QLThiTracNghiem
 {
     partial class formDangKyThi
     {
@@ -272,9 +272,9 @@
             this.btnPhucHoi.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnPhucHoi.Location = new System.Drawing.Point(672, 480);
             this.btnPhucHoi.Name = "btnPhucHoi";
-            this.btnPhucHoi.Size = new System.Drawing.Size(92, 37);
-            this.btnPhucHoi.TabIndex = 23;
-            this.btnPhucHoi.Text = "Phục Hồi";
+            this.btnPhucHoi.Size = new System.Drawing.Size(109, 40);
+            this.btnPhucHoi.TabIndex = 22;
+            this.btnPhucHoi.Text = "Hoàn tác";
             this.btnPhucHoi.UseVisualStyleBackColor = true;
             this.btnPhucHoi.Click += new System.EventHandler(this.btnPhucHoi_Click);
             //
