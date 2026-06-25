@@ -140,19 +140,11 @@ BEGIN
           DK.LAN = 1 
           OR (
               DK.LAN = 2 
-              AND (
-                  NOT EXISTS (
-                      SELECT 1 FROM GIAOVIEN_DANGKY DK1 
-                      WHERE DK1.MALOP = DK.MALOP 
-                        AND DK1.MAMH = DK.MAMH 
-                        AND DK1.LAN = 1
-                  )
-                  OR EXISTS (
-                      SELECT 1 FROM BANGDIEM BD1 
-                      WHERE BD1.MASV = @MASV 
-                        AND BD1.MAMH = DK.MAMH 
-                        AND BD1.LAN = 1
-                  )
+              AND EXISTS (
+                  SELECT 1 FROM BANGDIEM BD1 
+                  WHERE BD1.MASV = @MASV 
+                    AND BD1.MAMH = DK.MAMH 
+                    AND BD1.LAN = 1
               )
           )
       )
