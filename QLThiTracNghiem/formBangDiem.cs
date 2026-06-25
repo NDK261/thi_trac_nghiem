@@ -18,7 +18,6 @@ namespace QLThiTracNghiem
         private Panel pnlKetQua;
         private formXemKetQua currentSubFormBD;
         private void SetupSubformUI() {
-            SetupSubformUI();
             this.Height = 700;
             SplitContainer split = new SplitContainer();
             split.Dock = DockStyle.Fill;
@@ -54,6 +53,7 @@ namespace QLThiTracNghiem
         }
 private void formBangDiem_Load(object sender, EventArgs e)
         {
+            SetupSubformUI();
             CaiDatGrid();
             LoadDanhSachLop();
             LoadDanhSachMonHoc();

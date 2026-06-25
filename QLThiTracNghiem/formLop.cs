@@ -24,7 +24,6 @@ namespace QLThiTracNghiem
         private Panel pnlSinhVien;
         private formLopSinhVien currentSubForm;
         private void SetupSubformUI() {
-            SetupSubformUI();
             this.Height = 700;
             SplitContainer split = new SplitContainer();
             split.Dock = DockStyle.Fill;
@@ -61,6 +60,7 @@ namespace QLThiTracNghiem
         }
 private void formLop_Load(object sender, EventArgs e)
         {
+            SetupSubformUI();
             LoadData();
             SetEditingState(false);
         }
