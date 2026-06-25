@@ -71,6 +71,11 @@ namespace QLThiTracNghiem
                 else
                     MessageBox.Show("Không tìm thấy kỳ thi tương ứng của sinh viên này.", "Thông báo");
             }
+            else if (dtKyThi != null && dtKyThi.Rows.Count > 0)
+            {
+                // Mở form bình thường -> tự động hiển thị kết quả của môn đầu tiên trong danh sách
+                btnXem_Click(this, EventArgs.Empty);
+            }
         }
 
         private void CaiDatGrid()
@@ -133,6 +138,9 @@ namespace QLThiTracNghiem
                     cmbKyThi.DataSource = dtKyThi;
                     cmbKyThi.DisplayMember = "HIENTHI";
                     cmbKyThi.ValueMember = "MAMH";
+                    
+                    // Gắn sự kiện để tự động load kết quả ngay khi form mở hoặc khi chọn môn khác
+                    cmbKyThi.SelectedIndexChanged += cmbKyThi_SelectedIndexChanged;
                     cmbKyThi.SelectedIndex = 0;
                 }
             }
@@ -242,6 +250,14 @@ namespace QLThiTracNghiem
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi xem kết quả: " + ex.Message, "Báo lỗi");
+            }
+        }
+
+        private void cmbKyThi_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cmbKyThi.SelectedIndex >= 0)
+            {
+                btnXem_Click(sender, e);
             }
         }
 

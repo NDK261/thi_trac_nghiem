@@ -87,26 +87,26 @@ namespace QLThiTracNghiem
                 mônHọcToolStripMenuItem.Enabled = true;
                 giáoViênToolStripMenuItem.Enabled = true;
                 lớpToolStripMenuItem.Enabled = true;
-                sinhViênToolStripMenuItem.Enabled = true;
+                // sinhViênToolStripMenuItem.Enabled = false; // Bị thay thế bởi subform Lớp
 
                 bộĐềToolStripMenuItem.Enabled = true;
                 đăngKíThiToolStripMenuItem.Enabled = true;
 
-                xemKetQuaToolStripMenuItem.Enabled = true;
+                // xemKetQuaToolStripMenuItem.Enabled = false; // Bị thay thế bởi subform Bảng Điểm
                 bảngĐiểmToolStripMenuItem.Enabled = true;
             }
             else if (nhom == "GIANGVIEN")
             {
                 bộĐềToolStripMenuItem.Enabled = true;
                 đăngKíThiToolStripMenuItem.Enabled = true;
-                xemKetQuaToolStripMenuItem.Enabled = true;
+                // xemKetQuaToolStripMenuItem.Enabled = false; // Bị thay thế bởi subform Bảng Điểm
                 bảngĐiểmToolStripMenuItem.Enabled = true;
                 thiToolStripMenuItem.Enabled = true;
             }
             else if (nhom == "SINHVIEN")
             {
                 thiToolStripMenuItem.Enabled = true;
-                xemKetQuaToolStripMenuItem.Enabled = true;
+                xemKetQuaToolStripMenuItem.Enabled = true; // Sinh viên BẮT BUỘC phải có Xem kết quả
             }
 
             this.Text = $"HỆ THỐNG THI TRẮC NGHIỆM - Đang đăng nhập: {Program.mHoTen} ({nhom})";
@@ -277,16 +277,16 @@ namespace QLThiTracNghiem
                 Margin = new Padding(0)
             };
 
-            shortcutItems.Add(new ShortcutItem("Tạo tài khoản", tạoTàiKhoảnToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Môn học", mônHọcToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Giáo viên", giáoViênToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Lớp", lớpToolStripMenuItem));
-            //shortcutItems.Add(new ShortcutItem("Sinh viên", sinhViênToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Bộ đề", bộĐềToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Đăng ký thi", đăngKíThiToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Thi", thiToolStripMenuItem));
-            shortcutItems.Add(new ShortcutItem("Bảng điểm", bảngĐiểmToolStripMenuItem));
-            //shortcutItems.Add(new ShortcutItem("Xem kết quả", xemKetQuaToolStripMenuItem));
+            shortcutItems.Add(new ShortcutItem("Tạo tài khoản", tạoTàiKhoảnToolStripMenuItem, () => tạoTàiKhoảnToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Môn học", mônHọcToolStripMenuItem, () => mônHọcToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Giáo viên", giáoViênToolStripMenuItem, () => giáoviênToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Lớp", lớpToolStripMenuItem, () => lớpToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Sinh viên", sinhViênToolStripMenuItem, () => sinhViênToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Bộ đề", bộĐềToolStripMenuItem, () => bộĐềToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Đăng ký thi", đăngKíThiToolStripMenuItem, () => đăngKíThiToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Thi", thiToolStripMenuItem, () => thiToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Bảng điểm", bảngĐiểmToolStripMenuItem, () => bảngĐiểmToolStripMenuItem_Click(this, EventArgs.Empty)));
+            shortcutItems.Add(new ShortcutItem("Xem kết quả", xemKetQuaToolStripMenuItem, () => xemKetQuaToolStripMenuItem_Click(this, EventArgs.Empty)));
         }
 
         private void UpdateDashboard()
@@ -308,7 +308,7 @@ namespace QLThiTracNghiem
             foreach (ShortcutItem item in shortcutItems)
             {
                 if (item.MenuItem.Enabled)
-                    shortcutPanel.Controls.Add(CreateShortcutButton(item.Text, item.MenuItem));
+                    shortcutPanel.Controls.Add(CreateShortcutButton(item.Text, item.MenuItem, item.OnClick));
             }
         }
 
@@ -367,7 +367,7 @@ namespace QLThiTracNghiem
             return card;
         }
 
-        private Button CreateShortcutButton(string text, ToolStripMenuItem menuItem)
+        private Button CreateShortcutButton(string text, ToolStripMenuItem menuItem, Action onClick)
         {
             Button button = new Button
             {
@@ -386,7 +386,7 @@ namespace QLThiTracNghiem
             button.FlatAppearance.BorderSize = 1;
             button.FlatAppearance.MouseOverBackColor = Color.FromArgb(255, 242, 243);
             button.FlatAppearance.MouseDownBackColor = Color.FromArgb(245, 222, 225);
-            button.Click += (sender, e) => menuItem.PerformClick();
+            button.Click += (sender, e) => onClick?.Invoke();
             return button;
         }
 
@@ -491,14 +491,16 @@ namespace QLThiTracNghiem
 
         private sealed class ShortcutItem
         {
-            public ShortcutItem(string text, ToolStripMenuItem menuItem)
+            public ShortcutItem(string text, ToolStripMenuItem menuItem, Action onClick)
             {
                 Text = text;
                 MenuItem = menuItem;
+                OnClick = onClick;
             }
 
             public string Text { get; }
             public ToolStripMenuItem MenuItem { get; }
+            public Action OnClick { get; }
         }
     }
 
