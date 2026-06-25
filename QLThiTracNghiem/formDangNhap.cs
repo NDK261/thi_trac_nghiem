@@ -210,7 +210,8 @@ namespace QLThiTracNghiem
                                 Program.mHoTen = reader["HOTEN"].ToString();
                                 Program.mGroup = reader["TENNHOM"].ToString();
 
-                                MessageBox.Show($"Đăng nhập thành công!\nXin chào {Program.mGroup}: {Program.mHoTen}", "Thông báo");
+                                // Đã tắt thông báo theo yêu cầu để đăng nhập thẳng vào main
+                                // MessageBox.Show($"Đăng nhập thành công!\nXin chào {Program.mGroup}: {Program.mHoTen}", "Thông báo");
 
                                 formMain fMain = new formMain();
                                 this.Hide();
