@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -20,7 +20,46 @@ namespace QLThiTracNghiem
             textTimKiem.TextChanged += textTimKiem_TextChanged;
         }
 
-        private void formLop_Load(object sender, EventArgs e)
+        
+        private Panel pnlSinhVien;
+        private formLopSinhVien currentSubForm;
+        private void SetupSubformUI() {
+            SetupSubformUI();
+            this.Height = 700;
+            SplitContainer split = new SplitContainer();
+            split.Dock = DockStyle.Fill;
+            split.Orientation = Orientation.Horizontal;
+            split.SplitterDistance = 350;
+            
+            Control[] controls = new Control[this.Controls.Count];
+            this.Controls.CopyTo(controls, 0);
+            foreach(Control c in controls) {
+                split.Panel1.Controls.Add(c);
+            }
+            this.Controls.Add(split);
+            
+            pnlSinhVien = new Panel();
+            pnlSinhVien.Dock = DockStyle.Fill;
+            split.Panel2.Controls.Add(pnlSinhVien);
+            
+            btnDSSinhVien.Visible = false;
+        }
+
+        private void LoadSubForm(string maLop) {
+            if (currentSubForm != null) {
+                currentSubForm.Close();
+                currentSubForm.Dispose();
+            }
+            if (string.IsNullOrEmpty(maLop)) return;
+            
+            currentSubForm = new formLopSinhVien(maLop);
+            currentSubForm.TopLevel = false;
+            currentSubForm.FormBorderStyle = FormBorderStyle.None;
+            currentSubForm.Dock = DockStyle.Fill;
+            pnlSinhVien.Controls.Add(currentSubForm);
+            currentSubForm.Show();
+        }
+private void formLop_Load(object sender, EventArgs e)
         {
             LoadData();
             SetEditingState(false);
@@ -368,6 +407,8 @@ namespace QLThiTracNghiem
 
         private void dgvLop_SelectionChanged(object sender, EventArgs e)
         {
+
+            if (!isAdding && dgvLop.CurrentRow != null) { LoadSubForm(dgvLop.CurrentRow.Cells["MALOP"].Value.ToString()); }
             if (dgvLop.Enabled && dgvLop.CurrentRow != null)
             {
                 LoadCurrentRowToInput();

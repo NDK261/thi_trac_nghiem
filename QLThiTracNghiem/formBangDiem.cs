@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Windows.Forms;
@@ -10,9 +10,49 @@ namespace QLThiTracNghiem
         public formBangDiem()
         {
             InitializeComponent();
+        
+            dgvBangDiem.SelectionChanged += dgvBangDiem_SelectionChanged;
         }
 
-        private void formBangDiem_Load(object sender, EventArgs e)
+        
+        private Panel pnlKetQua;
+        private formXemKetQua currentSubFormBD;
+        private void SetupSubformUI() {
+            SetupSubformUI();
+            this.Height = 700;
+            SplitContainer split = new SplitContainer();
+            split.Dock = DockStyle.Fill;
+            split.Orientation = Orientation.Horizontal;
+            split.SplitterDistance = 350;
+            
+            Control[] controls = new Control[this.Controls.Count];
+            this.Controls.CopyTo(controls, 0);
+            foreach(Control c in controls) {
+                split.Panel1.Controls.Add(c);
+            }
+            this.Controls.Add(split);
+            
+            pnlKetQua = new Panel();
+            pnlKetQua.Dock = DockStyle.Fill;
+            split.Panel2.Controls.Add(pnlKetQua);
+            
+            btnXemBaiThi.Visible = false;
+        }
+
+        private void LoadSubForm(string masv, string mamh, short lan) {
+            if (currentSubFormBD != null) {
+                currentSubFormBD.Close();
+                currentSubFormBD.Dispose();
+            }
+            
+            currentSubFormBD = new formXemKetQua(masv, mamh, lan);
+            currentSubFormBD.TopLevel = false;
+            currentSubFormBD.FormBorderStyle = FormBorderStyle.None;
+            currentSubFormBD.Dock = DockStyle.Fill;
+            pnlKetQua.Controls.Add(currentSubFormBD);
+            currentSubFormBD.Show();
+        }
+private void formBangDiem_Load(object sender, EventArgs e)
         {
             CaiDatGrid();
             LoadDanhSachLop();
@@ -256,5 +296,15 @@ namespace QLThiTracNghiem
         {
             this.Close();
         }
-    }
+    
+        private void dgvBangDiem_SelectionChanged(object sender, EventArgs e) {
+            if (dgvBangDiem.CurrentRow != null && cmbMonHoc.SelectedValue != null) {
+                if (!dgvBangDiem.Columns.Contains("MASV")) return;
+                string masv = dgvBangDiem.CurrentRow.Cells["MASV"].Value?.ToString().Trim();
+                if (!string.IsNullOrWhiteSpace(masv) && TryGetLanThi(out int lan)) {
+                    LoadSubForm(masv, cmbMonHoc.SelectedValue.ToString(), (short)lan);
+                }
+            }
+        }
+}
 }
